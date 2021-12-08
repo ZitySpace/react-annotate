@@ -1,10 +1,14 @@
 import React from 'react'
 
-import { ExampleComponent } from 'react-annotate-image'
+import { ImageAnnotater } from 'react-annotate-image'
 import 'react-annotate-image/dist/index.css'
 
 const App = () => {
-  return <ExampleComponent text="Create React Library Example 😄" />
+  return (
+    <div className='h-screen w-screen'>
+      <ImageAnnotater />
+    </div>
+  )
 }
 
 export default App
