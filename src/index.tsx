@@ -1,165 +1,428 @@
-/* eslint-disable camelcase */
+/* eslint-disable no-unused-vars */
 import * as React from 'react'
 import { fabric } from 'fabric'
-import Draggable from 'react-draggable'
-// import { PinchGesture } from '@use-gesture/vanilla'
+import { useEffect, useRef, useState } from 'react'
+import { Point, RectLabel, PointLabel } from './interface/annotations'
+import { Focus, ImageObject } from './interface/shape'
+
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
-  ChevronDownIcon,
-  ChevronUpIcon,
+  // ChevronDownIcon,
+  // ChevronUpIcon,
   XIcon,
-  MenuAlt2Icon,
-  MenuAlt3Icon,
-  MenuAlt4Icon,
-  MenuIcon,
+  // MenuAlt2Icon,
+  // MenuAlt3Icon,
+  // MenuAlt4Icon,
+  // MenuIcon,
   TrashIcon,
   ReplyIcon,
-  CheckIcon,
-  RefreshIcon,
-  PencilIcon,
-  CogIcon,
-  TagIcon,
-  HandIcon
+  // CheckIcon,
+  RefreshIcon
+  // CogIcon,
+  // TagIcon,
+  // HandIcon
 } from '@heroicons/react/solid'
-import { useRef, useState } from 'react'
-import { HeavyFloppyIcon } from './components/icons'
+import {
+  HeavyFloppyIcon,
+  LineIcon,
+  PointIcon,
+  RectangleIcon
+} from './components/icons'
+import { isTouchEvt } from './utils/mouse'
+import { getBetween } from './utils/math'
+import {
+  getAllCategoryNames,
+  getRandomColors,
+  parseCategorysAndColors
+} from './utils/categorys&colors'
 
-// TODO: mock data remove
-import { canvasCtxMock, projectMock } from './mockdata'
-import { ImageObject } from './interface'
+export const ImageAnnotater = ({
+  imagesList,
+  index,
+  colors,
+  onPrevious,
+  onNext,
+  onClose,
+  isAnnotationsVisible = true
+}: {
+  imagesList: any[]
+  index: number
+  colors?: string[]
+  onPrevious?: Function
+  onNext?: Function
+  onClose?: Function
+  isAnnotationsVisible?: boolean
+}) => {
+  // Handle inputs with old shape
+  // TODO: remove
+  imagesList = imagesList.map((img) => {
+    return {
+      ...img,
+      annotations: img.annotations.map((anno: any, id: number) => {
+        const { x, y, w, h, category } = anno
+        return new RectLabel({ x, y, w, h, id, categoryName: category })
+      })
+    }
+  })
 
-type canvasStateType = {
-  x: number
-  y: number
-  w: number
-  h: number
-  category: string
-  unique_hash_z: string
-  text_id: string
-  timestamp_z: string
-}[]
-
-// enum CoordsType {
-//   CANVAS = 'CANVAS',
-//   IMG = 'IMG'
-// }
-
-export const ImageAnnotater = ({ imageObj }: { imageObj: any }) => {
-  console.log(imageObj)
-  const imgObj: ImageObject = {
-    fileName: imageObj.file_name,
-    fileSize: imageObj.file_size,
-    imageWidth: imageObj.image_width,
-    imageHeight: imageObj.image_height,
-    annotations: imageObj.annotations,
-    blobUrl: imageObj.blobSrc
+  /** Config **/
+  const strokeWidth = 1.5
+  const radius = 3
+  const isTouchScreen =
+    'ontouchstart' in window ||
+    (navigator as any).maxTouchPoints > 0 ||
+    (navigator as any).msMaxTouchPoints > 0
+  const newCategoryName = 'new_category'
+  const rectDefaultConfig = {
+    lockRotation: true,
+    fill: 'rgba(255,0,0,0)',
+    strokeWidth: strokeWidth,
+    noScaleCache: false,
+    strokeUniform: true,
+    hasBorders: false,
+    hasControls: true,
+    hasRotatingPoint: false,
+    cornerSize: 8,
+    transparentCorners: false,
+    perPixelTargetFind: true,
+    selectable: !isTouchScreen
   }
-  console.log(imgObj)
+  const textboxDefaultConfig = {
+    fill: 'rgba(0,0,0,1)',
+    selectable: false,
+    hoverCursor: 'default'
+  }
+  const pointDefaultConfig = {
+    strokeWidth: strokeWidth,
+    fill: 'rgba(255,0,0,0)',
+    hasControls: false,
+    hasBorders: false,
+    hasRotatingPoint: false,
+    selectable: !isTouchScreen
+  }
 
-  // ref
+  /** Handle inputs **/
+  const [imgObj, setImgObj] = useState<ImageObject>(imagesList[index])
+  const indexR = useRef<number>(index)
+  const categoryNames = getAllCategoryNames(
+    imagesList.map((image) => image.annotations)
+  )
+
+  const { categoryColors, extendsColors } = parseCategorysAndColors(
+    categoryNames,
+    colors || []
+  )
+
+  // Actions status
+  const [can, setCan] = useState({
+    undo: false,
+    redo: false,
+    reset: false,
+    save: false
+  })
+
+  // Concerned attributes of annotations
+  const [focus, _setFocus] = useState<Focus>({
+    isDrawing: null,
+    annoType: null,
+    categoryName: null,
+    objectId: null
+  })
+  const setFocus = (data: Focus) => {
+    _setFocus({ ...focus, ...data })
+  }
+
+  // React Element References
   const imgElRef = useRef(null)
   const canvasElRef = useRef(null)
-  const canvasRef = useRef<fabric.Canvas | null>(null)
-  const stateStackRef = useRef<canvasStateType[]>([])
-  const ptrInStackRef = useRef(0)
 
-  const xoffset = useRef<number>(0)
-  const yoffset = useRef<number>(0)
-  const xscale = useRef<number>(1)
-  const yscale = useRef<number>(1)
+  // References as Variables for long life cycle, end with R
+  const canvasR = useRef<fabric.Canvas | null>(null)
+  const offsetR = useRef<Point>({ x: 0, y: 0 }) // Image object edge offset to canvas edge
+  const scaleR = useRef<number>(1) // Scale of image in canvas to originael
+  const stateStackR = useRef<(RectLabel | PointLabel)[][]>([]) // states stack
+  const pointerOfStateStackR = useRef<number>(0) // and its right-offseted pointer
 
   // for zoom/pan/drag
-  // const isPanning = useRef(false)
-  // const lastPosX = useRef(0)
-  // const lastPosY = useRef(0)
+  const isPanningR = useRef<boolean>(false)
+  const lastPositionR = useRef<Point>({ x: 0, y: 0 })
   // const pinchGesture = useRef<PinchGesture | null>(null)
 
-  // context
-  const [canvasCtx] = useState(canvasCtxMock)
-  const isDrawingRef = useRef(false)
-  isDrawingRef.current = canvasCtx.isDrawing
+  // for drawing
+  const isDrawingR = useRef<string | null>(null)
+  isDrawingR.current = focus.isDrawing!
+  const drawingStartedR = useRef(false)
+  const onDrawObjR = useRef<fabric.Object | null>(null)
+  const originPositionR = useRef<Point>({ x: 0, y: 0 })
+  const focusCategoryR = useRef<string | null>(null)
+  focusCategoryR.current = focus.categoryName as string
+  const categoryColorsR = useRef(categoryColors)
 
-  // state
-  const [showCateEditBar, setShowCateEditBar] = useState(false)
-  const [showCateListBar, setShowCateListBar] = useState(false)
-  const [cateCandid, setCateCandid] = useState<string>('')
-  const [selBarFoldingState, setSelBarFoldingState] = useState(0)
-  const cycleSelBarFoldingState = () => {
-    setSelBarFoldingState((selBarFoldingState + 1) % 4)
+  /** Methods **/
+  /**
+   * update actions status if state stack or its pointer changes
+   */
+  const updateActionStatus = () => {
+    setCan({
+      undo: pointerOfStateStackR.current > 1,
+      redo: pointerOfStateStackR.current < stateStackR.current.length,
+      reset: stateStackR.current.length > 1,
+      save:
+        pointerOfStateStackR.current > 1 ||
+        pointerOfStateStackR.current < stateStackR.current.length
+    })
   }
 
-  const [canUndo] = useState(false)
-  const [canRedo] = useState(false)
-  const [canReset] = useState(false)
-
-  const abbr = (s: string, n: number) =>
-    s.slice(0, n) + (s.length > n ? '...' : '')
-
-  const { categories, colors } = projectMock
-
-  const newCategoryName = '_catX'
-  colors[newCategoryName] = 'rgba(255,255,255,0.4)'
-
-  interface groupedAnnotationsType {
-    [key: string]: any
+  /**
+   * Determine whether it is concerned by the user.
+   * @param categoryName object's category name
+   * @param id object's id
+   * @returns boolean-is it the target which users focus
+   */
+  const isFocused = (
+    categoryName: string | null,
+    id: number,
+    isText: boolean = false
+  ) => {
+    return (
+      !focus.isDrawing &&
+      (focus.categoryName === null ||
+        (focus.categoryName === categoryName &&
+          (focus.objectId === null || (focus.objectId === id && !isText))))
+    )
   }
-  const groupedAnnotations: groupedAnnotationsType = imgObj.annotations
-    ? imgObj.annotations.reduce((ret: any, anno: any) => {
-        ret[anno.category]
-          ? ret[anno.category].push(anno)
-          : (ret[anno.category] = [anno])
-        return ret
-      }, {})
-    : {}
 
+  /**
+   * Draw objects from state
+   * @param state canvas existed annotations in history
+   */
+  const drawObjectsFromState = (
+    state: (RectLabel | PointLabel)[],
+    forceVisable: boolean = false
+  ) => {
+    // TODO: remove this part
+    console.log('Draw objects from state', state) // hint
+    // console.log(offsetR.current)
+
+    const canvas = canvasR.current
+    if (!canvas) return
+
+    state.forEach((anno: RectLabel | PointLabel) => {
+      if (anno.type === 'Rect') {
+        const { x, y, w, h, categoryName, id } = anno
+        const isVisible =
+          forceVisable || (isAnnotationsVisible && isFocused(categoryName, id))
+
+        const rect = new fabric.Rect({
+          ...rectDefaultConfig,
+          left: x,
+          top: y,
+          width: w,
+          height: h,
+          visible: isVisible,
+          stroke: categoryColorsR.current[categoryName!]
+        })
+
+        rect.setOptions({ id, categoryName, labelType: 'Rect' })
+        rect.setControlsVisibility({ mtr: false })
+
+        const textbox = new fabric.Textbox(id.toString(), {
+          ...textboxDefaultConfig,
+          left: x + 1,
+          top: y,
+          backgroundColor: categoryColorsR.current[categoryName!],
+          visible: isVisible,
+          fontSize: Math.min(14, w / 2, h / 2)
+        })
+        textbox.setOptions({ id, categoryName, labelType: 'Rect' })
+
+        canvas.add(rect, textbox)
+      } else if (anno.type === 'Point') {
+        const { x, y, categoryName, id } = anno
+        const isVisible =
+          forceVisable || (isAnnotationsVisible && isFocused(categoryName, id))
+
+        const point = new fabric.Circle({
+          ...pointDefaultConfig,
+          left: x,
+          top: y,
+          radius: radius,
+          stroke: categoryColorsR.current[categoryName!],
+          visible: isVisible
+        })
+        point.setOptions({ id, categoryName, labelType: 'Point' })
+        point.setControlsVisibility({ mtr: false })
+
+        const textbox = new fabric.Textbox(id.toString(), {
+          ...textboxDefaultConfig,
+          left: x + radius * 3 - (strokeWidth * 3) / 2,
+          top: y - radius - strokeWidth / 2,
+          backgroundColor: categoryColorsR.current[categoryName!],
+          fontSize: radius * 1.5
+        })
+        textbox.setOptions({ id, categoryName, labelType: 'Point' })
+
+        canvas.add(point, textbox)
+      }
+    })
+
+    canvas.renderAll()
+  }
+
+  const drawStartFromCursor = (event: fabric.IEvent) => {
+    const canvas = canvasR.current
+    if (!canvas) return
+
+    const { x, y } = canvas.getPointer(event.e)
+    originPositionR.current = { x, y }
+
+    // Calculate id、category and its color
+    const categoryName = focusCategoryR.current || newCategoryName
+    const id =
+      Math.max(
+        -1,
+        ...stateStackR.current[pointerOfStateStackR.current - 1].map(
+          (anno) => anno.id
+        )
+      ) + 1
+    const allColors = Object.values(categoryColorsR.current)
+    categoryColorsR.current[categoryName] =
+      categoryColorsR.current[categoryName] ||
+      extendsColors.filter((color) => !allColors.includes(color))[0] ||
+      getRandomColors().filter((color) => !allColors.includes(color))[0] // if category's color is not existed, choice one from extends or random one.
+    const color = categoryColorsR.current[categoryName]
+
+    // TODO: remove this part after finished debug
+    // console.log(Object.keys(categoryColorsR.current))
+
+    if (isDrawingR.current === 'Rect') {
+      // start to draw a rectangle and its text
+      const rect = new fabric.Rect({
+        ...rectDefaultConfig,
+        left: x - strokeWidth / 2,
+        top: y - strokeWidth / 2,
+        width: 0,
+        height: 0,
+        stroke: color
+      })
+      rect.setOptions({ id, categoryName, labelType: 'Rect' })
+      rect.setControlsVisibility({ mtr: false })
+
+      const textbox = new fabric.Textbox(id.toString(), {
+        ...textboxDefaultConfig,
+        left: x - strokeWidth / 2 + 1,
+        top: y - strokeWidth / 2,
+        backgroundColor: color,
+        visible: false
+        // fontSize: 0
+      })
+      textbox.setOptions({ id, categoryName, labelType: 'Rect' })
+
+      canvas.add(rect, textbox)
+      onDrawObjR.current = rect
+      drawingStartedR.current = true
+    } else if (isDrawingR.current === 'Point') {
+      const point = new fabric.Circle({
+        ...pointDefaultConfig,
+        left: x - radius - strokeWidth / 2,
+        top: y - radius - strokeWidth / 2,
+        radius: radius,
+        stroke: color
+      })
+      point.setOptions({ id, categoryName, labelType: 'Point' })
+      point.setControlsVisibility({ mtr: false })
+
+      const textbox = new fabric.Textbox(id.toString(), {
+        ...textboxDefaultConfig,
+        left: x - (strokeWidth * 3) / 2 + radius * 2,
+        top: y - strokeWidth / 2 + radius,
+        backgroundColor: color,
+        // fontSize: 0
+        visible: false
+      })
+      textbox.setOptions({ id, categoryName, labelType: 'Point' })
+
+      canvas.add(point, textbox)
+      onDrawObjR.current = point
+      drawingStartedR.current = true
+    }
+  }
+
+  const drawEndAtCursor = () => {
+    const canvas = canvasR.current
+    if (!canvas) return
+
+    const obj = onDrawObjR.current as any
+    if (isDrawingR.current === 'Rect') {
+      const invalid = obj.width <= strokeWidth || obj.height <= strokeWidth
+
+      if (invalid) {
+        canvas.remove(obj)
+        canvas.remove(
+          ...canvas.getObjects().filter((o: any) => o.id === obj.id)
+        )
+        setFocus({ isDrawing: null })
+      } else {
+        cSave()
+        setFocus({
+          isDrawing: null,
+          objectId: obj.id,
+          categoryName: obj.categoryName
+        })
+        canvas.setActiveObject(obj)
+      }
+    } else if (isDrawingR.current === 'Point') {
+      cSave()
+      setFocus({
+        isDrawing: null,
+        objectId: obj.id,
+        categoryName: obj.categoryName
+      })
+      canvas.setActiveObject(obj)
+    }
+    drawingStartedR.current = false
+    onDrawObjR.current = null
+  }
+
+  /**
+   * Called when imgObj or window changed
+   */
   const onImgLoad = () => {
+    console.log('onImgLoad was called') // hint
+    console.log(onPrevious, onNext, onClose) // TODO: remove
+
+    // Get the Elements attributes and calculate the variables
     const img: any = imgElRef.current
+    const { width: cw, height: ch } = img.getBoundingClientRect()
+    const CanvasExtendedDiv = document.getElementById('canvas_extended')
+    const CanvasExtendedDivAttrs = (
+      CanvasExtendedDiv as HTMLElement
+    ).getBoundingClientRect()
+    const cew = CanvasExtendedDivAttrs.width
+    const ceh = CanvasExtendedDivAttrs.height - 36 // 36 is the height of the operation bar
+    offsetR.current = { x: (cew - cw) / 2, y: (ceh - ch) / 2 }
+    scaleR.current = (cw / imgObj.imageWidth + ch / imgObj.imageHeight) / 2
 
-    const cw = img.getBoundingClientRect().width
-    const ch = img.getBoundingClientRect().height
+    // Initialize state stack and its pointer & focus
+    stateStackR.current = [
+      imgObj.annotations.map((anno) =>
+        anno.scaleTransform(scaleR.current, offsetR.current)
+      )
+    ]
+    pointerOfStateStackR.current = 1
+    setFocus({ isDrawing: null, objectId: null }) // keep category focus when switching images, so we can quickly browse one specific category objects on all images
 
-    const divCanvasExtended = document.getElementById('canvas_extended')
-    const cew = (divCanvasExtended as HTMLElement).getBoundingClientRect().width
-
-    const ceh =
-      (divCanvasExtended as HTMLElement).getBoundingClientRect().height - 36
-
-    console.log(cw, ch, cew, ceh)
-
-    const e_offset_x = (cew - cw) / 2
-    const e_offset_y = (ceh - ch) / 2
-
-    // initialize stacks
-    stateStackRef.current = []
-    ptrInStackRef.current = 0
-
-    // initialize xoffset & scale
-    xoffset.current = e_offset_x
-    yoffset.current = e_offset_y
-    xscale.current = cw / imgObj.imageWidth
-    yscale.current = ch / imgObj.imageHeight
-
-    if (canvasRef.current === null) {
-      // clear category selection information when clicking an image from workspace landing page
-      // canvasCtxDispatch({
-      //   type: 'setCateOI',
-      //   payload: null
-      // })
-
-      canvasRef.current = new fabric.Canvas(canvasElRef.current, {
+    // If there is not currently canvas, new one and set its attributes
+    if (canvasR.current === null) {
+      canvasR.current = new fabric.Canvas(canvasElRef.current, {
         defaultCursor: 'default',
         selection: false,
         targetFindTolerance: 5,
         uniformScaling: false
       })
 
-      const canvas = canvasRef.current
-      canvas.setWidth(cew)
-      canvas.setHeight(ceh)
-
-      const lowerCanvasEl = canvas.getElement()
-
+      const lowerCanvasEl = canvasR.current.getElement()
       const canvasContainerEl = lowerCanvasEl.parentElement as HTMLElement
       canvasContainerEl.style.position = 'absolute'
       canvasContainerEl.style.top = '0'
@@ -171,32 +434,20 @@ export const ImageAnnotater = ({ imageObj }: { imageObj: any }) => {
       upperCanvasEl.classList.remove('hidden')
     }
 
-    // clear box selection information from last image, but keep category selection information
-    // canvasCtxDispatch({
-    //   type: 'clearObjectOI'
-    // })
-
-    // reset isDrawing mode
-    // canvasCtxDispatch({
-    //   type: 'setIsDrawing',
-    //   payload: false
-    // })
-
-    // close CateEditBar
-    setShowCateEditBar(false)
-
-    const canvas = canvasRef.current
+    // Initialize canvas viewBox
+    const canvas = canvasR.current
     canvas.clear()
     canvas.setWidth(cew)
     canvas.setHeight(ceh)
     canvas.setViewportTransform([1, 0, 0, 1, 0, 0])
 
+    // Add image to canvas
     canvas.add(
       new fabric.Image(img, {
-        left: e_offset_x,
-        top: e_offset_y,
-        scaleX: cw / imgObj.imageWidth,
-        scaleY: ch / imgObj.imageHeight,
+        left: offsetR.current.x,
+        top: offsetR.current.y,
+        scaleX: scaleR.current,
+        scaleY: scaleR.current,
         hasBorders: false,
         hasControls: false,
         selectable: false,
@@ -204,26 +455,19 @@ export const ImageAnnotater = ({ imageObj }: { imageObj: any }) => {
       })
     )
 
-    if (imgObj.annotations !== null) {
-      // keep context as category filtering during image opening/switching
-      // so we can quickly browse one specific category objects on all images
-      // drawObjectsFromState(imgObj.annotations, CoordsType.IMG, true)
-    }
+    // Render annotations if existed
+    drawObjectsFromState(stateStackR.current[pointerOfStateStackR.current - 1])
 
     canvas.renderAll()
-    canvas.zoomToPoint(new fabric.Point(cew / 2, ceh / 2), 1)
-    // cSave()
+    canvas.zoomToPoint(new fabric.Point(cew / 2, ceh / 2), 1) // TODO: use math to calculate the rate to make the images biggest
 
-    // remove old eventHandler
-    canvas.off('mouse:wheel')
+    // Mouse events listener
+    canvas.off('mouse:wheel') // remove old eventHandler
     // update eventHandler
     canvas.on('mouse:wheel', (o) => {
       const evt = o.e as any as React.WheelEvent
       const delta = evt.deltaY
-      let zoom = canvas.getZoom()
-      zoom *= 0.999 ** delta
-      if (zoom > 20) zoom = 20
-      if (zoom < 0.01) zoom = 0.01
+      const zoom = getBetween(canvas.getZoom() * 0.999 ** delta, 0.01, 20)
       canvas.zoomToPoint(
         new fabric.Point((evt as any).offsetX, (evt as any).offsetY),
         zoom
@@ -236,212 +480,366 @@ export const ImageAnnotater = ({ imageObj }: { imageObj: any }) => {
         vpt[4] = (cew * (1 - zoom)) / 2
         vpt[5] = (ceh * (1 - zoom)) / 2
       } else {
-        if (vpt[4] >= 0) {
-          vpt[4] = 0
-        } else if (vpt[4] < cew * (1 - zoom)) {
-          vpt[4] = cew * (1 - zoom)
-        }
-        if (vpt[5] >= 0) {
-          vpt[5] = 0
-        } else if (vpt[5] < ceh * (1 - zoom)) {
-          vpt[5] = ceh * (1 - zoom)
-        }
+        vpt[4] = getBetween(vpt[4], cew * (1 - zoom), 0)
+        vpt[5] = getBetween(vpt[5], cew * (1 - zoom), 0)
       }
     })
 
     canvas.off('mouse:down')
-    // canvas.on('mouse:down', (o) => {
-    //   if (isDrawingRef.current) {
-    //     drawStartFromCursor(o)
-    //   } else {
-    //     const evt = o.e as any as React.MouseEvent | React.TouchEvent
+    canvas.on('mouse:down', (o) => {
+      if (isDrawingR.current) {
+        drawStartFromCursor(o)
+      } else {
+        const evt = o.e as any as React.MouseEvent | React.TouchEvent
+        const { clientX, clientY } = isTouchEvt(evt) ? evt.touches[0] : evt
+        lastPositionR.current = { x: clientX, y: clientY }
 
-    //     let clientX // screen/page coordinates
-    //     let clientY // screen/page coordinates
+        const selectedObj = canvas.getActiveObject()
+        isPanningR.current = !selectedObj
 
-    //     if (isTouchEvt(evt)) {
-    //       clientX = evt.touches[0].clientX
-    //       clientY = evt.touches[0].clientY
-    //     } else {
-    //       clientX = evt.clientX
-    //       clientY = evt.clientY
-    //     }
-
-    //     const selObj = canvas.getActiveObject()
-
-    //     lastPosX.current = clientX
-    //     lastPosY.current = clientY
-
-    //     isPanning.current = selObj === null || selObj === undefined
-
-    //     if (selObj)
-    //       canvasCtxDispatch({
-    //         type: 'setObjectOI',
-    //         payload: {
-    //           category: (selObj as any).category,
-    //           unique_hash_z: (selObj as any).unique_hash_z
-    //         }
-    //       })
-    //     else
-    //       canvasCtxDispatch({
-    //         type: 'setCateOI',
-    //         payload: null
-    //       })
-    //   }
-    // })
+        setFocus({
+          categoryName: (selectedObj as any)?.categoryName || null,
+          objectId:
+            (selectedObj as any)?.id === 0
+              ? 0
+              : (selectedObj as any)?.id || null
+        })
+      }
+    })
 
     canvas.off('mouse:move')
-    // canvas.on('mouse:move', (o) => {
-    //   if (isDrawingRef.current && drawingStarted.current) {
-    //     const pointer = canvas.getPointer(o.e)
+    canvas.on('mouse:move', (o) => {
+      // TODO: need to handle point
+      if (isDrawingR.current && drawingStartedR.current) {
+        const pointer = canvas.getPointer(o.e)
+        const { x: origX, y: origY } = originPositionR.current
+        const { x: nowX, y: nowY } = pointer
+        const boundary: { x: number[]; y: number[] } = {
+          x: [offsetR.current.x, offsetR.current.x + cw],
+          y: [offsetR.current.y, offsetR.current.y + ch]
+        }
+        const obj = onDrawObjR.current as fabric.Object
 
-    //     const obj = onDrawObj.current as fabric.Object
-    //     const origX = originX.current
-    //     const origY = originY.current
+        if (isDrawingR.current === 'Rect') {
+          const left =
+            getBetween(Math.min(origX, nowX), ...boundary.x) - strokeWidth
+          const right = getBetween(Math.max(origX, nowX), ...boundary.x)
+          const top =
+            getBetween(Math.min(origY, nowY), ...boundary.y) - strokeWidth
+          const bottom = getBetween(Math.max(origY, nowY), ...boundary.y)
 
-    //     const left =
-    //       Math.min(
-    //         Math.max(e_offset_x, origX > pointer.x ? pointer.x : origX),
-    //         e_offset_x + cw
-    //       ) - strokeWidth
-    //     const right = Math.max(
-    //       Math.min(e_offset_x + cw, origX > pointer.x ? origX : pointer.x),
-    //       e_offset_x
-    //     )
-    //     const top =
-    //       Math.min(
-    //         Math.max(e_offset_y, origY > pointer.y ? pointer.y : origY),
-    //         e_offset_y + ch
-    //       ) - strokeWidth
-    //     const bottom = Math.max(
-    //       Math.min(e_offset_y + ch, origY > pointer.y ? origY : pointer.y),
-    //       e_offset_y
-    //     )
+          obj.set({
+            left: left,
+            top: top,
+            width: right - left,
+            height: bottom - top
+          })
+        } else if (isDrawingR.current === 'Point') {
+          const left =
+            getBetween(nowX, ...boundary.x) - radius - strokeWidth / 2
+          const top = getBetween(nowY, ...boundary.y) - radius - strokeWidth / 2
+          obj.set({ left, top })
+        }
 
-    //     obj.set({
-    //       left: left,
-    //       top: top,
-    //       width: right - left,
-    //       height: bottom - top
-    //     })
+        canvas.requestRenderAll()
+      }
 
-    //     canvas.requestRenderAll()
-    //   }
+      if (isPanningR.current) {
+        const evt = o.e as any as React.MouseEvent | React.TouchEvent
+        const { clientX, clientY } = isTouchEvt(evt) ? evt.touches[0] : evt
 
-    //   if (isPanning.current) {
-    //     const evt = o.e as any as React.MouseEvent | React.TouchEvent
+        const zoom = canvas.getZoom()
+        const vpt = canvas.viewportTransform as number[]
+        if (zoom < 1) {
+          vpt[4] = (cew * (1 - zoom)) / 2
+          vpt[5] = (ceh * (1 - zoom)) / 2
+        } else {
+          vpt[4] += clientX - lastPositionR.current.x
+          vpt[4] = getBetween(vpt[4], cew * (1 - zoom), 0)
+          vpt[5] += clientY - lastPositionR.current.y
+          vpt[5] = getBetween(vpt[5], ceh * (1 - zoom), 0)
+        }
 
-    //     let clientX
-    //     let clientY
-
-    //     if (isTouchEvt(evt)) {
-    //       clientX = evt.touches[0].clientX
-    //       clientY = evt.touches[0].clientY
-    //     } else {
-    //       clientX = evt.clientX
-    //       clientY = evt.clientY
-    //     }
-
-    //     const zoom = canvas.getZoom()
-    //     const vpt = canvas.viewportTransform as number[]
-    //     if (zoom < 1) {
-    //       vpt[4] = (cew * (1 - zoom)) / 2
-    //       vpt[5] = (ceh * (1 - zoom)) / 2
-    //     } else {
-    //       vpt[4] += clientX - lastPosX.current
-    //       vpt[5] += clientY - lastPosY.current
-    //       if (vpt[4] >= 0) {
-    //         vpt[4] = 0
-    //       } else if (vpt[4] < cew * (1 - zoom)) {
-    //         vpt[4] = cew * (1 - zoom)
-    //       }
-    //       if (vpt[5] >= 0) {
-    //         vpt[5] = 0
-    //       } else if (vpt[5] < ceh * (1 - zoom)) {
-    //         vpt[5] = ceh * (1 - zoom)
-    //       }
-    //     }
-
-    //     canvas.requestRenderAll()
-    //     lastPosX.current = clientX
-    //     lastPosY.current = clientY
-    //   }
-    // })
+        canvas.requestRenderAll()
+        lastPositionR.current = { x: clientX, y: clientY }
+      }
+    })
 
     canvas.off('mouse:up')
-    // canvas.on('mouse:up', () => {
-    //   if (isDrawingRef.current) {
-    //     drawEndAtCursor()
-    //   }
+    canvas.on('mouse:up', () => {
+      if (isDrawingR.current) {
+        drawEndAtCursor()
+      }
 
-    //   // on mouse up we want to recalculate new interaction
-    //   // for all objects, so we call setViewportTransform
-    //   canvas.setViewportTransform(canvas.viewportTransform as number[])
-    //   isPanning.current = false
+      // on mouse up we want to recalculate new interaction
+      // for all objects, so we call setViewportTransform
+      canvas.setViewportTransform(canvas.viewportTransform as number[])
+      isPanningR.current = false
 
-    //   // update corresponding textBox position
-    //   const selObj: any = canvas.getActiveObject()
-    //   if (selObj) {
-    //     const theTextBox = canvas._objects.filter((o: any) => {
-    //       return (
-    //         o.type === 'textbox' && o.unique_hash_z === selObj.unique_hash_z
-    //       )
-    //     })[0] as fabric.Textbox
+      // update corresponding textBox position
+      const selectedObj: any = canvas.getActiveObject()
+      if (selectedObj) {
+        const theTextBox = canvas._objects.filter(
+          (o: any) => o.type === 'textbox' && o.id === selectedObj.id
+        )[0] as fabric.Textbox
 
-    //     // selected object width/height dont get updated automatically
-    //     const w = selObj.getScaledWidth() - selObj.strokeWidth
-    //     const h = selObj.getScaledHeight() - selObj.strokeWidth
+        // selected object width/height dont get updated automatically
+        const w = selectedObj.getScaledWidth() - strokeWidth
+        const h = selectedObj.getScaledHeight() - strokeWidth
 
-    //     const fs = Math.min(14, w / 2, h / 2)
-    //     const ndigits = (theTextBox.text as string).length
-    //     theTextBox.set({
-    //       top: selObj.top,
-    //       left: selObj.left + 1,
-    //       fontSize: fs,
-    //       width: (fs * ndigits) / 2
-    //     })
-    //   }
-    // })
+        const fontSize = Math.min(14, w / 2, h / 2)
+        const ndigits = (theTextBox.text as string).length
+        if (selectedObj.labelType === 'Rect') {
+          theTextBox.set({
+            left: selectedObj.left + 1,
+            top: selectedObj.top,
+            fontSize,
+            width: (fontSize * ndigits) / 2
+          })
+        } else if (selectedObj.labelType === 'Point') {
+          theTextBox.set({
+            left: selectedObj.left + selectedObj.width + strokeWidth / 2,
+            top: selectedObj.top - radius - strokeWidth / 2,
+            fontSize: radius * 1.5,
+            width: (fontSize * ndigits) / 2
+          })
+        }
+      }
+    })
 
     canvas.off('object:modified')
-    // canvas.on('object:modified', () => {
-    //   cSave()
-    // })
-
-    // use-gestures for touch events
-    // const lowerCanvasEl = canvas.getElement()
-    // const canvasContainerEl = lowerCanvasEl.parentElement as HTMLElement
-
-    // if (pinchGesture.current !== null) pinchGesture.current.destroy()
-    // pinchGesture.current = new PinchGesture(
-    //   canvasContainerEl,
-    //   ({ offset: [scale] }) => {
-    //     canvas.zoomToPoint(new fabric.Point(cew / 2, ceh / 2), scale)
-
-    //     const vpt: any = canvas.viewportTransform
-    //     if (scale < 1) {
-    //       vpt[4] = (cew * (1 - scale)) / 2
-    //       vpt[5] = (ceh * (1 - scale)) / 2
-    //     } else {
-    //       if (vpt[4] >= 0) {
-    //         vpt[4] = 0
-    //       } else if (vpt[4] < cew * (1 - scale)) {
-    //         vpt[4] = cew * (1 - scale)
-    //       }
-    //       if (vpt[5] >= 0) {
-    //         vpt[5] = 0
-    //       } else if (vpt[5] < ceh * (1 - scale)) {
-    //         vpt[5] = ceh * (1 - scale)
-    //       }
-    //     }
-    //   },
-    //   {
-    //     scaleBounds: { min: 0.5, max: 10.0 }
-    //   }
-    // )
-
-    window.onresize = onImgLoad
+    canvas.on('object:modified', cSave)
   }
+
+  /** Canvas context to states stack synchronizer **/
+  /**
+   * Save annotations on the canvas to the state stack
+   */
+  const cSave = () => {
+    console.log('cSave has been called') // TODO: remove this hint
+
+    const canvas = canvasR.current
+    if (!canvas) return
+
+    const nowState: (RectLabel | PointLabel)[] = []
+    const allCanvasObjects = canvas.getObjects()
+    const Rects = allCanvasObjects.filter(
+      (obj: any) => obj.type === 'rect' && obj.labelType === 'Rect'
+    )
+    const Points = allCanvasObjects.filter(
+      (obj: any) => obj.type === 'circle' && obj.labelType === 'Point'
+    )
+
+    Rects.forEach((obj: fabric.Rect) => {
+      nowState.push(
+        new RectLabel({
+          x: obj.left!,
+          y: obj.top!,
+          w: obj.getScaledWidth() - strokeWidth,
+          h: obj.getScaledHeight() - strokeWidth,
+          id: (obj as any).id,
+          categoryName: (obj as any).categoryName,
+          scale: scaleR.current,
+          offset: offsetR.current,
+          strokeWidth
+        })
+      )
+    })
+
+    Points.forEach((obj: fabric.Circle) => {
+      nowState.push(
+        new PointLabel({
+          x: obj.left!,
+          y: obj.top!,
+          id: (obj as any).id,
+          categoryName: (obj as any).categoryName,
+          scale: scaleR.current,
+          offset: offsetR.current,
+          strokeWidth,
+          radius
+        })
+      )
+    })
+
+    // align state stack
+    if (pointerOfStateStackR.current < stateStackR.current.length)
+      stateStackR.current = stateStackR.current.slice(
+        0,
+        pointerOfStateStackR.current
+      )
+    // push now state into stack
+    stateStackR.current.push(nowState)
+    pointerOfStateStackR.current += 1
+
+    updateActionStatus() // update action status because the state stack and its pointer has changed
+    console.log(stateStackR.current, pointerOfStateStackR.current) // TODO: remove this line because it just for debug
+  }
+
+  /**
+   * Delete active annotation
+   */
+  const cDelete = () => {
+    const canvas = canvasR.current
+    if (!canvas) return
+
+    const selectedObj = canvas.getActiveObject()
+
+    if (selectedObj) {
+      canvas.forEachObject((obj: any) => {
+        if (obj.id === (selectedObj as any).id) canvas.remove(obj)
+      })
+
+      setFocus({ categoryName: null, objectId: null })
+      cSave()
+    }
+  }
+
+  /**
+   * Undo
+   */
+  const cUndo = () => {
+    const canvas = canvasR.current
+    if (!canvas) return
+
+    setFocus({ categoryName: null, objectId: null })
+    canvas.remove(...canvas.getObjects().filter((o) => o.type !== 'image')) // remove all objects
+    pointerOfStateStackR.current -= 1 // move pointer backward
+    drawObjectsFromState(
+      stateStackR.current[pointerOfStateStackR.current - 1],
+      true
+    ) // pop stack via right-offset pointer then redraw annotations
+    updateActionStatus() // update action status because pointer has changed
+  }
+
+  /**
+   * Redo
+   */
+  const cRedo = () => {
+    const canvas = canvasR.current
+    if (!canvas) return
+
+    setFocus({ categoryName: null, objectId: null })
+    canvas.remove(...canvas.getObjects().filter((o) => o.type !== 'image')) // remove all objects
+    pointerOfStateStackR.current += 1 // move pointer forward
+    drawObjectsFromState(
+      stateStackR.current[pointerOfStateStackR.current - 1],
+      true
+    ) // pop stack via right-offset pointer then redraw annotations
+    updateActionStatus() // update action status because pointer has changed
+  }
+
+  /**
+   * Reset
+   */
+  const cReset = () => {
+    const canvas = canvasR.current
+    if (!canvas) return
+
+    setFocus({ categoryName: null, objectId: null })
+    canvas.remove(...canvas.getObjects().filter((o) => o.type !== 'image')) // remove all objects
+
+    pointerOfStateStackR.current =
+      pointerOfStateStackR.current !== 1 ? 1 : stateStackR.current.length // switch pointer to 1 or most
+
+    drawObjectsFromState(
+      stateStackR.current[pointerOfStateStackR.current - 1],
+      true
+    ) // pop stack via right-offset pointer then redraw annotations
+    updateActionStatus() // update action status because pointer has changed
+  }
+
+  /** Images Switcher **/
+  /**
+   * switch to previous image
+   */
+  const showPrev = (event: React.MouseEvent) => {
+    event.preventDefault()
+    event.stopPropagation()
+
+    if (indexR.current) {
+      indexR.current -= 1
+      // allSave()  // TODO: implement save function
+      setImgObj(imagesList[indexR.current])
+      if (onPrevious) onPrevious() // TODO: add params
+    }
+  }
+
+  /**
+   * switch to next image
+   */
+  const showNext = (event: React.MouseEvent) => {
+    event.preventDefault()
+    event.stopPropagation()
+
+    if (indexR.current < imagesList.length - 1) {
+      indexR.current += 1
+      // allSave()  // TODO: implement save function
+      setImgObj(imagesList[indexR.current])
+      if (onPrevious) onPrevious() // TODO: add params
+    }
+  }
+
+  /**
+   * Handle keyboard events
+   * @param event KeyboardEvent
+   */
+  const keyboardEventRouter = (event: KeyboardEvent) => {
+    event.preventDefault() // prevent default event such as save html
+    console.log(event) // TODO: remove
+    switch (event.code) {
+      case 'Backspace':
+        if (focus.objectId !== null) cDelete()
+        break
+      case 'KeyZ':
+        if ((event.ctrlKey || event.metaKey) && !event.shiftKey && can.undo)
+          cUndo()
+        else if ((event.ctrlKey || event.metaKey) && event.shiftKey && can.redo)
+          cRedo()
+        break
+      case 'KeyR':
+        if ((event.ctrlKey || event.metaKey) && can.reset) cReset()
+        else {
+          setFocus({
+            isDrawing: focus.isDrawing === 'Rect' ? null : 'Rect',
+            objectId: null
+          })
+        }
+        break
+      case 'KeyO':
+        setFocus({
+          isDrawing: focus.isDrawing === 'Point' ? null : 'Point',
+          objectId: null
+        })
+        break
+      default:
+        break
+    }
+  }
+
+  /** Listener **/
+  window.onresize = onImgLoad
+  window.onkeydown = keyboardEventRouter
+
+  useEffect(() => {
+    const canvas = canvasR.current
+    if (!canvas) return
+
+    canvas.forEachObject((obj: any) => {
+      if (obj.type !== 'image') {
+        obj.visible = isFocused(
+          obj.categoryName,
+          obj.id,
+          obj.type === 'textbox'
+        )
+      }
+    })
+    canvas.renderAll()
+  }, [
+    focus.objectId,
+    focus.categoryName,
+    focus.isDrawing,
+    isAnnotationsVisible
+  ])
 
   return (
     <div className='w-full h-full flex flex-col justify-center items-center relative'>
@@ -464,10 +862,10 @@ export const ImageAnnotater = ({ imageObj }: { imageObj: any }) => {
       <div className='absolute w-full h-full pb-7 md:pb-9 invisible'>
         <div
           className={`relative h-full p-2 overflow-hidden ${
-            canvasCtx.annotationsVisible ? '' : 'hidden'
+            isAnnotationsVisible ? '' : 'hidden'
           }`}
         >
-          <Draggable
+          {/* <Draggable
             bounds='parent'
             handle='#cate_handle'
             cancel='.selbar-state-icon'
@@ -515,12 +913,9 @@ export const ImageAnnotater = ({ imageObj }: { imageObj: any }) => {
                       }`}
                       style={{ backgroundColor: colors[cate] }}
                       key={`group-${i_group}`}
-                      // onClick={() => {
-                      //   canvasCtxDispatch({
-                      //     type: 'setCateOI',
-                      //     payload: cate
-                      //   })
-                      // }}
+                      onClick={() => {
+                        setCanvasCtx({ cateOI: cate, objectOI: null })
+                      }}
                     >
                       <div
                         className={`pb-1 static w-full flex justify-end ${
@@ -535,13 +930,13 @@ export const ImageAnnotater = ({ imageObj }: { imageObj: any }) => {
                               ? 'invisible'
                               : 'visible'
                           }`}
-                          // onClick={(evt) => {
-                          //   evt.preventDefault()
-                          //   evt.stopPropagation()
-                          //   if (canvasCtx.isDrawing) return
-                          //   setCateCandid(canvasCtx.cateOI as string)
-                          //   setShowCateEditBar(true)
-                          // }}
+                          onClick={(evt) => {
+                            evt.preventDefault()
+                            evt.stopPropagation()
+                            if (canvasCtx.isDrawing) return
+                            setCateCandid(canvasCtx.cateOI as unknown as string)
+                            setShowCateEditBar(true)
+                          }}
                         >
                           <CogIcon
                             className={`w-6 h-6 md:w-8 md:h-8 ${
@@ -577,18 +972,15 @@ export const ImageAnnotater = ({ imageObj }: { imageObj: any }) => {
                               //   : 'hover:bg-indigo-600 hover:text-gray-100'
                               ''
                             }`}
-                            // onClick={(evt) => {
-                            //   if (canvasCtx.isDrawing) return
-                            //   evt.preventDefault()
-                            //   evt.stopPropagation()
-                            //   canvasCtxDispatch({
-                            //     type: 'setObjectOI',
-                            //     payload: {
-                            //       category: anno.category,
-                            //       unique_hash_z: anno.unique_hash_z
-                            //     }
-                            //   })
-                            // }}
+                            onClick={(evt) => {
+                              if (canvasCtx.isDrawing) return
+                              evt.preventDefault()
+                              evt.stopPropagation()
+                              setCanvasCtx({
+                                cateOI: anno.category,
+                                objectOI: anno.unique_hash_z
+                              })
+                            }}
                           >
                             <span>{anno.text_id}</span>
                           </div>
@@ -599,9 +991,9 @@ export const ImageAnnotater = ({ imageObj }: { imageObj: any }) => {
                 )}
               </div>
             </div>
-          </Draggable>
+          </Draggable> */}
 
-          <Draggable bounds='parent' handle='#cate_edit_handle'>
+          {/* <Draggable bounds='parent' handle='#cate_edit_handle'>
             <div
               className={`bg-gray-100 bg-opacity-0 absolute top-2 left-2 visible rounded-md max-h-full flex flex-col items-end text-xs shadow-lg select-none ${
                 showCateEditBar ? '' : 'hidden'
@@ -687,9 +1079,9 @@ export const ImageAnnotater = ({ imageObj }: { imageObj: any }) => {
                       ? 'text-gray-400'
                       : 'hover:bg-indigo-600 hover:text-gray-100'
                   }`}
-                    // onClick={
-                    //   canvasCtx.cateOI === cateCandid ? undefined : aSave
-                    // }
+                    onClick={
+                      canvasCtx.cateOI === cateCandid ? undefined : aSave
+                    }
                   >
                     <CheckIcon className='h-4 w-4' aria-hidden='true' />
                   </button>
@@ -703,17 +1095,17 @@ export const ImageAnnotater = ({ imageObj }: { imageObj: any }) => {
                   </button>
                   <button
                     className={`relative inline-flex items-center space-x-2 px-2 rounded-r-md focus:outline-none bg-gray-100
-                                    ${
-                                      canvasCtx.cateOI === newCategoryName &&
-                                      cateCandid === newCategoryName
-                                        ? 'text-gray-400'
-                                        : 'hover:bg-indigo-600 hover:text-gray-100'
-                                    }`}
-                    // onClick={() => {
-                    //   if (canvasCtx.cateOI !== cateCandid)
-                    //     setCateCandid(canvasCtx.cateOI as string)
-                    //   else if (cateCandid !== newCategoryName) aDelete()
-                    // }}
+                      ${
+                        canvasCtx.cateOI === newCategoryName &&
+                        cateCandid === newCategoryName
+                          ? 'text-gray-400'
+                          : 'hover:bg-indigo-600 hover:text-gray-100'
+                      }`}
+                    onClick={() => {
+                      if (canvasCtx.cateOI !== cateCandid)
+                        setCateCandid(canvasCtx.cateOI as unknown as string)
+                      else if (cateCandid !== newCategoryName) aDelete()
+                    }}
                   >
                     {canvasCtx.cateOI === cateCandid ? (
                       <TrashIcon className='h-4 w-4' aria-hidden='true' />
@@ -724,32 +1116,30 @@ export const ImageAnnotater = ({ imageObj }: { imageObj: any }) => {
                 </div>
               </div>
             </div>
-          </Draggable>
+          </Draggable> */}
         </div>
       </div>
 
       <div className='flex justify-center space-x-1 absolute bottom-0 right-1 md:right-1/4'>
         <div
-          // onClick={showPrev}
+          onClick={showPrev}
           className={`h-6 w-6 rounded-sm md:h-8 md:w-8 md:rounded-full flex justify-center items-center bg-gray-200 cursor-pointer
                 ${
-                  // imgObj.idxInPage === 1
-                  //   ? 'text-gray-400'
-                  //   : 'hover:bg-indigo-600 hover:text-gray-100'
-                  ''
+                  indexR.current === 0
+                    ? 'text-gray-400'
+                    : 'hover:bg-indigo-600 hover:text-gray-100'
                 }`}
         >
           <ChevronLeftIcon className='h-4 w-4' />
         </div>
 
         <div
-          // onClick={showNext}
+          onClick={showNext}
           className={`h-6 w-6 rounded-sm md:h-8 md:w-8 md:rounded-full flex justify-center items-center bg-gray-200 cursor-pointer
                 ${
-                  // imgObj.idxInPage === pagingData.length
-                  //   ? 'text-gray-400'
-                  //   : 'hover:bg-indigo-600 hover:text-gray-100'
-                  ''
+                  indexR.current === imagesList.length - 1
+                    ? 'text-gray-400'
+                    : 'hover:bg-indigo-600 hover:text-gray-100'
                 }`}
         >
           <ChevronRightIcon className='h-4 w-4' />
@@ -758,81 +1148,102 @@ export const ImageAnnotater = ({ imageObj }: { imageObj: any }) => {
 
       <div
         className={`flex justify-center space-x-2 absolute bottom-0 ${
-          canvasCtx.annotationsVisible ? '' : 'hidden'
+          isAnnotationsVisible ? '' : 'hidden'
         }`}
       >
         <div className='flex justify-center space-x-1'>
           <div
             className={`h-6 w-6 rounded-sm md:h-8 md:w-8 md:rounded-full flex justify-center items-center bg-gray-200 cursor-pointer ${
-              canvasCtx.objectOI
+              focus.objectId !== null
                 ? 'hover:bg-indigo-600 hover:text-gray-100'
                 : 'text-gray-400'
             }`}
-            // onClick={canvasCtx.objectOI ? cDelete : undefined}
+            onClick={focus.objectId !== null ? cDelete : undefined}
           >
             <TrashIcon className='h-4 w-4' />
           </div>
-          <div
-            className={`h-6 w-6 rounded-sm md:h-8 md:w-8 md:rounded-full flex justify-center items-center bg-gray-200 cursor-pointer ${
-              canvasCtx.isDrawing ? 'bg-indigo-600 text-gray-100' : ''
-            }`}
-            // onClick={() => {
-            //   canvasCtxDispatch({
-            //     type: 'clearObjectOI'
-            //   })
-            //   canvasCtxDispatch({
-            //     type: 'setIsDrawing',
-            //     payload: true
-            //   })
-            // }}
-          >
-            <PencilIcon className='h-4 w-4' />
-          </div>
-        </div>
 
-        <div className='flex justify-center space-x-1'>
           <div
             className={`h-6 w-6 rounded-sm md:h-8 md:w-8 md:rounded-full flex justify-center items-center bg-gray-200 cursor-pointer ${
-              canUndo
+              focus.isDrawing === 'Rect' ? 'bg-indigo-600 text-gray-100' : ''
+            }`}
+            onClick={() => {
+              setFocus({
+                isDrawing: focus.isDrawing === 'Rect' ? null : 'Rect',
+                objectId: null
+              })
+            }}
+          >
+            <RectangleIcon />
+          </div>
+
+          <div
+            className={`h-6 w-6 rounded-sm md:h-8 md:w-8 md:rounded-full flex justify-center items-center bg-gray-200 cursor-pointer ${
+              focus.isDrawing === 'Point' ? 'bg-indigo-600 text-gray-100' : ''
+            }`}
+            onClick={() => {
+              setFocus({
+                isDrawing: focus.isDrawing === 'Point' ? null : 'Point',
+                objectId: null
+              })
+            }}
+          >
+            <PointIcon />
+          </div>
+
+          <div
+            className={`h-6 w-6 rounded-sm md:h-8 md:w-8 md:rounded-full flex justify-center items-center bg-gray-200 cursor-pointer ${
+              focus.isDrawing === 'Line' ? 'bg-indigo-600 text-gray-100' : ''
+            }`}
+            onClick={() => {
+              setFocus({
+                isDrawing: focus.isDrawing === 'Line' ? null : 'Line',
+                objectId: null
+              })
+            }}
+          >
+            <LineIcon />
+          </div>
+
+          <div
+            className={`h-6 w-6 rounded-sm md:h-8 md:w-8 md:rounded-full flex justify-center items-center bg-gray-200 cursor-pointer ${
+              can.undo
                 ? 'hover:bg-indigo-600 hover:text-gray-100'
                 : 'text-gray-400'
             }`}
-            // onClick={canUndo ? cUndo : undefined}
+            onClick={can.undo ? cUndo : undefined}
           >
             <ReplyIcon className='h-4 w-4' />
           </div>
           <div
             className={`h-6 w-6 rounded-sm md:h-8 md:w-8 md:rounded-full flex justify-center items-center bg-gray-200 cursor-pointer ${
-              canRedo
+              can.redo
                 ? 'hover:bg-indigo-600 hover:text-gray-100'
                 : 'text-gray-400'
             }
           `}
-            // onClick={canRedo ? cRedo : undefined}
+            onClick={can.redo ? cRedo : undefined}
           >
             <ReplyIcon className='h-4 w-4 transform -scale-x-1' />
           </div>
-        </div>
 
-        <div className='flex justify-center space-x-1'>
           <div
             className={`h-6 w-6 rounded-sm md:h-8 md:w-8 md:rounded-full flex justify-center items-center bg-gray-200 cursor-pointer ${
-              canReset
+              can.reset
                 ? 'hover:bg-indigo-600 hover:text-gray-100'
                 : 'text-gray-400'
             }`}
-            // onClick={canReset ? cReset : undefined}
+            onClick={can.reset ? cReset : undefined}
           >
             <RefreshIcon className='h-4 w-4' />
           </div>
           <div
             className={`h-6 w-6 rounded-sm md:h-8 md:w-8 md:rounded-full flex justify-center items-center bg-gray-200 cursor-pointer ${
-              // canSave
-              //   ? 'hover:bg-indigo-600 hover:text-gray-100'
-              //   : 'text-gray-400'
-              ''
+              can.save
+                ? 'hover:bg-indigo-600 hover:text-gray-100'
+                : 'text-gray-400'
             }`}
-            // onClick={canSave ? allSave : undefined}
+            // onClick={can.save ? allSave : undefined}
           >
             <HeavyFloppyIcon />
           </div>
@@ -842,10 +1253,8 @@ export const ImageAnnotater = ({ imageObj }: { imageObj: any }) => {
       <div className='flex justify-center space-x-1 absolute bottom-0 left-1 md:left-1/4'>
         <div
           // onClick={() => {
-          //   canvasCtxDispatch({
-          //     type: 'setImageOI',
-          //     payload: null
-          //   })
+          //   setCanvasCtx({ imageOI: null })
+          //   if (onClose) onClose(canvasCtx)
           // }}
           className='h-6 w-6 rounded-sm md:h-8 md:w-8 md:rounded-full flex justify-center items-center bg-gray-200 cursor-pointer hover:bg-indigo-600 hover:text-gray-100'
         >

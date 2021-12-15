@@ -19,3 +19,69 @@ export const HeavyFloppyIcon = () => {
     </div>
   )
 }
+
+export const PointIcon = () => {
+  return (
+    <div>
+      <svg
+        className='h-5 w-5'
+        width='24'
+        height='24'
+        viewBox='0 0 24 24'
+        strokeWidth='2'
+        stroke='currentColor'
+        fill='none'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+      >
+        <path stroke='none' d='M0 0h24v24H0z' />
+        <circle cx='12' cy='12' r='.5' fill='currentColor' />
+        <circle cx='12' cy='12' r='9' />
+      </svg>
+    </div>
+  )
+}
+
+export const RectangleIcon = () => {
+  return (
+    <div>
+      <svg
+        className='h-6 w-6'
+        width='24'
+        height='24'
+        viewBox='0 0 24 24'
+        strokeWidth='2'
+        stroke='currentColor'
+        fill='none'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+      >
+        <path stroke='none' d='M0 0h24v24H0z' />
+        <rect x='4' y='6' width='16' height='12' rx='2' />
+      </svg>
+    </div>
+  )
+}
+
+export const LineIcon = () => {
+  return (
+    <div>
+      <svg
+        className='h-5 w-5'
+        width='24'
+        height='24'
+        viewBox='0 0 24 24'
+        strokeWidth='2'
+        stroke='currentColor'
+        fill='none'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+      >
+        <path stroke='none' d='M0 0h24v24H0z' />
+        <circle cx='6' cy='6' r='2' />
+        <circle cx='18' cy='18' r='2' />
+        <line x1='7.5' y1='7.5' x2='16.5' y2='16.5' />
+      </svg>
+    </div>
+  )
+}

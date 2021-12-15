@@ -32,7 +32,9 @@
     "@testing-library/user-event": "^7.2.1",
     "@types/fabric": "^4.5.6",
     "@types/jest": "^25.1.4",
+    "@types/md5": "^2.3.1",
     "@types/node": "^12.12.38",
+    "@types/randomcolor": "^0.5.6",
     "@types/react": "^16.9.27",
     "@types/react-dom": "^16.9.7",
     "@typescript-eslint/eslint-plugin": "^2.26.0",
@@ -68,6 +70,8 @@
     "@heroicons/react": "^1.0.5",
     "@use-gesture/react": "^10.2.4",
     "fabric": "^4.6.0",
+    "md5": "^2.3.0",
+    "randomcolor": "^0.6.2",
     "react-draggable": "^4.4.4"
   }
 }
