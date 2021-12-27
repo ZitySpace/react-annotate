@@ -7,6 +7,7 @@ export interface Point {
 interface Line extends Point {
   _x: number
   _y: number
+  distance: number
 }
 
 interface Rect extends Point {
@@ -152,6 +153,9 @@ export class LineLabel implements LineLabel {
     this.y = y
     this._x = _x
     this._y = _y
+    this.distance = Math.sqrt(
+      Math.pow(Math.abs(x - _x), 2) + Math.pow(Math.abs(y - _y), 2)
+    )
     this.id = id
     this.categoryId = categoryId || null
     this.categoryName = categoryName || null

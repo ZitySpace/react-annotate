@@ -85,3 +85,67 @@ export const LineIcon = () => {
     </div>
   )
 }
+
+export const UndoIcon = () => {
+  return (
+    <div>
+      <svg
+        className='h-5 w-5 transform rotate-45'
+        width='24'
+        height='24'
+        viewBox='0 0 24 24'
+        strokeWidth='2'
+        stroke='currentColor'
+        fill='none'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+      >
+        <path stroke='none' d='M0 0h24v24H0z' />
+        <path d='M15 4.55a8 8 0 0 0 -6 14.9m0 -4.45v5h-5' />
+        <path d='M13 19.95a8 8 0 0 0 5.3 -12.8' strokeDasharray='.001 4.13' />
+      </svg>
+    </div>
+  )
+}
+
+export const RedoIcon = () => {
+  return (
+    <div>
+      <svg
+        className='h-5 w-5 transform -rotate-45'
+        width='24'
+        height='24'
+        viewBox='0 0 24 24'
+        strokeWidth='2'
+        stroke='currentColor'
+        fill='none'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+      >
+        <path stroke='none' d='M0 0h24v24H0z' />
+        <path d='M9 4.55a8 8 0 0 1 6 14.9m0 -4.45v5h5' />
+        <path d='M11 19.95a8 8 0 0 1 -5.3 -12.8' strokeDasharray='.001 4.13' />
+      </svg>
+    </div>
+  )
+}
+
+export const ResetIcon = () => {
+  return (
+    <div>
+      <svg
+        className='h-4 w-4'
+        viewBox='0 0 24 24'
+        fill='none'
+        stroke='currentColor'
+        strokeWidth='2'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+      >
+        <polyline points='23 4 23 10 17 10' />
+        <polyline points='1 20 1 14 7 14' />
+        <path d='M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15' />
+      </svg>
+    </div>
+  )
+}
