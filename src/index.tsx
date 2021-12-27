@@ -608,7 +608,19 @@ export const ImageAnnotater = ({
     })
 
     canvas.off('object:modified')
-    canvas.on('object:modified', cSave)
+    canvas.on('object:modified', () => {
+      const obj: any = canvas.getActiveObject()
+      const { x, y } = offsetR.current
+      if (obj.labelType === 'Rect') {
+        obj.left = getBetween(obj.left, x, x + cw - obj.width * obj.scaleX)
+        obj.top = getBetween(obj.top, y, y + ch - obj.height * obj.scaleY)
+      } else if (obj.labelType === 'Point') {
+        const actualRadius = radius + strokeWidth / 2
+        obj.left = getBetween(obj.left, x - actualRadius, x + cw - actualRadius)
+        obj.top = getBetween(obj.top, y - actualRadius, y + +ch - actualRadius)
+      }
+      cSave()
+    })
   }
 
   /** Canvas context to states stack synchronizer **/
@@ -788,6 +800,7 @@ export const ImageAnnotater = ({
     console.log(event) // TODO: remove
     switch (event.code) {
       case 'Backspace':
+      case 'Delete':
         if (focus.objectId !== null) cDelete()
         break
       case 'KeyZ':
@@ -808,6 +821,12 @@ export const ImageAnnotater = ({
       case 'KeyO':
         setFocus({
           isDrawing: focus.isDrawing === 'Point' ? null : 'Point',
+          objectId: null
+        })
+        break
+      case 'KeyL':
+        setFocus({
+          isDrawing: focus.isDrawing === 'Line' ? null : 'Line',
           objectId: null
         })
         break
