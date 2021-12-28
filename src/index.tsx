@@ -100,7 +100,7 @@ export const ImageAnnotater = ({
     fill: 'black',
     selectable: false,
     hoverCursor: 'default',
-    fontSize: radius * 1.5
+    fontSize: radius * 2
   }
   const pointDefaultConfig: fabric.ICircleOptions = {
     strokeWidth: strokeWidth,
@@ -161,6 +161,7 @@ export const ImageAnnotater = ({
   const canvasR = useRef<fabric.Canvas | null>(null)
   const offsetR = useRef<Point>({ x: 0, y: 0 }) // Image object edge offset to canvas edge
   const scaleR = useRef<number>(1) // Scale of image in canvas to originael
+  const boundaryR = useRef<{ x: number[]; y: number[] }>({ x: [], y: [] }) // images boundary on canvas
   const stateStackR = useRef<(RectLabel | PointLabel | LineLabel)[][]>([]) // states stack
   const pointerOfStateStackR = useRef<number>(0) // and its right-offseted pointer
 
@@ -214,6 +215,20 @@ export const ImageAnnotater = ({
   }
 
   /**
+   * set endpoint's corresponding line's position
+   * @param endpoint Line's one endpoint
+   */
+  const setLinePosition = (endpoint: fabric.Circle) => {
+    const { left, top, line, _id } = endpoint as any
+    if (line && _id) {
+      line.set({
+        [`x${_id}`]: left - strokeWidth / 2,
+        [`y${_id}`]: top - strokeWidth / 2
+      })
+    }
+  }
+
+  /**
    * Draw objects from state
    * @param state canvas existed annotations in history
    */
@@ -223,7 +238,6 @@ export const ImageAnnotater = ({
   ) => {
     // TODO: remove this part
     console.log('Draw objects from state', state) // hint
-    // console.log(offsetR.current)
 
     const canvas = canvasR.current
     if (!canvas) return
@@ -320,10 +334,12 @@ export const ImageAnnotater = ({
           return endpoint
         })
 
+        const topPoint = endpoints.sort((a, b) => a.top! - b.top!)[0]
+
         const textbox = new fabric.Textbox(id.toString(), {
           ...textboxDefaultConfig,
-          left: x,
-          top: y,
+          left: topPoint.left!,
+          top: topPoint.top! - radius,
           originX: 'center',
           originY: 'bottom',
           backgroundColor: color,
@@ -343,7 +359,10 @@ export const ImageAnnotater = ({
     const canvas = canvasR.current
     if (!canvas) return
 
-    const { x, y } = canvas.getPointer(event.e)
+    const { x: nowX, y: nowY } = canvas.getPointer(event.e)
+    const boundary = boundaryR.current
+    const x = getBetween(nowX, ...boundary.x)
+    const y = getBetween(nowY, ...boundary.y)
     originPositionR.current = { x, y }
 
     // Calculate id、category and its color
@@ -464,7 +483,7 @@ export const ImageAnnotater = ({
         objectId: obj.id,
         categoryName: obj.categoryName
       })
-      canvas.setActiveObject(obj)
+      canvas.setActiveObject(obj.labelType !== 'Line' ? obj : obj.endpoints[1])
     }
 
     drawingStartedR.current = false
@@ -489,6 +508,10 @@ export const ImageAnnotater = ({
     const ceh = CanvasExtendedDivAttrs.height - 36 // 36 is the height of the operation bar
     offsetR.current = { x: (cew - cw) / 2, y: (ceh - ch) / 2 }
     scaleR.current = (cw / imgObj.imageWidth + ch / imgObj.imageHeight) / 2
+    boundaryR.current = {
+      x: [(cew - cw) / 2, (cew + cw) / 2],
+      y: [(ceh - ch) / 2, (ceh + ch) / 2]
+    }
 
     // Initialize state stack and its pointer & focus
     stateStackR.current = [
@@ -600,10 +623,7 @@ export const ImageAnnotater = ({
         const pointer = canvas.getPointer(o.e)
         const { x: origX, y: origY } = originPositionR.current
         const { x: nowX, y: nowY } = pointer
-        const boundary: { x: number[]; y: number[] } = {
-          x: [offsetR.current.x, offsetR.current.x + cw],
-          y: [offsetR.current.y, offsetR.current.y + ch]
-        }
+        const boundary = boundaryR.current
         const obj = onDrawObjR.current as any
 
         if (isDrawingR.current === 'Rect') {
@@ -695,10 +715,9 @@ export const ImageAnnotater = ({
           textboxConfig.left = selectedObj.left + radius - strokeWidth / 2
           textboxConfig.top = selectedObj.top - radius + strokeWidth / 2
         } else if (selectedObj.labelType === 'Line') {
-          const topPoint = (
-            selectedObj.type === 'circle' ? selectedObj.line : selectedObj
-          ).endpoints // active object may be line of its endpoints
-            .sort((a: any, b: any) => a.top - b.top)[0]
+          const topPoint = selectedObj.line.endpoints.sort(
+            (a: any, b: any) => a.top - b.top
+          )[0]
 
           textboxConfig.left = topPoint.left
           textboxConfig.top = topPoint.top - radius
@@ -711,37 +730,25 @@ export const ImageAnnotater = ({
     canvas.off('object:moving')
     canvas.on('object:moving', (e) => {
       const obj = e.target as any
-      if (obj.labelType === 'Line' && obj.type === 'circle') {
-        obj.line.set({
-          [`x${obj._id}`]: obj.left - strokeWidth / 2,
-          [`y${obj._id}`]: obj.top - strokeWidth / 2
-        })
-      }
+      setLinePosition(obj)
     })
 
     canvas.off('object:modified')
     canvas.on('object:modified', () => {
       // get current offset and object
       const obj: any = canvas.getActiveObject()
-      const { x, y } = offsetR.current
-      const boundary: { x: number[]; y: number[] } = { x: [], y: [] }
+      const boundary = JSON.parse(JSON.stringify(boundaryR.current)) // deep clone to avoid rect-type calculate influences
 
       // make sure the object's coordinates are in boundary
+      // rectangle's origin point's boundary need minus rectangle's dimensions
       if (obj.labelType === 'Rect') {
-        boundary.x = [x, x + cw - obj.getScaledWidth()]
-        boundary.y = [y, y + ch - obj.getScaledHeight()]
-      } else if (['Point', 'Line'].includes(obj.labelType)) {
-        boundary.x = [x, x + cw]
-        boundary.y = [y, y + ch]
+        boundary.x[1] -= obj.getScaledWidth()
+        boundary.y[1] -= obj.getScaledHeight()
       }
 
       obj.left = getBetween(obj.left, ...boundary.x)
       obj.top = getBetween(obj.top, ...boundary.y)
-      if (obj.line)
-        obj.line.set({
-          [`x${obj._id}`]: obj.left - strokeWidth / 2,
-          [`y${obj._id}`]: obj.top - strokeWidth / 2
-        })
+      setLinePosition(obj)
 
       cSave()
     })
@@ -909,9 +916,11 @@ export const ImageAnnotater = ({
   /**
    * switch to previous image
    */
-  const showPrev = (event: React.MouseEvent) => {
-    event.preventDefault()
-    event.stopPropagation()
+  const showPrev = (event?: React.MouseEvent) => {
+    if (event) {
+      event.preventDefault()
+      event.stopPropagation()
+    }
 
     if (indexR.current) {
       indexR.current -= 1
@@ -924,9 +933,11 @@ export const ImageAnnotater = ({
   /**
    * switch to next image
    */
-  const showNext = (event: React.MouseEvent) => {
-    event.preventDefault()
-    event.stopPropagation()
+  const showNext = (event?: React.MouseEvent) => {
+    if (event) {
+      event.preventDefault()
+      event.stopPropagation()
+    }
 
     if (indexR.current < imagesList.length - 1) {
       indexR.current += 1
@@ -975,6 +986,14 @@ export const ImageAnnotater = ({
           objectId: null
         })
         break
+      case 'Period':
+      case 'ArrowRight':
+        showNext()
+        break
+      case 'Comma':
+      case 'ArrowLeft':
+        showPrev()
+        break
       default:
         break
     }
@@ -988,6 +1007,7 @@ export const ImageAnnotater = ({
     const canvas = canvasR.current
     if (!canvas) return
 
+    if (focus.isDrawing) canvas.discardActiveObject() // to hide active object controls
     canvas.forEachObject((obj: any) => {
       if (obj.type !== 'image') {
         obj.visible = isFocused(
@@ -1377,7 +1397,6 @@ export const ImageAnnotater = ({
             }`}
             onClick={can.undo ? cUndo : undefined}
           >
-            {/* <ReplyIcon className='h-4 w-4' /> */}
             <UndoIcon />
           </div>
           <div
@@ -1389,7 +1408,6 @@ export const ImageAnnotater = ({
           `}
             onClick={can.redo ? cRedo : undefined}
           >
-            {/* <ReplyIcon className='h-4 w-4 transform -scale-x-1' /> */}
             <RedoIcon />
           </div>
 
@@ -1401,7 +1419,6 @@ export const ImageAnnotater = ({
             }`}
             onClick={can.reset ? cReset : undefined}
           >
-            {/* <RefreshIcon className='h-4 w-4' /> */}
             <ResetIcon />
           </div>
           <div
