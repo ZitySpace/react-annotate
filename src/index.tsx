@@ -282,10 +282,11 @@ export const ImageAnnotater = ({
           left: x,
           top: y,
           radius: radius,
-          stroke: color,
+          fill: color,
+          stroke: transparent,
           visible: isVisible
         })
-        point.setOptions({ id, categoryName, labelType: 'Point' })
+        point.setOptions({ id, categoryName, color, labelType: 'Point' })
 
         const textbox = new fabric.Textbox(id.toString(), {
           ...textboxDefaultConfig,
@@ -328,6 +329,7 @@ export const ImageAnnotater = ({
             id,
             _id: _id + 1,
             categoryName,
+            color,
             line,
             labelType: 'Line'
           })
@@ -407,7 +409,7 @@ export const ImageAnnotater = ({
         top: y,
         stroke: color
       })
-      point.setOptions({ id, categoryName, labelType: 'Point' })
+      point.setOptions({ id, categoryName, color, labelType: 'Point' })
 
       const textbox = new fabric.Textbox(id.toString(), {
         ...textboxDefaultConfig,
@@ -439,6 +441,7 @@ export const ImageAnnotater = ({
           id,
           _id: _id + 1,
           categoryName,
+          color,
           labelType: 'Line',
           line
         })
@@ -725,6 +728,31 @@ export const ImageAnnotater = ({
 
         theTextbox.set({ ...textboxConfig })
       }
+    })
+
+    canvas.off('mouse:over')
+    canvas.on('mouse:over', (e) => {
+      const obj = e.target as any
+      if (obj?.type === 'circle')
+        obj.set({
+          fill: transparent,
+          stroke: obj.color
+        })
+      canvas.renderAll()
+    })
+
+    canvas.off('mouse:out')
+    canvas.on('mouse:out', (e) => {
+      const obj = e.target as any
+      const onDrawObj = onDrawObjR.current as any
+
+      if (obj?.type === 'circle' && (!onDrawObj || obj.id !== onDrawObj.id))
+        obj.set({
+          fill: obj.color,
+          stroke: transparent
+        })
+
+      canvas.renderAll()
     })
 
     canvas.off('object:moving')
