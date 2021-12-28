@@ -21,10 +21,24 @@ export const imgObj = {
   name: '000000015746.jpg',
   idxInPage: 23,
   selected: false,
-  blobUrl: 'http://localhost/images/000000015746.jpg'
+  blobUrl: 'http://jasonlam.host:20080/images/000000015746.jpg'
 }
 
 export const pagingData = [
+  {
+    id: 0,
+    fileName: 'hq-test.jpg',
+    fileSize: 174022,
+    imageWidth: 4007,
+    imageHeight: 5008,
+    image_area: 20067056,
+    upload_time: '2021-11-10T10:28:43+00:00',
+    annotations: [],
+    name: 'hq-test.jpg',
+    idxInPage: 1,
+    selected: false,
+    blobUrl: 'http://jasonlam.host:20080/images/hq-test.jpg'
+  },
   {
     id: 1,
     fileName: '000000001532.jpg',
@@ -110,8 +124,8 @@ export const pagingData = [
     name: '000000001532.jpg',
     idxInPage: 1,
     selected: false,
-    blobUrl: 'http://localhost/images/hq-test.jpg'
-    // blobUrl: 'http://localhost/images/000000001532.jpg'
+    // blobUrl: 'http://jasonlam.host:20080/images/hq-test.jpg'
+    blobUrl: 'http://jasonlam.host:20080/images/000000001532.jpg'
   },
   {
     id: 2,
@@ -198,7 +212,7 @@ export const pagingData = [
     name: '000000002006.jpg',
     idxInPage: 2,
     selected: false,
-    blobUrl: 'http://localhost/images/000000002006.jpg'
+    blobUrl: 'http://jasonlam.host:20080/images/000000002006.jpg'
   },
   {
     id: 4,
@@ -294,7 +308,7 @@ export const pagingData = [
     name: '000000005193.jpg',
     idxInPage: 3,
     selected: false,
-    blobUrl: 'http://localhost/images/000000005193.jpg'
+    blobUrl: 'http://jasonlam.host:20080/images/000000005193.jpg'
   },
   {
     id: 5,
@@ -453,7 +467,7 @@ export const pagingData = [
     name: '000000006471.jpg',
     idxInPage: 4,
     selected: false,
-    blobUrl: 'http://localhost/images/000000006471.jpg'
+    blobUrl: 'http://jasonlam.host:20080/images/000000006471.jpg'
   }
 ]
 

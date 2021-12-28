@@ -77,6 +77,7 @@ export const ImageAnnotater = ({
   /** Config **/
   const strokeWidth = 1.5
   const radius = 3
+  const transparent = 'rgba(255,0,0,0)'
   const isTouchScreen =
     'ontouchstart' in window ||
     (navigator as any).maxTouchPoints > 0 ||
@@ -84,7 +85,7 @@ export const ImageAnnotater = ({
   const newCategoryName = 'new_category'
   const rectDefaultConfig: fabric.IRectOptions | any = {
     lockRotation: true,
-    fill: 'rgba(255,0,0,0)',
+    fill: transparent,
     strokeWidth: strokeWidth,
     noScaleCache: false,
     strokeUniform: true,
@@ -96,33 +97,29 @@ export const ImageAnnotater = ({
     _controlsVisibility: { mtr: false }
   }
   const textboxDefaultConfig: fabric.ITextboxOptions = {
-    fill: 'rgba(0,0,0,1)',
+    fill: 'black',
     selectable: false,
-    hoverCursor: 'default'
+    hoverCursor: 'default',
+    fontSize: radius * 1.5
   }
   const pointDefaultConfig: fabric.ICircleOptions = {
     strokeWidth: strokeWidth,
-    fill: 'rgba(255,0,0,0)',
+    fill: transparent,
     hasControls: false,
     hasBorders: false,
     selectable: !isTouchScreen,
     originX: 'center',
-    originY: 'center'
+    originY: 'center',
+    radius: radius
   }
-  const lineDefaultConfig: fabric.ILineOptions | any = {
+  const lineDefaultConfig: fabric.ILineOptions = {
     strokeWidth: strokeWidth,
     hasBorders: false,
     hasControls: false,
     strokeUniform: true,
     selectable: false,
-    hoverCursor: 'default'
-    // _controlsVisibility: {
-    //   mtr: false,
-    //   mt: false,
-    //   mb: false,
-    //   ml: false,
-    //   mr: false
-    // }
+    hoverCursor: 'default',
+    visible: true
   }
 
   /** Handle inputs **/
@@ -236,6 +233,7 @@ export const ImageAnnotater = ({
         const { x, y, w, h, id, categoryName } = anno
         const isVisible =
           forceVisable || (isAnnotationsVisible && isFocused(categoryName, id))
+        const color = categoryColorsR.current[categoryName!]
 
         const rect = new fabric.Rect({
           ...rectDefaultConfig,
@@ -244,16 +242,15 @@ export const ImageAnnotater = ({
           width: w,
           height: h,
           visible: isVisible,
-          stroke: categoryColorsR.current[categoryName!]
+          stroke: color
         })
-
         rect.setOptions({ id, categoryName, labelType: 'Rect' })
 
         const textbox = new fabric.Textbox(id.toString(), {
           ...textboxDefaultConfig,
-          left: x + 1,
-          top: y,
-          backgroundColor: categoryColorsR.current[categoryName!],
+          left: x + strokeWidth,
+          top: y + strokeWidth,
+          backgroundColor: color,
           visible: isVisible,
           fontSize: Math.min(14, w / 2, h / 2)
         })
@@ -264,69 +261,78 @@ export const ImageAnnotater = ({
         const { x, y, id, categoryName } = anno
         const isVisible =
           forceVisable || (isAnnotationsVisible && isFocused(categoryName, id))
+        const color = categoryColorsR.current[categoryName!]
 
         const point = new fabric.Circle({
           ...pointDefaultConfig,
           left: x,
           top: y,
           radius: radius,
-          stroke: categoryColorsR.current[categoryName!],
+          stroke: color,
           visible: isVisible
         })
         point.setOptions({ id, categoryName, labelType: 'Point' })
-        point.setControlsVisibility({ mtr: false })
 
         const textbox = new fabric.Textbox(id.toString(), {
           ...textboxDefaultConfig,
           left: x + radius - strokeWidth / 2,
           top: y - radius + strokeWidth / 2,
           originY: 'bottom',
-          backgroundColor: categoryColorsR.current[categoryName!],
-          fontSize: radius * 1.5
+          backgroundColor: color,
+          visible: isVisible
         })
         textbox.setOptions({ id, categoryName, labelType: 'Point' })
 
         canvas.add(point, textbox)
       } else if (anno.type === 'Line') {
-        const { x: x1, y: y1, _x: x2, _y: y2, id, categoryName } = anno
-        console.log(lineDefaultConfig)
+        const { x, y, _x, _y, id, categoryName } = anno
+        const isVisible =
+          forceVisable || (isAnnotationsVisible && isFocused(categoryName, id))
+        const color = categoryColorsR.current[categoryName!]
 
         const line = new fabric.Line(
-          [50, 50, 200, 200].map((coord) => coord - strokeWidth / 2, {
+          [x, y, _x, _y].map((coord) => coord - strokeWidth / 2),
+          {
             ...lineDefaultConfig,
-            stroke: 'red'
-          })
+            stroke: color,
+            visible: isVisible
+          }
         )
-        line.setOptions({ id, categoryName, labelType: 'Line' })
+        const endpoints = [
+          [x, y],
+          [_x, _y]
+        ].map((coord, _id) => {
+          const endpoint = new fabric.Circle({
+            ...pointDefaultConfig,
+            left: coord[0],
+            top: coord[1],
+            fill: color,
+            stroke: transparent,
+            visible: isVisible
+          })
+          endpoint.setOptions({
+            id,
+            _id: _id + 1,
+            categoryName,
+            line,
+            labelType: 'Line'
+          })
+          return endpoint
+        })
 
         const textbox = new fabric.Textbox(id.toString(), {
           ...textboxDefaultConfig,
-          left: x1,
-          top: y1,
-          backgroundColor: categoryColorsR.current[categoryName!],
-          fontSize: radius * 1.5
+          left: x,
+          top: y,
+          originX: 'center',
+          originY: 'bottom',
+          backgroundColor: color,
+          visible: isVisible
         })
         textbox.setOptions({ id, categoryName, labelType: 'Line' })
 
-        canvas.add(line, textbox)
-        // const endpoints = [...Array(2).keys()].map((_id) => {
-        //   const endpoint = new fabric.Circle({
-        //     ...pointDefaultConfig,
-        //     left: [`x${_id + 1}`],
-        //     top: y,
-        //     radius: radius,
-        //     fill: color,
-        //     stroke: 'rgba(255, 0, 0, 0)'
-        //   })
-        //   endpoint.setOptions({
-        //     id,
-        //     _id: _id + 1,
-        //     categoryName,
-        //     labelType: 'Line',
-        //     line
-        //   })
-        //   return endpoint
-        // })
+        line.setOptions({ id, categoryName, labelType: 'Line', endpoints })
+        canvas.add(line, textbox, ...endpoints)
       }
     })
 
@@ -360,19 +366,14 @@ export const ImageAnnotater = ({
       // start to draw a rectangle and its text
       const rect = new fabric.Rect({
         ...rectDefaultConfig,
-        left: x - strokeWidth / 2,
-        top: y - strokeWidth / 2,
-        width: 0,
-        height: 0,
+        left: x - strokeWidth,
+        top: y - strokeWidth,
         stroke: color
       })
       rect.setOptions({ id, categoryName, labelType: 'Rect' })
-      rect.setControlsVisibility({ mtr: false })
 
       const textbox = new fabric.Textbox(id.toString(), {
         ...textboxDefaultConfig,
-        left: x - strokeWidth / 2 + 1,
-        top: y - strokeWidth / 2,
         backgroundColor: color,
         visible: false
       })
@@ -380,22 +381,18 @@ export const ImageAnnotater = ({
 
       canvas.add(rect, textbox)
       onDrawObjR.current = rect
-      drawingStartedR.current = true
     } else if (isDrawingR.current === 'Point') {
       const point = new fabric.Circle({
         ...pointDefaultConfig,
         left: x,
         top: y,
-        radius: radius,
         stroke: color
       })
       point.setOptions({ id, categoryName, labelType: 'Point' })
-      point.setControlsVisibility({ mtr: false })
 
       const textbox = new fabric.Textbox(id.toString(), {
         ...textboxDefaultConfig,
-        left: x, // it doesn't matter because it will be set when mouse is up'
-        top: y,
+        originY: 'bottom',
         backgroundColor: color,
         visible: false
       })
@@ -403,7 +400,6 @@ export const ImageAnnotater = ({
 
       canvas.add(point, textbox)
       onDrawObjR.current = point
-      drawingStartedR.current = true
     } else if (isDrawingR.current === 'Line') {
       const line = new fabric.Line(
         [x, y, x, y].map((coord) => coord - strokeWidth / 2),
@@ -417,9 +413,8 @@ export const ImageAnnotater = ({
           ...pointDefaultConfig,
           left: x,
           top: y,
-          radius: radius,
           fill: color,
-          stroke: 'rgba(255,0,0,0)'
+          stroke: transparent
         })
         endpoint.setOptions({
           id,
@@ -434,8 +429,8 @@ export const ImageAnnotater = ({
 
       const textbox = new fabric.Textbox(id.toString(), {
         ...textboxDefaultConfig,
-        left: x,
-        top: y,
+        originX: 'center',
+        originY: 'bottom',
         backgroundColor: color,
         visible: false
       })
@@ -443,8 +438,9 @@ export const ImageAnnotater = ({
 
       canvas.add(line, textbox, ...endpoints)
       onDrawObjR.current = line
-      drawingStartedR.current = true
     }
+
+    drawingStartedR.current = true
   }
 
   const drawEndAtCursor = () => {
@@ -452,31 +448,23 @@ export const ImageAnnotater = ({
     if (!canvas) return
 
     const obj = onDrawObjR.current as any
-    if (isDrawingR.current === 'Rect') {
-      const invalid = obj.width <= strokeWidth || obj.height <= strokeWidth
+    const isInvalid =
+      isDrawingR.current === 'Rect'
+        ? obj.width <= strokeWidth || obj.height <= strokeWidth
+        : false
 
-      if (invalid) {
-        canvas.remove(obj)
-        canvas.remove(
-          ...canvas.getObjects().filter((o: any) => o.id === obj.id)
-        )
-        setFocus({ isDrawing: null })
-      } else {
-        cSave()
-        setFocus({
-          isDrawing: null,
-          objectId: obj.id,
-          categoryName: obj.categoryName
-        })
-        canvas.setActiveObject(obj)
-      }
-    } else if (['Point', 'Line'].includes(isDrawingR.current!)) {
+    if (isInvalid) {
+      canvas.remove(obj)
+      canvas.remove(...canvas.getObjects().filter((o: any) => o.id === obj.id))
+      setFocus({ isDrawing: null })
+    } else {
       cSave()
       setFocus({
         isDrawing: null,
         objectId: obj.id,
         categoryName: obj.categoryName
       })
+      canvas.setActiveObject(obj)
     }
 
     drawingStartedR.current = false
@@ -637,8 +625,10 @@ export const ImageAnnotater = ({
           const top = getBetween(nowY, ...boundary.y)
           obj.set({ left, top })
         } else if (isDrawingR.current === 'Line') {
-          obj.endpoints[1].set({ left: nowX, top: nowY })
-          obj.set({ x2: nowX - strokeWidth / 2, y2: nowY - strokeWidth / 2 })
+          const left = getBetween(nowX, ...boundary.x)
+          const top = getBetween(nowY, ...boundary.y)
+          obj.endpoints[1].set({ left, top })
+          obj.set({ x2: left - strokeWidth / 2, y2: top - strokeWidth / 2 })
         }
 
         canvas.requestRenderAll()
@@ -679,7 +669,7 @@ export const ImageAnnotater = ({
       // update corresponding textBox position
       const selectedObj: any = canvas.getActiveObject()
       if (selectedObj) {
-        const theTextBox = canvas._objects.filter(
+        const theTextbox = canvas._objects.filter(
           (o: any) => o.type === 'textbox' && o.id === selectedObj.id
         )[0] as fabric.Textbox
 
@@ -687,24 +677,34 @@ export const ImageAnnotater = ({
         const w = selectedObj.getScaledWidth() - strokeWidth
         const h = selectedObj.getScaledHeight() - strokeWidth
 
-        const fontSize = Math.min(14, w / 2, h / 2)
-        const ndigits = (theTextBox.text as string).length
-        if (selectedObj.labelType === 'Rect') {
-          theTextBox.set({
-            left: selectedObj.left + 1,
-            top: selectedObj.top,
-            fontSize,
-            width: (fontSize * ndigits) / 2
-          })
-        } else if (selectedObj.labelType === 'Point') {
-          theTextBox.set({
-            left: selectedObj.left + radius - strokeWidth / 2,
-            top: selectedObj.top - radius + strokeWidth / 2,
-            originY: 'bottom',
-            fontSize: radius * 1.5,
-            width: (fontSize * ndigits) / 2
-          })
+        const ndigits = (theTextbox.text as string).length
+        const fontSize =
+          selectedObj.labelType === 'Rect'
+            ? Math.min(14, w / 2, h / 2)
+            : radius * 1.5
+
+        const textboxConfig: fabric.ITextboxOptions = {
+          fontSize,
+          width: (fontSize * ndigits) / 2
         }
+
+        if (selectedObj.labelType === 'Rect') {
+          textboxConfig.left = selectedObj.left + strokeWidth
+          textboxConfig.top = selectedObj.top + strokeWidth
+        } else if (selectedObj.labelType === 'Point') {
+          textboxConfig.left = selectedObj.left + radius - strokeWidth / 2
+          textboxConfig.top = selectedObj.top - radius + strokeWidth / 2
+        } else if (selectedObj.labelType === 'Line') {
+          const topPoint = (
+            selectedObj.type === 'circle' ? selectedObj.line : selectedObj
+          ).endpoints // active object may be line of its endpoints
+            .sort((a: any, b: any) => a.top - b.top)[0]
+
+          textboxConfig.left = topPoint.left
+          textboxConfig.top = topPoint.top - radius
+        }
+
+        theTextbox.set({ ...textboxConfig })
       }
     })
 
@@ -724,18 +724,24 @@ export const ImageAnnotater = ({
       // get current offset and object
       const obj: any = canvas.getActiveObject()
       const { x, y } = offsetR.current
+      const boundary: { x: number[]; y: number[] } = { x: [], y: [] }
 
       // make sure the object's coordinates are in boundary
       if (obj.labelType === 'Rect') {
-        obj.left = getBetween(obj.left, x, x + cw - obj.getScaledWidth())
-        obj.top = getBetween(obj.top, y, y + ch - obj.getScaledHeight())
-      } else if (obj.labelType === 'Point') {
-        obj.left = getBetween(obj.left, x, x + cw)
-        obj.top = getBetween(obj.top, y, y + +ch)
-      } else if (obj.labelType === 'Line') {
-        // only need to set Line's text position because points and line's position are calculate and set on move
-        console.log(obj)
+        boundary.x = [x, x + cw - obj.getScaledWidth()]
+        boundary.y = [y, y + ch - obj.getScaledHeight()]
+      } else if (['Point', 'Line'].includes(obj.labelType)) {
+        boundary.x = [x, x + cw]
+        boundary.y = [y, y + ch]
       }
+
+      obj.left = getBetween(obj.left, ...boundary.x)
+      obj.top = getBetween(obj.top, ...boundary.y)
+      if (obj.line)
+        obj.line.set({
+          [`x${obj._id}`]: obj.left - strokeWidth / 2,
+          [`y${obj._id}`]: obj.top - strokeWidth / 2
+        })
 
       cSave()
     })
@@ -950,7 +956,7 @@ export const ImageAnnotater = ({
         break
       case 'KeyR':
         if ((event.ctrlKey || event.metaKey) && can.reset) cReset()
-        else {
+        else if (!event.ctrlKey && !event.metaKey) {
           setFocus({
             isDrawing: focus.isDrawing === 'Rect' ? null : 'Rect',
             objectId: null
