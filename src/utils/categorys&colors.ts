@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 import randomColor from 'randomcolor'
-import { PointLabel, RectLabel } from '../interface/annotations'
+import { LineLabel, PointLabel, RectLabel } from '../interface/annotations'
 
 export const parseCategorysAndColors = (
   categoryNames: string[],
@@ -51,4 +51,24 @@ export const getAllCategoryNames = (
     })
   })
   return categoryNames
+}
+
+export const groupBy = (
+  annotations: (RectLabel | PointLabel | LineLabel)[],
+  property: string
+) => {
+  return annotations.reduce(
+    (groupedAnnos: any, theAnno: RectLabel | PointLabel | LineLabel) => {
+      if (!groupedAnnos[theAnno[property]]) {
+        groupedAnnos[theAnno[property]] = []
+      }
+      groupedAnnos[theAnno[property]].push(theAnno)
+      return groupedAnnos
+    },
+    {}
+  )
+}
+
+export const getAbbreviacion = (category: string, length: number) => {
+  return category.slice(0, length) + (category.length > length ? '...' : '')
 }

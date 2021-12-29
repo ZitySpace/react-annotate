@@ -13,20 +13,13 @@ import { Focus, ImageObject } from './interface/shape'
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
-  // ChevronDownIcon,
-  // ChevronUpIcon,
   XIcon,
-  // MenuAlt2Icon,
-  // MenuAlt3Icon,
-  // MenuAlt4Icon,
-  // MenuIcon,
-  TrashIcon
-  // ReplyIcon,
-  // CheckIcon,
-  // RefreshIcon
-  // CogIcon,
-  // TagIcon,
-  // HandIcon
+  MenuAlt2Icon,
+  MenuAlt3Icon,
+  MenuAlt4Icon,
+  MenuIcon,
+  TrashIcon,
+  CogIcon
 } from '@heroicons/react/solid'
 import {
   HeavyFloppyIcon,
@@ -38,12 +31,15 @@ import {
   UndoIcon
 } from './components/icons'
 import { isTouchEvt } from './utils/mouse'
-import { getBetween } from './utils/math'
+import { getBetween, getDistance } from './utils/math'
 import {
+  getAbbreviacion,
   getAllCategoryNames,
   getRandomColors,
+  groupBy,
   parseCategorysAndColors
 } from './utils/categorys&colors'
+import Draggable from 'react-draggable'
 
 export const ImageAnnotater = ({
   imagesList,
@@ -180,12 +176,26 @@ export const ImageAnnotater = ({
   focusCategoryR.current = focus.categoryName as string
   const categoryColorsR = useRef(categoryColors)
 
+  // for categories panel
+  const [selectBarFoldingState, _setSelectBarFoldingState] = useState(0)
+  const setSelectBarFoldingState = () => {
+    _setSelectBarFoldingState((selectBarFoldingState + 1) % 4)
+  }
+  const [groupedAnnotations, setGroupedAnnotations] = useState({})
+  const MENU_ICONS = [
+    <MenuIcon key='0' />,
+    <MenuAlt2Icon key='1' />,
+    <MenuAlt3Icon key='2' />,
+    <MenuAlt4Icon key='3' />
+  ]
+
   /** Methods **/
   /**
-   * update actions status if state stack or its pointer changes
+   * update actions status and grouped annotations if state stack or its pointer changes
    */
-  const updateActionStatus = () => {
+  const synchronizeStatus = () => {
     setCan({
+      // synchronize action status
       undo: pointerOfStateStackR.current > 1,
       redo: pointerOfStateStackR.current < stateStackR.current.length,
       reset: stateStackR.current.length > 1,
@@ -193,6 +203,13 @@ export const ImageAnnotater = ({
         pointerOfStateStackR.current > 1 ||
         pointerOfStateStackR.current < stateStackR.current.length
     })
+    setGroupedAnnotations(
+      // synchronize groupedAnnotations make category panel refresh
+      groupBy(
+        stateStackR.current[pointerOfStateStackR.current - 1],
+        'categoryName'
+      )
+    )
   }
 
   /**
@@ -212,6 +229,23 @@ export const ImageAnnotater = ({
         (focus.categoryName === categoryName &&
           (focus.objectId === null || (focus.objectId === id && !isText))))
     )
+  }
+
+  /**
+   *
+   * @param obj target object
+   * @param labelType 'Rect' | 'Line'
+   * @returns is the obj invalid
+   */
+  const isInvalid = (obj: any, labelType: string | null) => {
+    return labelType === 'Rect'
+      ? obj.width <= strokeWidth || obj.height <= strokeWidth
+      : labelType === 'Line'
+      ? getDistance(
+          ...obj.endpoints.map((circle: any) => circle.getPointByOrigin())
+        ) <
+        (radius + strokeWidth) * 2
+      : false
   }
 
   /**
@@ -465,17 +499,16 @@ export const ImageAnnotater = ({
     drawingStartedR.current = true
   }
 
+  /**
+   * called when is drawing and mouse is up
+   */
   const drawEndAtCursor = () => {
     const canvas = canvasR.current
     if (!canvas) return
 
     const obj = onDrawObjR.current as any
-    const isInvalid =
-      isDrawingR.current === 'Rect'
-        ? obj.width <= strokeWidth || obj.height <= strokeWidth
-        : false
 
-    if (isInvalid) {
+    if (isInvalid(obj, isDrawingR.current)) {
       canvas.remove(obj)
       canvas.remove(...canvas.getObjects().filter((o: any) => o.id === obj.id))
       setFocus({ isDrawing: null })
@@ -498,7 +531,7 @@ export const ImageAnnotater = ({
    */
   const onImgLoad = () => {
     console.log('onImgLoad was called') // hint
-    console.log(onPrevious, onNext, onClose) // TODO: remove
+    console.log(onClose) // TODO: remove
 
     // Get the Elements attributes and calculate the variables
     const img: any = imgElRef.current
@@ -516,7 +549,7 @@ export const ImageAnnotater = ({
       y: [(ceh - ch) / 2, (ceh + ch) / 2]
     }
 
-    // Initialize state stack and its pointer & focus
+    // Initialize state stack and its pointer & focus & actions status & grouped annotations
     stateStackR.current = [
       imgObj.annotations.map((anno) =>
         anno.scaleTransform(scaleR.current, offsetR.current)
@@ -524,6 +557,7 @@ export const ImageAnnotater = ({
     ]
     pointerOfStateStackR.current = 1
     setFocus({ isDrawing: null, objectId: null }) // keep category focus when switching images, so we can quickly browse one specific category objects on all images
+    synchronizeStatus()
 
     // If there is not currently canvas, new one and set its attributes
     if (canvasR.current === null) {
@@ -863,7 +897,7 @@ export const ImageAnnotater = ({
     stateStackR.current.push(nowState)
     pointerOfStateStackR.current += 1
 
-    updateActionStatus() // update action status because the state stack and its pointer has changed
+    synchronizeStatus() // update action status and grouped annotations because the state stack and its pointer has changed
     console.log(stateStackR.current, pointerOfStateStackR.current) // TODO: remove this line because it just for debug
   }
 
@@ -900,7 +934,7 @@ export const ImageAnnotater = ({
       stateStackR.current[pointerOfStateStackR.current - 1],
       true
     ) // pop stack via right-offset pointer then redraw annotations
-    updateActionStatus() // update action status because pointer has changed
+    synchronizeStatus() // update action status because pointer has changed
   }
 
   /**
@@ -917,7 +951,7 @@ export const ImageAnnotater = ({
       stateStackR.current[pointerOfStateStackR.current - 1],
       true
     ) // pop stack via right-offset pointer then redraw annotations
-    updateActionStatus() // update action status because pointer has changed
+    synchronizeStatus() // update action status because pointer has changed
   }
 
   /**
@@ -937,7 +971,7 @@ export const ImageAnnotater = ({
       stateStackR.current[pointerOfStateStackR.current - 1],
       true
     ) // pop stack via right-offset pointer then redraw annotations
-    updateActionStatus() // update action status because pointer has changed
+    synchronizeStatus() // update action status because pointer has changed
   }
 
   /** Images Switcher **/
@@ -971,7 +1005,7 @@ export const ImageAnnotater = ({
       indexR.current += 1
       // allSave()  // TODO: implement save function
       setImgObj(imagesList[indexR.current])
-      if (onPrevious) onPrevious() // TODO: add params
+      if (onNext) onNext() // TODO: add params
     }
   }
 
@@ -1043,6 +1077,11 @@ export const ImageAnnotater = ({
           obj.id,
           obj.type === 'textbox'
         )
+        if (
+          !['textbox', 'line'].includes(obj.type) &&
+          obj.id === focus.objectId
+        )
+          canvas.setActiveObject(obj)
       }
     })
     canvas.renderAll()
@@ -1077,7 +1116,7 @@ export const ImageAnnotater = ({
             isAnnotationsVisible ? '' : 'hidden'
           }`}
         >
-          {/* <Draggable
+          <Draggable
             bounds='parent'
             handle='#cate_handle'
             cancel='.selbar-state-icon'
@@ -1087,123 +1126,103 @@ export const ImageAnnotater = ({
                 id='cate_handle'
                 className='bg-indigo-400 py-2 px-2 w-full rounded-t-md flex justify-between'
               >
-                {selBarFoldingState % 4 === 0 ? (
-                  <MenuIcon
-                    className='h-4 w-4 text-gray-700 selbar-state-icon'
-                    onClick={cycleSelBarFoldingState}
-                  />
-                ) : selBarFoldingState % 4 === 1 ? (
-                  <MenuAlt2Icon
-                    className='h-4 w-4 text-gray-700 selbar-state-icon'
-                    onClick={cycleSelBarFoldingState}
-                  />
-                ) : selBarFoldingState % 4 === 2 ? (
-                  <MenuAlt3Icon
-                    className='h-4 w-4 text-gray-700 selbar-state-icon'
-                    onClick={cycleSelBarFoldingState}
-                  />
-                ) : (
-                  <MenuAlt4Icon
-                    className='h-4 w-4 text-gray-700 selbar-state-icon'
-                    onClick={cycleSelBarFoldingState}
-                  />
-                )}
+                <span
+                  className='h-4 w-4 text-gray-700 selbar-state-icon'
+                  onClick={setSelectBarFoldingState}
+                >
+                  {MENU_ICONS[selectBarFoldingState]}
+                </span>
                 category
               </div>
               <div
                 className={`h-full w-full overflow-y-auto ${
-                  selBarFoldingState === 3 ? 'hidden' : ''
+                  selectBarFoldingState === 3 ? 'hidden' : ''
                 }`}
               >
                 {Object.entries(groupedAnnotations).map(
-                  ([cate, group], i_group) => (
+                  (
+                    [category, annotations]: [
+                      string,
+                      (RectLabel | PointLabel | LineLabel)[]
+                    ],
+                    index: number
+                  ) => (
                     <div
-                      className={`px-2 flex flex-col items-end w-full py-1 rounded-lg ${
-                        canvasCtx.cateOI === cate
-                          ? 'border-l-6 border-indigo-600'
-                          : ''
+                      key={index}
+                      className={`px-2 flex flex-col items-end w-full py-1 border-indigo-600 ${
+                        focus.categoryName === category ? 'border-l-8' : ''
                       }`}
-                      style={{ backgroundColor: colors[cate] }}
-                      key={`group-${i_group}`}
+                      style={{
+                        backgroundColor: categoryColorsR.current[category]
+                      }}
                       onClick={() => {
-                        setCanvasCtx({ cateOI: cate, objectOI: null })
+                        setFocus({ categoryName: category })
                       }}
                     >
                       <div
                         className={`pb-1 static w-full flex justify-end ${
-                          selBarFoldingState === 2 && canvasCtx.cateOI !== cate
+                          selectBarFoldingState === 2 &&
+                          focus.categoryName !== category
                             ? 'hidden'
                             : ''
                         }`}
                       >
                         <div
                           className={`absolute left-0 transform -translate-x-6 md:-translate-x-8 ${
-                            canvasCtx.isDrawing || canvasCtx.cateOI !== cate
+                            focus.isDrawing || focus.categoryName !== category
                               ? 'invisible'
                               : 'visible'
                           }`}
-                          onClick={(evt) => {
-                            evt.preventDefault()
-                            evt.stopPropagation()
-                            if (canvasCtx.isDrawing) return
-                            setCateCandid(canvasCtx.cateOI as unknown as string)
-                            setShowCateEditBar(true)
-                          }}
                         >
                           <CogIcon
                             className={`w-6 h-6 md:w-8 md:h-8 ${
-                              showCateEditBar
-                                ? 'text-indigo-600'
-                                : 'text-gray-700'
+                              // showCateEditBar TODO
+                              category ? 'text-indigo-600' : 'text-gray-700'
                             } `}
                           />
                         </div>
-                        <span>{abbr(cate, 7)}</span>
+                        <span>{getAbbreviacion(category, 7)}</span>
                       </div>
-                      <div
-                        className={`flex flex-row-reverse w-20 flex-wrap ${
-                          selBarFoldingState === 1 && canvasCtx.cateOI !== cate
-                            ? 'hidden'
-                            : ''
-                        } `}
-                      >
-                        {group.map((anno: any, i_item: number) => (
-                          <div
-                            key={`item-${i_item}`}
-                            className={`h-5 w-5 ${
-                              (i_item + 1) % 3 === 0 ? '' : 'ml-1'
-                            } ${
-                              i_item < 3 ? '' : 'mt-1'
-                            } rounded-md flex justify-center items-center ${
-                              canvasCtx.objectOI === anno.unique_hash_z
-                                ? 'bg-indigo-600 text-gray-100'
-                                : 'bg-gray-200'
-                            } ${
-                              // isTouchScr
-                              //   ? ''
-                              //   : 'hover:bg-indigo-600 hover:text-gray-100'
-                              ''
-                            }`}
-                            onClick={(evt) => {
-                              if (canvasCtx.isDrawing) return
-                              evt.preventDefault()
-                              evt.stopPropagation()
-                              setCanvasCtx({
-                                cateOI: anno.category,
-                                objectOI: anno.unique_hash_z
-                              })
-                            }}
-                          >
-                            <span>{anno.text_id}</span>
-                          </div>
-                        ))}
+                      <div>
+                        <div
+                          className={`grid grid-cols-3 gap-1 mr-0.5 flex-row-reverse ${
+                            selectBarFoldingState === 1 &&
+                            focus.categoryName !== category
+                              ? 'hidden'
+                              : ''
+                          } `}
+                        >
+                          {annotations.map((anno, idx) => (
+                            <div
+                              key={idx}
+                              className={`h-5 w-5 rounded-md flex justify-center items-center ${
+                                focus.objectId === anno.id
+                                  ? 'bg-indigo-600 text-gray-100'
+                                  : 'bg-gray-200'
+                              } ${
+                                isTouchScreen
+                                  ? ''
+                                  : 'hover:bg-indigo-600 hover:text-gray-100'
+                              }`}
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                setFocus({
+                                  categoryName: category,
+                                  objectId: anno.id
+                                })
+                              }}
+                            >
+                              <span>{anno.id}</span>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   )
                 )}
               </div>
             </div>
-          </Draggable> */}
+          </Draggable>
 
           {/* <Draggable bounds='parent' handle='#cate_edit_handle'>
             <div
