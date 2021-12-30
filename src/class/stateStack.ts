@@ -1,5 +1,4 @@
 /* eslint-disable no-unused-vars */
-import React from 'react'
 import { RectLabel, PointLabel, LineLabel } from '../interface/annotations'
 
 export interface Can {
@@ -13,26 +12,14 @@ export class StateStack {
   private stateStack: (RectLabel | PointLabel | LineLabel)[][] = []
   private index: number = 0
   can: Can
-  private canRef: React.MutableRefObject<Can> | null
 
-  constructor({
-    state,
-    canRef
-  }: {
-    state?: (RectLabel | PointLabel | LineLabel)[]
-    canRef?: React.MutableRefObject<Can> | null
-  }) {
-    if (state) {
-      this.stateStack.push(state)
+  constructor(initialState?: (RectLabel | PointLabel | LineLabel)[]) {
+    if (initialState) {
+      this.stateStack.push(initialState)
       this.index = 1
     }
-    if (canRef) this.canRef = canRef
     this.updateCan()
   }
-
-  // linkCanRef(canRef: React.MutableRefObject<Can>) {
-  //   this.canRef = canRef
-  // }
 
   nowState() {
     this.updateCan()
@@ -68,6 +55,5 @@ export class StateStack {
       reset: this.stateStack.length > 1,
       save: this.index > 1 || this.index < this.stateStack.length
     }
-    if (this.canRef) this.canRef.current = this.can
   }
 }

@@ -13,7 +13,6 @@ import { Focus, ImageObject } from './interface/shape'
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
-  // XIcon,
   MenuAlt2Icon,
   MenuAlt3Icon,
   MenuAlt4Icon,
@@ -138,13 +137,12 @@ export const ImageAnnotater = ({
   )
 
   /** Initialize variable **/
-  const _stateStack = new StateStack({})
+  const _stateStack = new StateStack()
   const [stateStack] = useState<StateStack>(_stateStack) // make stateStack as a state
 
   // Concerned attributes of annotations
   const [focus, _setFocus] = useState<Focus>({
     isDrawing: null,
-    annoType: null,
     categoryName: null,
     objectId: null
   })

@@ -11,7 +11,6 @@ export interface ImageObject {
 
 export interface Focus {
   isDrawing?: string | null
-  annoType?: string | null
   categoryName?: string | null
   objectId?: number | null
 }
