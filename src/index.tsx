@@ -41,6 +41,7 @@ import {
 } from './utils/categorys&colors'
 import Draggable from 'react-draggable'
 import { CloseButton } from './components/buttons/closeBtn'
+import { StateStack } from './class/stateStack'
 
 export const ImageAnnotater = ({
   imagesList,
@@ -136,13 +137,9 @@ export const ImageAnnotater = ({
     colors || []
   )
 
-  // Actions status
-  const [can, setCan] = useState({
-    undo: false,
-    redo: false,
-    reset: false,
-    save: false
-  })
+  /** Initialize variable **/
+  const _stateStack = new StateStack({})
+  const [stateStack] = useState<StateStack>(_stateStack) // make stateStack as a state
 
   // Concerned attributes of annotations
   const [focus, _setFocus] = useState<Focus>({
@@ -164,8 +161,6 @@ export const ImageAnnotater = ({
   const offsetR = useRef<Point>({ x: 0, y: 0 }) // Image object edge offset to canvas edge
   const scaleR = useRef<number>(1) // Scale of image in canvas to originael
   const boundaryR = useRef<{ x: number[]; y: number[] }>({ x: [], y: [] }) // images boundary on canvas
-  const stateStackR = useRef<(RectLabel | PointLabel | LineLabel)[][]>([]) // states stack
-  const pointerOfStateStackR = useRef<number>(0) // and its right-offseted pointer
 
   // for zoom/pan/drag
   const isPanningR = useRef<boolean>(false)
@@ -200,21 +195,9 @@ export const ImageAnnotater = ({
    * update actions status and grouped annotations if state stack or its pointer changes
    */
   const synchronizeStatus = () => {
-    setCan({
-      // synchronize action status
-      undo: pointerOfStateStackR.current > 1,
-      redo: pointerOfStateStackR.current < stateStackR.current.length,
-      reset: stateStackR.current.length > 1,
-      save:
-        pointerOfStateStackR.current > 1 ||
-        pointerOfStateStackR.current < stateStackR.current.length
-    })
     setGroupedAnnotations(
       // synchronize groupedAnnotations make category panel refresh
-      groupBy(
-        stateStackR.current[pointerOfStateStackR.current - 1],
-        'categoryName'
-      )
+      groupBy(stateStack.nowState(), 'categoryName')
     )
   }
 
@@ -409,13 +392,7 @@ export const ImageAnnotater = ({
 
     // Calculate id、category and its color
     const categoryName = focusCategoryR.current || newCategoryName
-    const id =
-      Math.max(
-        -1,
-        ...stateStackR.current[pointerOfStateStackR.current - 1].map(
-          (anno) => anno.id
-        )
-      ) + 1
+    const id = Math.max(-1, ...stateStack.nowState().map((anno) => anno.id)) + 1
     const allColors = Object.values(categoryColorsR.current)
     categoryColorsR.current[categoryName] =
       categoryColorsR.current[categoryName] ||
@@ -555,13 +532,12 @@ export const ImageAnnotater = ({
       y: [(ceh - ch) / 2, (ceh + ch) / 2]
     }
 
-    // Initialize state stack and its pointer & focus & actions status & grouped annotations
-    stateStackR.current = [
+    // Initialize state stack & focus & actions status & grouped annotations
+    stateStack.pushState(
       imgObj.annotations.map((anno) =>
         anno.scaleTransform(scaleR.current, offsetR.current)
       )
-    ]
-    pointerOfStateStackR.current = 1
+    )
     setFocus({ isDrawing: null, objectId: null }) // keep category focus when switching images, so we can quickly browse one specific category objects on all images
     synchronizeStatus()
 
@@ -608,7 +584,7 @@ export const ImageAnnotater = ({
     )
 
     // Render annotations if existed
-    drawObjectsFromState(stateStackR.current[pointerOfStateStackR.current - 1])
+    drawObjectsFromState(stateStack.nowState())
 
     canvas.renderAll()
     canvas.zoomToPoint(new fabric.Point(cew / 2, ceh / 2), 1) // TODO: use math to calculate the rate to make the images biggest
@@ -893,18 +869,9 @@ export const ImageAnnotater = ({
       )
     })
 
-    // align state stack
-    if (pointerOfStateStackR.current < stateStackR.current.length)
-      stateStackR.current = stateStackR.current.slice(
-        0,
-        pointerOfStateStackR.current
-      )
-    // push now state into stack
-    stateStackR.current.push(nowState)
-    pointerOfStateStackR.current += 1
-
+    stateStack.pushState(nowState)
     synchronizeStatus() // update action status and grouped annotations because the state stack and its pointer has changed
-    console.log(stateStackR.current, pointerOfStateStackR.current) // TODO: remove this line because it just for debug
+    console.log(stateStack.nowState()) // TODO: remove this line because it just for debug
   }
 
   /**
@@ -935,11 +902,7 @@ export const ImageAnnotater = ({
 
     setFocus({ categoryName: null, objectId: null })
     canvas.remove(...canvas.getObjects().filter((o) => o.type !== 'image')) // remove all objects
-    pointerOfStateStackR.current -= 1 // move pointer backward
-    drawObjectsFromState(
-      stateStackR.current[pointerOfStateStackR.current - 1],
-      true
-    ) // pop stack via right-offset pointer then redraw annotations
+    drawObjectsFromState(stateStack.prevState(), true)
     synchronizeStatus() // update action status because pointer has changed
   }
 
@@ -952,11 +915,7 @@ export const ImageAnnotater = ({
 
     setFocus({ categoryName: null, objectId: null })
     canvas.remove(...canvas.getObjects().filter((o) => o.type !== 'image')) // remove all objects
-    pointerOfStateStackR.current += 1 // move pointer forward
-    drawObjectsFromState(
-      stateStackR.current[pointerOfStateStackR.current - 1],
-      true
-    ) // pop stack via right-offset pointer then redraw annotations
+    drawObjectsFromState(stateStack.nextState(), true)
     synchronizeStatus() // update action status because pointer has changed
   }
 
@@ -970,13 +929,7 @@ export const ImageAnnotater = ({
     setFocus({ categoryName: null, objectId: null })
     canvas.remove(...canvas.getObjects().filter((o) => o.type !== 'image')) // remove all objects
 
-    pointerOfStateStackR.current =
-      pointerOfStateStackR.current !== 1 ? 1 : stateStackR.current.length // switch pointer to 1 or most
-
-    drawObjectsFromState(
-      stateStackR.current[pointerOfStateStackR.current - 1],
-      true
-    ) // pop stack via right-offset pointer then redraw annotations
+    drawObjectsFromState(stateStack.resetState(), true)
     synchronizeStatus() // update action status because pointer has changed
   }
 
@@ -1028,13 +981,21 @@ export const ImageAnnotater = ({
         if (focus.objectId !== null) cDelete()
         break
       case 'KeyZ':
-        if ((event.ctrlKey || event.metaKey) && !event.shiftKey && can.undo)
+        if (
+          (event.ctrlKey || event.metaKey) &&
+          !event.shiftKey &&
+          stateStack.can.undo
+        )
           cUndo()
-        else if ((event.ctrlKey || event.metaKey) && event.shiftKey && can.redo)
+        else if (
+          (event.ctrlKey || event.metaKey) &&
+          event.shiftKey &&
+          stateStack.can.redo
+        )
           cRedo()
         break
       case 'KeyR':
-        if ((event.ctrlKey || event.metaKey) && can.reset) cReset()
+        if ((event.ctrlKey || event.metaKey) && stateStack.can.reset) cReset()
         else if (!event.ctrlKey && !event.metaKey) {
           setFocus({
             isDrawing: focus.isDrawing === 'Rect' ? null : 'Rect',
@@ -1444,39 +1405,40 @@ export const ImageAnnotater = ({
 
           <div
             className={`h-6 w-6 rounded-sm md:h-8 md:w-8 md:rounded-full flex justify-center items-center bg-gray-200 cursor-pointer ${
-              can.undo
+              // can.undo
+              stateStack.can.undo
                 ? 'hover:bg-indigo-600 hover:text-gray-100'
                 : 'text-gray-400'
             }`}
-            onClick={can.undo ? cUndo : undefined}
+            onClick={stateStack.can.undo ? cUndo : undefined}
           >
             <UndoIcon />
           </div>
           <div
             className={`h-6 w-6 rounded-sm md:h-8 md:w-8 md:rounded-full flex justify-center items-center bg-gray-200 cursor-pointer ${
-              can.redo
+              stateStack.can.redo
                 ? 'hover:bg-indigo-600 hover:text-gray-100'
                 : 'text-gray-400'
             }
         `}
-            onClick={can.redo ? cRedo : undefined}
+            onClick={stateStack.can.redo ? cRedo : undefined}
           >
             <RedoIcon />
           </div>
 
           <div
             className={`h-6 w-6 rounded-sm md:h-8 md:w-8 md:rounded-full flex justify-center items-center bg-gray-200 cursor-pointer ${
-              can.reset
+              stateStack.can.reset
                 ? 'hover:bg-indigo-600 hover:text-gray-100'
                 : 'text-gray-400'
             }`}
-            onClick={can.reset ? cReset : undefined}
+            onClick={stateStack.can.reset ? cReset : undefined}
           >
             <ResetIcon />
           </div>
           <div
             className={`h-6 w-6 rounded-sm md:h-8 md:w-8 md:rounded-full flex justify-center items-center bg-gray-200 cursor-pointer ${
-              can.save
+              stateStack.can.save
                 ? 'hover:bg-indigo-600 hover:text-gray-100'
                 : 'text-gray-400'
             }`}
@@ -1487,12 +1449,14 @@ export const ImageAnnotater = ({
         </div>
       </div>
 
-      <CloseButton
-        onClick={() => {
-          setIsAnnotatorOpen(false)
-          if (onClose) onClose() // TODO: add event as params
-        }}
-      />
+      <div className='flex justify-center space-x-1 absolute bottom-0 left-1 md:left-1/4'>
+        <CloseButton
+          onClick={() => {
+            setIsAnnotatorOpen(false)
+            if (onClose) onClose() // TODO: add event as params
+          }}
+        />
+      </div>
     </div>
   ) : null
 }
