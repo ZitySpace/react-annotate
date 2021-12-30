@@ -13,7 +13,7 @@ import { Focus, ImageObject } from './interface/shape'
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
-  XIcon,
+  // XIcon,
   MenuAlt2Icon,
   MenuAlt3Icon,
   MenuAlt4Icon,
@@ -40,6 +40,7 @@ import {
   parseCategorysAndColors
 } from './utils/categorys&colors'
 import Draggable from 'react-draggable'
+import { CloseButton } from './components/buttons/closeBtn'
 
 export const ImageAnnotater = ({
   imagesList,
@@ -48,7 +49,8 @@ export const ImageAnnotater = ({
   onPrevious,
   onNext,
   onClose,
-  isAnnotationsVisible = true
+  isAnnotationsVisible = true,
+  close = true
 }: {
   imagesList: any[]
   index: number
@@ -57,7 +59,11 @@ export const ImageAnnotater = ({
   onNext?: Function
   onClose?: Function
   isAnnotationsVisible?: boolean
+  close?: boolean
 }) => {
+  const [isAnnotatorOpen, setIsAnnotatorOpen] = useState(close)
+  if (!close) return null
+
   // Handle inputs with old shape
   // TODO: remove
   imagesList = imagesList.map((img) => {
@@ -1092,7 +1098,7 @@ export const ImageAnnotater = ({
     isAnnotationsVisible
   ])
 
-  return (
+  return isAnnotatorOpen ? (
     <div className='w-full h-full flex flex-col justify-center items-center relative'>
       <div
         className='h-full relative pb-7 md:pb-9 select-none w-full flex justify-center items-center overflow-y-hidden'
@@ -1225,129 +1231,129 @@ export const ImageAnnotater = ({
           </Draggable>
 
           {/* <Draggable bounds='parent' handle='#cate_edit_handle'>
-            <div
-              className={`bg-gray-100 bg-opacity-0 absolute top-2 left-2 visible rounded-md max-h-full flex flex-col items-end text-xs shadow-lg select-none ${
-                showCateEditBar ? '' : 'hidden'
-              }`}
-            >
-              <div className='flex rounded-md'>
-                <div
-                  id='cate_edit_handle'
-                  className='relative inline-flex items-center space-x-2 px-2 rounded-l-md text-gray-100 bg-indigo-400'
-                >
-                  <HandIcon className='h-4 w-4' aria-hidden='true' />
+          <div
+            className={`bg-gray-100 bg-opacity-0 absolute top-2 left-2 visible rounded-md max-h-full flex flex-col items-end text-xs shadow-lg select-none ${
+              showCateEditBar ? '' : 'hidden'
+            }`}
+          >
+            <div className='flex rounded-md'>
+              <div
+                id='cate_edit_handle'
+                className='relative inline-flex items-center space-x-2 px-2 rounded-l-md text-gray-100 bg-indigo-400'
+              >
+                <HandIcon className='h-4 w-4' aria-hidden='true' />
+              </div>
+              <div className='relative flex items-stretch flex-grow'>
+                <div className='absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none text-gray-600'>
+                  <TagIcon className='h-4 w-4' aria-hidden='true' />
                 </div>
-                <div className='relative flex items-stretch flex-grow'>
-                  <div className='absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none text-gray-600'>
-                    <TagIcon className='h-4 w-4' aria-hidden='true' />
-                  </div>
-                  <input
-                    type='text'
-                    id='edit-category-bar'
-                    className='w-24 md:w-28 border-0 pl-8 pr-0 text-xs focus:outline-none'
-                    placeholder={canvasCtx.cateOI || newCategoryName}
-                    value={cateCandid}
-                    onChange={(evt) => {
-                      evt.preventDefault()
-                      const value = evt.target.value
-                      setCateCandid(value)
-                    }}
-                  />
-                  <div className='group'>
-                    <div
-                      className='h-full flex items-center bg-white text-gray-600 px-2'
-                      onClick={() => {
-                        setShowCateListBar(!showCateListBar)
-                      }}
-                    >
-                      {showCateListBar ? (
-                        <ChevronUpIcon className='h-4 w-4 transform translate-y-0.5' />
-                      ) : (
-                        <ChevronDownIcon className='h-4 w-4 transform translate-y-0.5' />
-                      )}
-                    </div>
-                    <div
-                      className={`absolute mt-1 left-0 w-full ${
-                        showCateListBar ? '' : 'hidden'
-                      } flex flex-col bg-gray-100 bg-opacity-0 max-h-64 overflow-scroll rounded-md shadow-lg`}
-                    >
-                      {
-                        // don't inplace sort categories here, otherwise when adding new named category
-                        // it may change existed category's color
-                        // e.g. add cateA -> cateC -> cateB -> cateE, when adding cateE, sort (A,C,B) here
-                        // before aSave() will switch cateC & cateB's color, but canvas box stroke is still
-                        // the colors before update, unless call drawObjectsFromState to redraw afterwards
-                        // afterall, changing existed colors are not good idea, so don't inplace sort here
-                        [...categories]
-                          .sort((ca: string, cb: string) => {
-                            return ca < cb ? -1 : 1
-                          })
-                          .map((cate: string, idx: number) => (
-                            <div
-                              className={`text-xs py-2 w-full rounded-l-md ${
-                                cate === cateCandid
-                                  ? 'border-l-6 border-indigo-600 px-2.5'
-                                  : 'px-4'
-                              }`}
-                              style={{ backgroundColor: colors[cate] }}
-                              key={`cate-${idx}`}
-                              onClick={() => {
-                                setCateCandid(cate)
-                              }}
-                            >
-                              <span className=''>{cate}</span>
-                            </div>
-                          ))
-                      }
-                    </div>
-                  </div>
-                </div>
-                <div className='grid grid-cols-3'>
-                  <button
-                    className={`relative border-l border-r inline-flex items-center space-x-2 px-2 focus:outline-none bg-gray-100
-                  ${
-                    canvasCtx.cateOI === cateCandid
-                      ? 'text-gray-400'
-                      : 'hover:bg-indigo-600 hover:text-gray-100'
-                  }`}
-                    onClick={
-                      canvasCtx.cateOI === cateCandid ? undefined : aSave
-                    }
-                  >
-                    <CheckIcon className='h-4 w-4' aria-hidden='true' />
-                  </button>
-                  <button
-                    className='relative border-r inline-flex items-center space-x-2 px-2 bg-gray-100 hover:bg-indigo-600 hover:text-gray-100 focus:outline-none'
+                <input
+                  type='text'
+                  id='edit-category-bar'
+                  className='w-24 md:w-28 border-0 pl-8 pr-0 text-xs focus:outline-none'
+                  placeholder={canvasCtx.cateOI || newCategoryName}
+                  value={cateCandid}
+                  onChange={(evt) => {
+                    evt.preventDefault()
+                    const value = evt.target.value
+                    setCateCandid(value)
+                  }}
+                />
+                <div className='group'>
+                  <div
+                    className='h-full flex items-center bg-white text-gray-600 px-2'
                     onClick={() => {
-                      setShowCateEditBar(false)
+                      setShowCateListBar(!showCateListBar)
                     }}
                   >
-                    <XIcon className='h-4 w-4' aria-hidden='true' />
-                  </button>
-                  <button
-                    className={`relative inline-flex items-center space-x-2 px-2 rounded-r-md focus:outline-none bg-gray-100
-                      ${
-                        canvasCtx.cateOI === newCategoryName &&
-                        cateCandid === newCategoryName
-                          ? 'text-gray-400'
-                          : 'hover:bg-indigo-600 hover:text-gray-100'
-                      }`}
-                    onClick={() => {
-                      if (canvasCtx.cateOI !== cateCandid)
-                        setCateCandid(canvasCtx.cateOI as unknown as string)
-                      else if (cateCandid !== newCategoryName) aDelete()
-                    }}
-                  >
-                    {canvasCtx.cateOI === cateCandid ? (
-                      <TrashIcon className='h-4 w-4' aria-hidden='true' />
+                    {showCateListBar ? (
+                      <ChevronUpIcon className='h-4 w-4 transform translate-y-0.5' />
                     ) : (
-                      <RefreshIcon className='h-4 w-4' aria-hidden='true' />
+                      <ChevronDownIcon className='h-4 w-4 transform translate-y-0.5' />
                     )}
-                  </button>
+                  </div>
+                  <div
+                    className={`absolute mt-1 left-0 w-full ${
+                      showCateListBar ? '' : 'hidden'
+                    } flex flex-col bg-gray-100 bg-opacity-0 max-h-64 overflow-scroll rounded-md shadow-lg`}
+                  >
+                    {
+                      // don't inplace sort categories here, otherwise when adding new named category
+                      // it may change existed category's color
+                      // e.g. add cateA -> cateC -> cateB -> cateE, when adding cateE, sort (A,C,B) here
+                      // before aSave() will switch cateC & cateB's color, but canvas box stroke is still
+                      // the colors before update, unless call drawObjectsFromState to redraw afterwards
+                      // afterall, changing existed colors are not good idea, so don't inplace sort here
+                      [...categories]
+                        .sort((ca: string, cb: string) => {
+                          return ca < cb ? -1 : 1
+                        })
+                        .map((cate: string, idx: number) => (
+                          <div
+                            className={`text-xs py-2 w-full rounded-l-md ${
+                              cate === cateCandid
+                                ? 'border-l-6 border-indigo-600 px-2.5'
+                                : 'px-4'
+                            }`}
+                            style={{ backgroundColor: colors[cate] }}
+                            key={`cate-${idx}`}
+                            onClick={() => {
+                              setCateCandid(cate)
+                            }}
+                          >
+                            <span className=''>{cate}</span>
+                          </div>
+                        ))
+                    }
+                  </div>
                 </div>
               </div>
+              <div className='grid grid-cols-3'>
+                <button
+                  className={`relative border-l border-r inline-flex items-center space-x-2 px-2 focus:outline-none bg-gray-100
+                ${
+                  canvasCtx.cateOI === cateCandid
+                    ? 'text-gray-400'
+                    : 'hover:bg-indigo-600 hover:text-gray-100'
+                }`}
+                  onClick={
+                    canvasCtx.cateOI === cateCandid ? undefined : aSave
+                  }
+                >
+                  <CheckIcon className='h-4 w-4' aria-hidden='true' />
+                </button>
+                <button
+                  className='relative border-r inline-flex items-center space-x-2 px-2 bg-gray-100 hover:bg-indigo-600 hover:text-gray-100 focus:outline-none'
+                  onClick={() => {
+                    setShowCateEditBar(false)
+                  }}
+                >
+                  <XIcon className='h-4 w-4' aria-hidden='true' />
+                </button>
+                <button
+                  className={`relative inline-flex items-center space-x-2 px-2 rounded-r-md focus:outline-none bg-gray-100
+                    ${
+                      canvasCtx.cateOI === newCategoryName &&
+                      cateCandid === newCategoryName
+                        ? 'text-gray-400'
+                        : 'hover:bg-indigo-600 hover:text-gray-100'
+                    }`}
+                  onClick={() => {
+                    if (canvasCtx.cateOI !== cateCandid)
+                      setCateCandid(canvasCtx.cateOI as unknown as string)
+                    else if (cateCandid !== newCategoryName) aDelete()
+                  }}
+                >
+                  {canvasCtx.cateOI === cateCandid ? (
+                    <TrashIcon className='h-4 w-4' aria-hidden='true' />
+                  ) : (
+                    <RefreshIcon className='h-4 w-4' aria-hidden='true' />
+                  )}
+                </button>
+              </div>
             </div>
-          </Draggable> */}
+          </div>
+        </Draggable> */}
         </div>
       </div>
 
@@ -1355,11 +1361,11 @@ export const ImageAnnotater = ({
         <div
           onClick={showPrev}
           className={`h-6 w-6 rounded-sm md:h-8 md:w-8 md:rounded-full flex justify-center items-center bg-gray-200 cursor-pointer
-                ${
-                  indexR.current === 0
-                    ? 'text-gray-400'
-                    : 'hover:bg-indigo-600 hover:text-gray-100'
-                }`}
+              ${
+                indexR.current === 0
+                  ? 'text-gray-400'
+                  : 'hover:bg-indigo-600 hover:text-gray-100'
+              }`}
         >
           <ChevronLeftIcon className='h-4 w-4' />
         </div>
@@ -1367,11 +1373,11 @@ export const ImageAnnotater = ({
         <div
           onClick={showNext}
           className={`h-6 w-6 rounded-sm md:h-8 md:w-8 md:rounded-full flex justify-center items-center bg-gray-200 cursor-pointer
-                ${
-                  indexR.current === imagesList.length - 1
-                    ? 'text-gray-400'
-                    : 'hover:bg-indigo-600 hover:text-gray-100'
-                }`}
+              ${
+                indexR.current === imagesList.length - 1
+                  ? 'text-gray-400'
+                  : 'hover:bg-indigo-600 hover:text-gray-100'
+              }`}
         >
           <ChevronRightIcon className='h-4 w-4' />
         </div>
@@ -1452,7 +1458,7 @@ export const ImageAnnotater = ({
                 ? 'hover:bg-indigo-600 hover:text-gray-100'
                 : 'text-gray-400'
             }
-          `}
+        `}
             onClick={can.redo ? cRedo : undefined}
           >
             <RedoIcon />
@@ -1481,17 +1487,12 @@ export const ImageAnnotater = ({
         </div>
       </div>
 
-      <div className='flex justify-center space-x-1 absolute bottom-0 left-1 md:left-1/4'>
-        <div
-          // onClick={() => {
-          //   setCanvasCtx({ imageOI: null })
-          //   if (onClose) onClose(canvasCtx)
-          // }}
-          className='h-6 w-6 rounded-sm md:h-8 md:w-8 md:rounded-full flex justify-center items-center bg-gray-200 cursor-pointer hover:bg-indigo-600 hover:text-gray-100'
-        >
-          <XIcon className='h-4 w-4' />
-        </div>
-      </div>
+      <CloseButton
+        onClick={() => {
+          setIsAnnotatorOpen(false)
+          if (onClose) onClose() // TODO: add event as params
+        }}
+      />
     </div>
-  )
+  ) : null
 }
