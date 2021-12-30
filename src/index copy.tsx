@@ -29,7 +29,7 @@ import { HeavyFloppyIcon } from './components/icons'
 
 // TODO: mock data remove
 import { canvasCtxMock } from './mockdata'
-import { ImageObject, RectLabel } from './interface/annotations'
+import { ImageObject, RectLabel } from './class/annotations'
 // import { getLocalISOString } from './utils/time'
 
 // type canvasStateType = {

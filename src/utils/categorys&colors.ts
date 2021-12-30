@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 import randomColor from 'randomcolor'
-import { LineLabel, PointLabel, RectLabel } from '../interface/annotations'
+import { Label } from '../interface/basic'
 
 export const parseCategorysAndColors = (
   categoryNames: string[],
@@ -40,12 +40,10 @@ export const getRandomColors = (count: number = 16) => {
   })
 }
 
-export const getAllCategoryNames = (
-  annotationsList: (RectLabel | PointLabel)[][]
-) => {
+export const getAllCategoryNames = (annotationsList: Label[][]) => {
   const categoryNames: string[] = []
-  annotationsList.forEach((annotations: (RectLabel | PointLabel)[]) => {
-    annotations.forEach((anno: RectLabel | PointLabel) => {
+  annotationsList.forEach((annotations: Label[]) => {
+    annotations.forEach((anno: Label) => {
       const { categoryName } = anno
       if (categoryName) categoryNames.push(categoryName)
     })
@@ -53,20 +51,14 @@ export const getAllCategoryNames = (
   return categoryNames
 }
 
-export const groupBy = (
-  annotations: (RectLabel | PointLabel | LineLabel)[],
-  property: string
-) => {
-  return annotations.reduce(
-    (groupedAnnos: any, theAnno: RectLabel | PointLabel | LineLabel) => {
-      if (!groupedAnnos[theAnno[property]]) {
-        groupedAnnos[theAnno[property]] = []
-      }
-      groupedAnnos[theAnno[property]].push(theAnno)
-      return groupedAnnos
-    },
-    {}
-  )
+export const groupBy = (annotations: Label[], property: string) => {
+  return annotations.reduce((groupedAnnos: any, theAnno: Label) => {
+    if (!groupedAnnos[theAnno[property]]) {
+      groupedAnnos[theAnno[property]] = []
+    }
+    groupedAnnos[theAnno[property]].push(theAnno)
+    return groupedAnnos
+  }, {})
 }
 
 export const getAbbreviacion = (category: string, length: number) => {

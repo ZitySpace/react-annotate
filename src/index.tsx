@@ -1,25 +1,23 @@
 /* eslint-disable no-unused-vars */
-import * as React from 'react'
-import { fabric } from 'fabric'
-import { useEffect, useRef, useState } from 'react'
-import {
-  Point,
-  RectLabel,
-  PointLabel,
-  LineLabel
-} from './interface/annotations'
-import { Focus, ImageObject } from './interface/shape'
-
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
+  CogIcon,
   MenuAlt2Icon,
   MenuAlt3Icon,
   MenuAlt4Icon,
   MenuIcon,
-  TrashIcon,
-  CogIcon
+  TrashIcon
 } from '@heroicons/react/solid'
+import { fabric } from 'fabric'
+import * as React from 'react'
+import { useEffect, useRef, useState } from 'react'
+import Draggable from 'react-draggable'
+import { LineLabel } from './class/lineLabel'
+import { Point, PointLabel } from './class/pointLabel'
+import { RectLabel } from './class/rectlabel'
+import { StateStack } from './class/stateStack'
+import { CloseButton } from './components/buttons/closeBtn'
 import {
   HeavyFloppyIcon,
   LineIcon,
@@ -29,17 +27,15 @@ import {
   ResetIcon,
   UndoIcon
 } from './components/icons'
-import { isTouchEvt } from './utils/mouse'
-import { getBetween, getDistance } from './utils/math'
+import { Focus, ImageObject, Label } from './interface/basic'
 import {
   getAbbreviacion,
   getAllCategoryNames,
   getRandomColors,
   parseCategorysAndColors
 } from './utils/categorys&colors'
-import Draggable from 'react-draggable'
-import { CloseButton } from './components/buttons/closeBtn'
-import { StateStack } from './class/stateStack'
+import { getBetween, getDistance } from './utils/math'
+import { isTouchEvt } from './utils/mouse'
 
 export const ImageAnnotater = ({
   imagesList,
@@ -241,7 +237,7 @@ export const ImageAnnotater = ({
    * @param state canvas existed annotations in history
    */
   const drawObjectsFromState = (
-    state: (RectLabel | PointLabel | LineLabel)[],
+    state: Label[],
     forceVisable: boolean = false
   ) => {
     // TODO: remove this part
@@ -250,7 +246,7 @@ export const ImageAnnotater = ({
     const canvas = canvasR.current
     if (!canvas) return
 
-    state.forEach((anno: RectLabel | PointLabel | LineLabel) => {
+    state.forEach((anno: Label) => {
       if (anno.type === 'Rect') {
         const { x, y, w, h, id, categoryName } = anno
         const isVisible =
@@ -792,7 +788,7 @@ export const ImageAnnotater = ({
     const canvas = canvasR.current
     if (!canvas) return
 
-    const nowState: (RectLabel | PointLabel | LineLabel)[] = []
+    const nowState: Label[] = []
     const allCanvasObjects = canvas.getObjects()
     const Rects = allCanvasObjects.filter(
       (obj: any) => obj.type === 'rect' && obj.labelType === 'Rect'
@@ -1088,10 +1084,7 @@ export const ImageAnnotater = ({
               >
                 {Object.entries(stateStack.groupedState()).map(
                   (
-                    [category, annotations]: [
-                      string,
-                      (RectLabel | PointLabel | LineLabel)[]
-                    ],
+                    [category, annotations]: [string, Label[]],
                     index: number
                   ) => (
                     <div

@@ -1,5 +1,5 @@
-/* eslint-disable no-unused-vars */
-import { RectLabel, PointLabel, LineLabel } from '../interface/annotations'
+// eslint-disable-next-line no-unused-vars
+import { Label } from '../interface/basic'
 import { groupBy } from '../utils/categorys&colors'
 
 export interface Can {
@@ -10,11 +10,11 @@ export interface Can {
 }
 
 export class StateStack {
-  private stateStack: (RectLabel | PointLabel | LineLabel)[][] = []
+  private stateStack: Label[][] = []
   private index: number = 0
   can: Can
 
-  constructor(initialState?: (RectLabel | PointLabel | LineLabel)[]) {
+  constructor(initialState?: Label[]) {
     if (initialState) {
       this.stateStack.push(initialState)
       this.index = 1
@@ -43,7 +43,7 @@ export class StateStack {
     return this.nowState()
   }
 
-  pushState(newState: (RectLabel | PointLabel | LineLabel)[]) {
+  pushState(newState: Label[]) {
     this.stateStack = this.stateStack.slice(0, this.index)
     this.index = this.stateStack.push(newState)
     return this.nowState()
