@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import { Point } from 'fabric/fabric-impl'
+import { fabric } from 'fabric'
 
 /**
  * get legal values within the range
@@ -16,6 +16,6 @@ export function getBetween(value: number, ...args: number[]): number {
  * @param points two target points of type fabric.point
  * @returns distance between point_1 and point_2
  */
-export function getDistance(...points: Point[]): number {
+export function getDistance(...points: fabric.Point[]): number {
   return points[0].distanceFrom(points[1])
 }

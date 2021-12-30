@@ -132,8 +132,7 @@ export const ImageAnnotater = ({
   )
 
   /** Initialize variable **/
-  const _stateStack = new StateStack()
-  const [stateStack] = useState<StateStack>(_stateStack) // make stateStack as a state
+  const [stateStack] = useState<StateStack>(new StateStack()) // make stateStack as a state
 
   // Concerned attributes of annotations
   const [focus, _setFocus] = useState<Focus>({
@@ -276,32 +275,10 @@ export const ImageAnnotater = ({
 
         canvas.add(rect, textbox)
       } else if (anno.type === 'Point') {
-        const { x, y, id, categoryName } = anno
-        const isVisible =
+        const { id, categoryName } = anno
+        const visible =
           forceVisable || (isAnnotationsVisible && isFocused(categoryName, id))
-        const color = categoryColorsR.current[categoryName!]
-
-        const point = new fabric.Circle({
-          ...pointDefaultConfig,
-          left: x,
-          top: y,
-          radius: radius,
-          fill: color,
-          stroke: transparent,
-          visible: isVisible
-        })
-        point.setOptions({ id, categoryName, color, labelType: 'Point' })
-
-        const textbox = new fabric.Textbox(id.toString(), {
-          ...textboxDefaultConfig,
-          left: x + radius - strokeWidth / 2,
-          top: y - radius + strokeWidth / 2,
-          originY: 'bottom',
-          backgroundColor: color,
-          visible: isVisible
-        })
-        textbox.setOptions({ id, categoryName, labelType: 'Point' })
-
+        const [point, textbox] = anno.getFabricObjects({ visible })
         canvas.add(point, textbox)
       } else if (anno.type === 'Line') {
         const { x, y, _x, _y, id, categoryName } = anno
@@ -389,7 +366,7 @@ export const ImageAnnotater = ({
         top: y - strokeWidth,
         stroke: color
       })
-      rect.setOptions({ id, categoryName, labelType: 'Rect' })
+      rect.setOptions({ id, categoryName, color, labelType: 'Rect' })
 
       const textbox = new fabric.Textbox(id.toString(), {
         ...textboxDefaultConfig,
@@ -445,7 +422,7 @@ export const ImageAnnotater = ({
         })
         return endpoint
       })
-      line.setOptions({ id, categoryName, labelType: 'Line', endpoints })
+      line.setOptions({ id, categoryName, color, labelType: 'Line', endpoints })
 
       const textbox = new fabric.Textbox(id.toString(), {
         ...textboxDefaultConfig,
@@ -826,7 +803,8 @@ export const ImageAnnotater = ({
           scale: scaleR.current,
           offset: offsetR.current,
           strokeWidth,
-          radius
+          radius,
+          color: (obj as any).color
         })
       )
     })

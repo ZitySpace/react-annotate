@@ -1,3 +1,12 @@
+import { fabric } from 'fabric'
+import {
+  PointDefaultConfig,
+  StrokeWidth,
+  TextboxDefaultConfig,
+  Transparent
+} from '../interface/config'
+import { getRandomColors } from '../utils/categorys&colors'
+
 export interface Point {
   x: number
   y: number
@@ -14,6 +23,7 @@ export class PointLabel implements Point {
   offset: Point
   radius: number
   strokeWidth: number
+  color: string
   constructor({
     x,
     y,
@@ -23,7 +33,8 @@ export class PointLabel implements Point {
     scale,
     offset,
     radius,
-    strokeWidth
+    strokeWidth,
+    color
   }: {
     x: number
     y: number
@@ -34,6 +45,7 @@ export class PointLabel implements Point {
     offset?: Point
     radius?: number
     strokeWidth?: number
+    color?: string
   }) {
     this.x = x
     this.y = y
@@ -44,6 +56,7 @@ export class PointLabel implements Point {
     this.offset = offset || { x: 0, y: 0 }
     this.radius = radius || 5
     this.strokeWidth = strokeWidth || 1.5
+    this.color = color || getRandomColors(1)[0]
   }
 
   scaleTransform(scale: number, offset: Point = { x: 0, y: 0 }) {
@@ -75,5 +88,31 @@ export class PointLabel implements Point {
         (this.y + this.radius + this.strokeWidth / 2 - this.offset.y) /
         this.scale
     }
+  }
+
+  getFabricObjects({ visible = true }: { visible: boolean }) {
+    const { x, y, radius, color, id, categoryName } = this
+    const point = new fabric.Circle({
+      ...PointDefaultConfig,
+      left: x,
+      top: y,
+      radius: radius,
+      fill: color,
+      stroke: Transparent,
+      visible
+    })
+    point.setOptions({ id, categoryName, color, labelType: 'Point' })
+
+    const textbox = new fabric.Textbox(id.toString(), {
+      ...TextboxDefaultConfig,
+      left: x + radius - StrokeWidth / 2,
+      top: y - radius + StrokeWidth / 2,
+      originY: 'bottom',
+      backgroundColor: color,
+      visible
+    })
+    textbox.setOptions({ id, categoryName, labelType: 'Point' })
+
+    return [point, textbox]
   }
 }
