@@ -1,5 +1,6 @@
 /* eslint-disable no-unused-vars */
 import { RectLabel, PointLabel, LineLabel } from '../interface/annotations'
+import { groupBy } from '../utils/categorys&colors'
 
 export interface Can {
   redo: boolean
@@ -55,5 +56,10 @@ export class StateStack {
       reset: this.stateStack.length > 1,
       save: this.index > 1 || this.index < this.stateStack.length
     }
+  }
+
+  groupedState() {
+    if (this.nowState()) return groupBy(this.nowState(), 'categoryName')
+    else return {}
   }
 }

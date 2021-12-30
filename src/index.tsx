@@ -35,7 +35,6 @@ import {
   getAbbreviacion,
   getAllCategoryNames,
   getRandomColors,
-  groupBy,
   parseCategorysAndColors
 } from './utils/categorys&colors'
 import Draggable from 'react-draggable'
@@ -180,24 +179,12 @@ export const ImageAnnotater = ({
   const setSelectBarFoldingState = () => {
     _setSelectBarFoldingState((selectBarFoldingState + 1) % 4)
   }
-  const [groupedAnnotations, setGroupedAnnotations] = useState({})
   const MENU_ICONS = [
     <MenuIcon key='0' />,
     <MenuAlt2Icon key='1' />,
     <MenuAlt3Icon key='2' />,
     <MenuAlt4Icon key='3' />
   ]
-
-  /** Methods **/
-  /**
-   * update actions status and grouped annotations if state stack or its pointer changes
-   */
-  const synchronizeStatus = () => {
-    setGroupedAnnotations(
-      // synchronize groupedAnnotations make category panel refresh
-      groupBy(stateStack.nowState(), 'categoryName')
-    )
-  }
 
   /**
    * Determine whether it is concerned by the user.
@@ -537,7 +524,6 @@ export const ImageAnnotater = ({
       )
     )
     setFocus({ isDrawing: null, objectId: null }) // keep category focus when switching images, so we can quickly browse one specific category objects on all images
-    synchronizeStatus()
 
     // If there is not currently canvas, new one and set its attributes
     if (canvasR.current === null) {
@@ -868,7 +854,6 @@ export const ImageAnnotater = ({
     })
 
     stateStack.pushState(nowState)
-    synchronizeStatus() // update action status and grouped annotations because the state stack and its pointer has changed
     console.log(stateStack.nowState()) // TODO: remove this line because it just for debug
   }
 
@@ -901,7 +886,6 @@ export const ImageAnnotater = ({
     setFocus({ categoryName: null, objectId: null })
     canvas.remove(...canvas.getObjects().filter((o) => o.type !== 'image')) // remove all objects
     drawObjectsFromState(stateStack.prevState(), true)
-    synchronizeStatus() // update action status because pointer has changed
   }
 
   /**
@@ -914,7 +898,6 @@ export const ImageAnnotater = ({
     setFocus({ categoryName: null, objectId: null })
     canvas.remove(...canvas.getObjects().filter((o) => o.type !== 'image')) // remove all objects
     drawObjectsFromState(stateStack.nextState(), true)
-    synchronizeStatus() // update action status because pointer has changed
   }
 
   /**
@@ -928,7 +911,6 @@ export const ImageAnnotater = ({
     canvas.remove(...canvas.getObjects().filter((o) => o.type !== 'image')) // remove all objects
 
     drawObjectsFromState(stateStack.resetState(), true)
-    synchronizeStatus() // update action status because pointer has changed
   }
 
   /** Images Switcher **/
@@ -1104,7 +1086,7 @@ export const ImageAnnotater = ({
                   selectBarFoldingState === 3 ? 'hidden' : ''
                 }`}
               >
-                {Object.entries(groupedAnnotations).map(
+                {Object.entries(stateStack.groupedState()).map(
                   (
                     [category, annotations]: [
                       string,
