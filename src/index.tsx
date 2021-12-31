@@ -29,6 +29,17 @@ import {
 } from './components/icons'
 import { Focus, ImageObject, Label } from './interface/basic'
 import {
+  IsTouchScreen,
+  LineDefaultConfig,
+  NewCategoryName,
+  PointDefaultConfig,
+  Radius,
+  RectDefaultConfig,
+  StrokeWidth,
+  TextboxDefaultConfig,
+  Transparent
+} from './interface/config'
+import {
   getAbbreviacion,
   getAllCategoryNames,
   getRandomColors,
@@ -70,54 +81,6 @@ export const ImageAnnotater = ({
       })
     }
   })
-
-  /** Config **/
-  const strokeWidth = 1.5
-  const radius = 3
-  const transparent = 'rgba(255,0,0,0)'
-  const isTouchScreen =
-    'ontouchstart' in window ||
-    (navigator as any).maxTouchPoints > 0 ||
-    (navigator as any).msMaxTouchPoints > 0
-  const newCategoryName = 'new_category'
-  const rectDefaultConfig: fabric.IRectOptions | any = {
-    lockRotation: true,
-    fill: transparent,
-    strokeWidth: strokeWidth,
-    noScaleCache: false,
-    strokeUniform: true,
-    hasBorders: false,
-    cornerSize: 8,
-    transparentCorners: false,
-    perPixelTargetFind: true,
-    selectable: !isTouchScreen,
-    _controlsVisibility: { mtr: false }
-  }
-  const textboxDefaultConfig: fabric.ITextboxOptions = {
-    fill: 'black',
-    selectable: false,
-    hoverCursor: 'default',
-    fontSize: radius * 2
-  }
-  const pointDefaultConfig: fabric.ICircleOptions = {
-    strokeWidth: strokeWidth,
-    fill: transparent,
-    hasControls: false,
-    hasBorders: false,
-    selectable: !isTouchScreen,
-    originX: 'center',
-    originY: 'center',
-    radius: radius
-  }
-  const lineDefaultConfig: fabric.ILineOptions = {
-    strokeWidth: strokeWidth,
-    hasBorders: false,
-    hasControls: false,
-    strokeUniform: true,
-    selectable: false,
-    hoverCursor: 'default',
-    visible: true
-  }
 
   /** Handle inputs **/
   const [imgObj, setImgObj] = useState<ImageObject>(imagesList[index])
@@ -208,12 +171,12 @@ export const ImageAnnotater = ({
    */
   const isInvalid = (obj: any, labelType: string | null) => {
     return labelType === 'Rect'
-      ? obj.width <= strokeWidth || obj.height <= strokeWidth
+      ? obj.width <= StrokeWidth || obj.height <= StrokeWidth
       : labelType === 'Line'
       ? getDistance(
           ...obj.endpoints.map((circle: any) => circle.getPointByOrigin())
         ) <
-        (radius + strokeWidth) * 2
+        (Radius + StrokeWidth) * 2
       : false
   }
 
@@ -225,8 +188,8 @@ export const ImageAnnotater = ({
     const { left, top, line, _id } = endpoint as any
     if (line && _id) {
       line.set({
-        [`x${_id}`]: left - strokeWidth / 2,
-        [`y${_id}`]: top - strokeWidth / 2
+        [`x${_id}`]: left - StrokeWidth / 2,
+        [`y${_id}`]: top - StrokeWidth / 2
       })
     }
   }
@@ -270,7 +233,7 @@ export const ImageAnnotater = ({
     originPositionR.current = { x, y }
 
     // Calculate id、category and its color
-    const categoryName = focusCategoryR.current || newCategoryName
+    const categoryName = focusCategoryR.current || NewCategoryName
     const id = Math.max(-1, ...stateStack.nowState().map((anno) => anno.id)) + 1
     const allColors = Object.values(categoryColorsR.current)
     categoryColorsR.current[categoryName] =
@@ -282,15 +245,15 @@ export const ImageAnnotater = ({
     if (isDrawingR.current === 'Rect') {
       // start to draw a rectangle and its text
       const rect = new fabric.Rect({
-        ...rectDefaultConfig,
-        left: x - strokeWidth,
-        top: y - strokeWidth,
+        ...RectDefaultConfig,
+        left: x - StrokeWidth,
+        top: y - StrokeWidth,
         stroke: color
       })
       rect.setOptions({ id, categoryName, color, labelType: 'Rect' })
 
       const textbox = new fabric.Textbox(id.toString(), {
-        ...textboxDefaultConfig,
+        ...TextboxDefaultConfig,
         backgroundColor: color,
         visible: false
       })
@@ -300,7 +263,7 @@ export const ImageAnnotater = ({
       onDrawObjR.current = rect
     } else if (isDrawingR.current === 'Point') {
       const point = new fabric.Circle({
-        ...pointDefaultConfig,
+        ...PointDefaultConfig,
         left: x,
         top: y,
         stroke: color
@@ -308,7 +271,7 @@ export const ImageAnnotater = ({
       point.setOptions({ id, categoryName, color, labelType: 'Point' })
 
       const textbox = new fabric.Textbox(id.toString(), {
-        ...textboxDefaultConfig,
+        ...TextboxDefaultConfig,
         originY: 'bottom',
         backgroundColor: color,
         visible: false
@@ -319,19 +282,19 @@ export const ImageAnnotater = ({
       onDrawObjR.current = point
     } else if (isDrawingR.current === 'Line') {
       const line = new fabric.Line(
-        [x, y, x, y].map((coord) => coord - strokeWidth / 2),
+        [x, y, x, y].map((coord) => coord - StrokeWidth / 2),
         {
-          ...lineDefaultConfig,
+          ...LineDefaultConfig,
           stroke: color
         }
       )
       const endpoints = [...Array(2).keys()].map((_id) => {
         const endpoint = new fabric.Circle({
-          ...pointDefaultConfig,
+          ...PointDefaultConfig,
           left: x,
           top: y,
           fill: color,
-          stroke: transparent
+          stroke: Transparent
         })
         endpoint.setOptions({
           id,
@@ -346,7 +309,7 @@ export const ImageAnnotater = ({
       line.setOptions({ id, categoryName, color, labelType: 'Line', endpoints })
 
       const textbox = new fabric.Textbox(id.toString(), {
-        ...textboxDefaultConfig,
+        ...TextboxDefaultConfig,
         originX: 'center',
         originY: 'bottom',
         backgroundColor: color,
@@ -525,10 +488,10 @@ export const ImageAnnotater = ({
 
         if (isDrawingR.current === 'Rect') {
           const left =
-            getBetween(Math.min(origX, nowX), ...boundary.x) - strokeWidth
+            getBetween(Math.min(origX, nowX), ...boundary.x) - StrokeWidth
           const right = getBetween(Math.max(origX, nowX), ...boundary.x)
           const top =
-            getBetween(Math.min(origY, nowY), ...boundary.y) - strokeWidth
+            getBetween(Math.min(origY, nowY), ...boundary.y) - StrokeWidth
           const bottom = getBetween(Math.max(origY, nowY), ...boundary.y)
 
           obj.set({
@@ -545,7 +508,7 @@ export const ImageAnnotater = ({
           const left = getBetween(nowX, ...boundary.x)
           const top = getBetween(nowY, ...boundary.y)
           obj.endpoints[1].set({ left, top })
-          obj.set({ x2: left - strokeWidth / 2, y2: top - strokeWidth / 2 })
+          obj.set({ x2: left - StrokeWidth / 2, y2: top - StrokeWidth / 2 })
         }
 
         canvas.requestRenderAll()
@@ -591,14 +554,14 @@ export const ImageAnnotater = ({
         )[0] as fabric.Textbox
 
         // selected object width/height dont get updated automatically
-        const w = selectedObj.getScaledWidth() - strokeWidth
-        const h = selectedObj.getScaledHeight() - strokeWidth
+        const w = selectedObj.getScaledWidth() - StrokeWidth
+        const h = selectedObj.getScaledHeight() - StrokeWidth
 
         const ndigits = (theTextbox.text as string).length
         const fontSize =
           selectedObj.labelType === 'Rect'
             ? Math.min(14, w / 2, h / 2)
-            : radius * 1.5
+            : Radius * 1.5
 
         const textboxConfig: fabric.ITextboxOptions = {
           fontSize,
@@ -606,18 +569,18 @@ export const ImageAnnotater = ({
         }
 
         if (selectedObj.labelType === 'Rect') {
-          textboxConfig.left = selectedObj.left + strokeWidth
-          textboxConfig.top = selectedObj.top + strokeWidth
+          textboxConfig.left = selectedObj.left + StrokeWidth
+          textboxConfig.top = selectedObj.top + StrokeWidth
         } else if (selectedObj.labelType === 'Point') {
-          textboxConfig.left = selectedObj.left + radius - strokeWidth / 2
-          textboxConfig.top = selectedObj.top - radius + strokeWidth / 2
+          textboxConfig.left = selectedObj.left + Radius - StrokeWidth / 2
+          textboxConfig.top = selectedObj.top - Radius + StrokeWidth / 2
         } else if (selectedObj.labelType === 'Line') {
           const topPoint = selectedObj.line.endpoints.sort(
             (a: any, b: any) => a.top - b.top
           )[0]
 
           textboxConfig.left = topPoint.left
-          textboxConfig.top = topPoint.top - radius
+          textboxConfig.top = topPoint.top - Radius
         }
 
         theTextbox.set({ ...textboxConfig })
@@ -629,7 +592,7 @@ export const ImageAnnotater = ({
       const obj = e.target as any
       if (obj?.type === 'circle')
         obj.set({
-          fill: transparent,
+          fill: Transparent,
           stroke: obj.color
         })
       canvas.renderAll()
@@ -643,7 +606,7 @@ export const ImageAnnotater = ({
       if (obj?.type === 'circle' && (!onDrawObj || obj.id !== onDrawObj.id))
         obj.set({
           fill: obj.color,
-          stroke: transparent
+          stroke: Transparent
         })
 
       canvas.renderAll()
@@ -703,13 +666,13 @@ export const ImageAnnotater = ({
         new RectLabel({
           x: obj.left!,
           y: obj.top!,
-          w: obj.getScaledWidth() - strokeWidth,
-          h: obj.getScaledHeight() - strokeWidth,
+          w: obj.getScaledWidth() - StrokeWidth,
+          h: obj.getScaledHeight() - StrokeWidth,
           id: (obj as any).id,
           categoryName: (obj as any).categoryName,
           scale: scaleR.current,
           offset: offsetR.current,
-          strokeWidth,
+          strokeWidth: StrokeWidth,
           color: (obj as any).color
         })
       )
@@ -724,8 +687,8 @@ export const ImageAnnotater = ({
           categoryName: (obj as any).categoryName,
           scale: scaleR.current,
           offset: offsetR.current,
-          strokeWidth,
-          radius,
+          strokeWidth: StrokeWidth,
+          radius: Radius,
           color: (obj as any).color
         })
       )
@@ -744,7 +707,7 @@ export const ImageAnnotater = ({
           categoryName: (obj as any).categoryName,
           scale: scaleR.current,
           offset: offsetR.current,
-          strokeWidth,
+          strokeWidth: StrokeWidth,
           color: (obj as any).color
         })
       )
@@ -1041,7 +1004,7 @@ export const ImageAnnotater = ({
                                   ? 'bg-indigo-600 text-gray-100'
                                   : 'bg-gray-200'
                               } ${
-                                isTouchScreen
+                                IsTouchScreen
                                   ? ''
                                   : 'hover:bg-indigo-600 hover:text-gray-100'
                               }`}
