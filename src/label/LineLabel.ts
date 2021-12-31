@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { fabric } from 'fabric'
 import {
   LineDefaultConfig,
@@ -8,7 +9,6 @@ import {
   Transparent
 } from '../interface/config'
 import { getRandomColors } from '../utils/categorys&colors'
-// eslint-disable-next-line no-unused-vars
 import { Point } from './PointLabel'
 
 interface Line extends Point {
@@ -31,6 +31,30 @@ export class LineLabel implements Line {
   categoryId: number | null
   categoryName: string | null
   color: string
+
+  static fromFabricObject({
+    obj,
+    offset,
+    scale
+  }: {
+    obj: fabric.Line
+    offset: Point
+    scale: number
+  }): LineLabel {
+    return new this({
+      x: obj.x1! + StrokeWidth / 2,
+      y: obj.y1! + StrokeWidth / 2,
+      _x: obj.x2! + StrokeWidth / 2,
+      _y: obj.y2! + StrokeWidth / 2,
+      id: (obj as any).id,
+      categoryName: (obj as any).categoryName,
+      strokeWidth: obj.strokeWidth,
+      color: (obj as any).color,
+      offset,
+      scale
+    })
+  }
+
   constructor({
     x,
     y,

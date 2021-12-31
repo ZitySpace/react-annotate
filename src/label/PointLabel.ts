@@ -24,6 +24,29 @@ export class PointLabel implements Point {
   radius: number
   strokeWidth: number
   color: string
+
+  static fromFabricObject({
+    obj,
+    offset,
+    scale
+  }: {
+    obj: fabric.Circle
+    offset: Point
+    scale: number
+  }): PointLabel {
+    return new this({
+      x: obj.left!,
+      y: obj.top!,
+      id: (obj as any).id,
+      categoryName: (obj as any).categoryName,
+      strokeWidth: obj.strokeWidth,
+      radius: obj.radius,
+      color: (obj as any).color,
+      scale,
+      offset
+    })
+  }
+
   constructor({
     x,
     y,

@@ -649,7 +649,6 @@ export const ImageAnnotater = ({
     const canvas = canvasR.current
     if (!canvas) return
 
-    const nowState: Label[] = []
     const allCanvasObjects = canvas.getObjects()
     const Rects = allCanvasObjects.filter(
       (obj: any) => obj.type === 'rect' && obj.labelType === 'Rect'
@@ -661,57 +660,29 @@ export const ImageAnnotater = ({
       (obj: any) => obj.type === 'line' && obj.labelType === 'Line'
     )
 
-    Rects.forEach((obj: fabric.Rect) => {
-      nowState.push(
-        new RectLabel({
-          x: obj.left!,
-          y: obj.top!,
-          w: obj.getScaledWidth() - StrokeWidth,
-          h: obj.getScaledHeight() - StrokeWidth,
-          id: (obj as any).id,
-          categoryName: (obj as any).categoryName,
-          scale: scaleR.current,
+    const nowState: Label[] = [
+      ...Rects.map((obj: fabric.Rect) => {
+        return RectLabel.fromFabricObject({
+          obj,
           offset: offsetR.current,
-          strokeWidth: StrokeWidth,
-          color: (obj as any).color
+          scale: scaleR.current
         })
-      )
-    })
-
-    Points.forEach((obj: fabric.Circle) => {
-      nowState.push(
-        new PointLabel({
-          x: obj.left!,
-          y: obj.top!,
-          id: (obj as any).id,
-          categoryName: (obj as any).categoryName,
-          scale: scaleR.current,
+      }),
+      ...Points.map((obj: fabric.Circle) => {
+        return PointLabel.fromFabricObject({
+          obj,
           offset: offsetR.current,
-          strokeWidth: StrokeWidth,
-          radius: Radius,
-          color: (obj as any).color
+          scale: scaleR.current
         })
-      )
-    })
-
-    Lines.forEach((obj: fabric.Line) => {
-      const { left: x, top: y } = (obj as any).endpoints[0]
-      const { left: _x, top: _y } = (obj as any).endpoints[1]
-      nowState.push(
-        new LineLabel({
-          x,
-          y,
-          _x,
-          _y,
-          id: (obj as any).id,
-          categoryName: (obj as any).categoryName,
-          scale: scaleR.current,
+      }),
+      ...Lines.map((obj: fabric.Line) => {
+        return LineLabel.fromFabricObject({
+          obj,
           offset: offsetR.current,
-          strokeWidth: StrokeWidth,
-          color: (obj as any).color
+          scale: scaleR.current
         })
-      )
-    })
+      })
+    ]
 
     stateStack.pushState(nowState)
     console.log(stateStack.nowState()) // TODO: remove this line because it just for debug

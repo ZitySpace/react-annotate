@@ -30,6 +30,30 @@ export class RectLabel implements Rect {
   categoryId: number | null
   categoryName: string | null
   color: string
+
+  static fromFabricObject({
+    obj,
+    offset,
+    scale
+  }: {
+    obj: fabric.Rect
+    offset: Point
+    scale: number
+  }): RectLabel {
+    return new this({
+      x: obj.left!,
+      y: obj.top!,
+      w: obj.getScaledWidth() - StrokeWidth,
+      h: obj.getScaledHeight() - StrokeWidth,
+      id: (obj as any).id,
+      categoryName: (obj as any).categoryName,
+      strokeWidth: obj.strokeWidth,
+      color: (obj as any).color,
+      scale,
+      offset
+    })
+  }
+
   constructor({
     x,
     y,
