@@ -208,6 +208,8 @@ export const ImageAnnotater = ({
     const canvas = canvasR.current
     if (!canvas) return
 
+    canvas.remove(...canvas.getObjects().filter((obj) => obj.type !== 'image')) // remove all annotations
+
     state.forEach((anno: Label) => {
       const { id, categoryName } = anno
       const currentColor = categoryColorsR.current[categoryName!]
@@ -695,15 +697,13 @@ export const ImageAnnotater = ({
     const canvas = canvasR.current
     if (!canvas) return
 
-    const selectedObj = canvas.getActiveObject()
+    const { id } = canvas.getActiveObject() as any
 
-    if (selectedObj) {
-      canvas.forEachObject((obj: any) => {
-        if (obj.id === (selectedObj as any).id) canvas.remove(obj)
-      })
+    if (id) {
+      const newState = stateStack.nowState().filter((anno) => anno.id !== id)
+      drawObjectsFromState(stateStack.pushState(newState))
 
       setFocus({ categoryName: null, objectId: null })
-      cSave()
     }
   }
 
@@ -715,7 +715,6 @@ export const ImageAnnotater = ({
     if (!canvas) return
 
     setFocus({ categoryName: null, objectId: null })
-    canvas.remove(...canvas.getObjects().filter((o) => o.type !== 'image')) // remove all objects
     drawObjectsFromState(stateStack.prevState(), true)
   }
 
@@ -727,7 +726,6 @@ export const ImageAnnotater = ({
     if (!canvas) return
 
     setFocus({ categoryName: null, objectId: null })
-    canvas.remove(...canvas.getObjects().filter((o) => o.type !== 'image')) // remove all objects
     drawObjectsFromState(stateStack.nextState(), true)
   }
 
@@ -739,8 +737,6 @@ export const ImageAnnotater = ({
     if (!canvas) return
 
     setFocus({ categoryName: null, objectId: null })
-    canvas.remove(...canvas.getObjects().filter((o) => o.type !== 'image')) // remove all objects
-
     drawObjectsFromState(stateStack.resetState(), true)
   }
 
