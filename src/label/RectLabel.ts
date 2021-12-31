@@ -6,7 +6,7 @@ import {
 } from '../interface/config'
 import { getRandomColors } from '../utils/categorys&colors'
 // eslint-disable-next-line no-unused-vars
-import { Point } from './pointLabel'
+import { Point } from './PointLabel'
 
 interface Rect extends Point {
   w: number
@@ -108,27 +108,23 @@ export class RectLabel implements Rect {
   }
 
   getFabricObjects({ currentColor }: { currentColor: string }) {
-    const { x, y, w, h, color, id, categoryName } = this
+    const { x, y, w, h, color: oriColor, id, categoryName } = this
+    const color = currentColor || oriColor
     const rect = new fabric.Rect({
       ...RectDefaultConfig,
       left: x,
       top: y,
       width: w,
       height: h,
-      stroke: currentColor || color
+      stroke: color
     })
-    rect.setOptions({
-      id,
-      categoryName,
-      color: currentColor || color,
-      labelType: 'Rect'
-    })
+    rect.setOptions({ id, categoryName, color, labelType: 'Rect' })
 
     const textbox = new fabric.Textbox(id.toString(), {
       ...TextboxDefaultConfig,
       left: x + StrokeWidth,
       top: y + StrokeWidth,
-      backgroundColor: currentColor || color,
+      backgroundColor: color,
       fontSize: Math.min(14, w / 2, h / 2)
     })
     textbox.setOptions({ id, categoryName, labelType: 'Rect' })

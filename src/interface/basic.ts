@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
-import { LineLabel } from '../class/lineLabel'
-import { PointLabel } from '../class/pointLabel'
-import { RectLabel } from '../class/rectlabel'
+import { LineLabel } from '../label/LineLabel'
+import { PointLabel } from '../label/PointLabel'
+import { RectLabel } from '../label/RectLabel'
 
 export type Label = PointLabel | LineLabel | RectLabel
 

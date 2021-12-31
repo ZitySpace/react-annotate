@@ -9,7 +9,7 @@ import {
 } from '../interface/config'
 import { getRandomColors } from '../utils/categorys&colors'
 // eslint-disable-next-line no-unused-vars
-import { Point } from './pointLabel'
+import { Point } from './PointLabel'
 
 interface Line extends Point {
   _x: number
@@ -104,12 +104,13 @@ export class LineLabel implements Line {
   }
 
   getFabricObjects({ currentColor }: { currentColor: string }) {
-    const { x, y, _x, _y, color, id, categoryName } = this
+    const { x, y, _x, _y, color: oriColor, id, categoryName } = this
+    const color = currentColor || oriColor
     const line = new fabric.Line(
       [x, y, _x, _y].map((coord) => coord - StrokeWidth / 2),
       {
         ...LineDefaultConfig,
-        stroke: currentColor || color
+        stroke: color
       }
     )
 
@@ -121,7 +122,7 @@ export class LineLabel implements Line {
         ...PointDefaultConfig,
         left: coord[0],
         top: coord[1],
-        fill: currentColor || color,
+        fill: color,
         stroke: Transparent
       })
       endpoint.setOptions({
@@ -145,13 +146,7 @@ export class LineLabel implements Line {
       backgroundColor: currentColor || color
     })
     textbox.setOptions({ id, categoryName, labelType: 'Line' })
-    line.setOptions({
-      id,
-      categoryName,
-      color: currentColor || color,
-      endpoints,
-      labelType: 'Line'
-    })
+    line.setOptions({ id, categoryName, color, endpoints, labelType: 'Line' })
     return { line, textbox, point1: endpoints[0], point2: endpoints[1] }
   }
 }
