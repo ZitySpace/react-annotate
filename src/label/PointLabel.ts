@@ -25,7 +25,7 @@ export class PointLabel implements Point {
   strokeWidth: number
   color: string
 
-  static fromFabricObject({
+  static fromFabricPoint({
     obj,
     offset,
     scale

@@ -9,12 +9,14 @@ export interface Can {
   save: boolean
 }
 
+export interface State extends Array<Label> {}
+
 export class StateStack {
-  private stateStack: Label[][] = []
+  private stateStack: State[] = []
   private index: number = 0
   can: Can
 
-  constructor(initialState?: Label[]) {
+  constructor(initialState?: State) {
     if (initialState) {
       this.stateStack.push(initialState)
       this.index = 1
@@ -43,7 +45,7 @@ export class StateStack {
     return this.nowState()
   }
 
-  pushState(newState: Label[]) {
+  pushState(newState: State) {
     this.stateStack = this.stateStack.slice(0, this.index)
     this.index = this.stateStack.push(newState)
     return this.nowState()

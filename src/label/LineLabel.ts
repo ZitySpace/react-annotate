@@ -32,7 +32,7 @@ export class LineLabel implements Line {
   categoryName: string | null
   color: string
 
-  static fromFabricObject({
+  static fromFabricLine({
     obj,
     offset,
     scale

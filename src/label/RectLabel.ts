@@ -31,7 +31,7 @@ export class RectLabel implements Rect {
   categoryName: string | null
   color: string
 
-  static fromFabricObject({
+  static fromFabricRect({
     obj,
     offset,
     scale

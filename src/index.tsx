@@ -195,13 +195,10 @@ export const ImageAnnotater = ({
   }
 
   /**
-   * Draw objects from state
+   * Synchronize the state's annotations as canvas' objects
    * @param state canvas existed annotations in history
    */
-  const drawObjectsFromState = (
-    state: Label[],
-    forceVisable: boolean = false
-  ) => {
+  const syncStateToCanvas = (state: Label[], forceVisable: boolean = false) => {
     // TODO: remove this part
     console.log('Draw objects from state', state) // hint
 
@@ -222,6 +219,52 @@ export const ImageAnnotater = ({
       )
     })
     canvas.renderAll()
+  }
+
+  /**
+   * Synchronize the canvas' objects as state's annotations
+   */
+  const syncCanvasToState = () => {
+    const canvas = canvasR.current
+    if (!canvas) return
+
+    const allCanvasObjects = canvas.getObjects()
+    const Rects = allCanvasObjects.filter(
+      (obj: any) => obj.type === 'rect' && obj.labelType === 'Rect'
+    )
+    const Points = allCanvasObjects.filter(
+      (obj: any) => obj.type === 'circle' && obj.labelType === 'Point'
+    )
+    const Lines = allCanvasObjects.filter(
+      (obj: any) => obj.type === 'line' && obj.labelType === 'Line'
+    )
+
+    const nowState: Label[] = [
+      ...Rects.map((obj: fabric.Rect) => {
+        return RectLabel.fromFabricRect({
+          obj,
+          offset: offsetR.current,
+          scale: scaleR.current
+        })
+      }),
+      ...Points.map((obj: fabric.Circle) => {
+        return PointLabel.fromFabricPoint({
+          obj,
+          offset: offsetR.current,
+          scale: scaleR.current
+        })
+      }),
+      ...Lines.map((obj: fabric.Line) => {
+        return LineLabel.fromFabricLine({
+          obj,
+          offset: offsetR.current,
+          scale: scaleR.current
+        })
+      })
+    ]
+
+    stateStack.pushState(nowState)
+    console.log(stateStack.nowState()) // TODO: remove this line because it just for debug
   }
 
   const drawStartFromCursor = (event: fabric.IEvent) => {
@@ -340,7 +383,7 @@ export const ImageAnnotater = ({
       canvas.remove(...canvas.getObjects().filter((o: any) => o.id === obj.id))
       setFocus({ isDrawing: null })
     } else {
-      cSave()
+      syncCanvasToState()
       setFocus({
         isDrawing: null,
         objectId: obj.id,
@@ -427,7 +470,7 @@ export const ImageAnnotater = ({
     )
 
     // Render annotations if existed
-    drawObjectsFromState(stateStack.nowState())
+    syncStateToCanvas(stateStack.nowState())
 
     canvas.renderAll()
     canvas.zoomToPoint(new fabric.Point(cew / 2, ceh / 2), 1) // TODO: use math to calculate the rate to make the images biggest
@@ -637,59 +680,11 @@ export const ImageAnnotater = ({
       obj.top = getBetween(obj.top, ...boundary.y)
       setLinePosition(obj)
 
-      cSave()
+      syncCanvasToState()
     })
   }
 
   /** Canvas context to states stack synchronizer **/
-  /**
-   * Save annotations on the canvas to the state stack
-   */
-  const cSave = () => {
-    console.log('cSave has been called') // TODO: remove this hint
-
-    const canvas = canvasR.current
-    if (!canvas) return
-
-    const allCanvasObjects = canvas.getObjects()
-    const Rects = allCanvasObjects.filter(
-      (obj: any) => obj.type === 'rect' && obj.labelType === 'Rect'
-    )
-    const Points = allCanvasObjects.filter(
-      (obj: any) => obj.type === 'circle' && obj.labelType === 'Point'
-    )
-    const Lines = allCanvasObjects.filter(
-      (obj: any) => obj.type === 'line' && obj.labelType === 'Line'
-    )
-
-    const nowState: Label[] = [
-      ...Rects.map((obj: fabric.Rect) => {
-        return RectLabel.fromFabricObject({
-          obj,
-          offset: offsetR.current,
-          scale: scaleR.current
-        })
-      }),
-      ...Points.map((obj: fabric.Circle) => {
-        return PointLabel.fromFabricObject({
-          obj,
-          offset: offsetR.current,
-          scale: scaleR.current
-        })
-      }),
-      ...Lines.map((obj: fabric.Line) => {
-        return LineLabel.fromFabricObject({
-          obj,
-          offset: offsetR.current,
-          scale: scaleR.current
-        })
-      })
-    ]
-
-    stateStack.pushState(nowState)
-    console.log(stateStack.nowState()) // TODO: remove this line because it just for debug
-  }
-
   /**
    * Delete active annotation
    */
@@ -701,8 +696,7 @@ export const ImageAnnotater = ({
 
     if (id) {
       const newState = stateStack.nowState().filter((anno) => anno.id !== id)
-      drawObjectsFromState(stateStack.pushState(newState))
-
+      syncStateToCanvas(stateStack.pushState(newState))
       setFocus({ categoryName: null, objectId: null })
     }
   }
@@ -715,7 +709,7 @@ export const ImageAnnotater = ({
     if (!canvas) return
 
     setFocus({ categoryName: null, objectId: null })
-    drawObjectsFromState(stateStack.prevState(), true)
+    syncStateToCanvas(stateStack.prevState(), true)
   }
 
   /**
@@ -726,7 +720,7 @@ export const ImageAnnotater = ({
     if (!canvas) return
 
     setFocus({ categoryName: null, objectId: null })
-    drawObjectsFromState(stateStack.nextState(), true)
+    syncStateToCanvas(stateStack.nextState(), true)
   }
 
   /**
@@ -737,7 +731,7 @@ export const ImageAnnotater = ({
     if (!canvas) return
 
     setFocus({ categoryName: null, objectId: null })
-    drawObjectsFromState(stateStack.resetState(), true)
+    syncStateToCanvas(stateStack.resetState(), true)
   }
 
   /** Images Switcher **/
