@@ -246,54 +246,16 @@ export const ImageAnnotater = ({
     if (!canvas) return
 
     state.forEach((anno: Label) => {
-      if (anno.type === 'Rect') {
-        const { x, y, w, h, id, categoryName } = anno
-        const isVisible =
-          forceVisable || (isAnnotationsVisible && isFocused(categoryName, id))
-        const color = categoryColorsR.current[categoryName!]
+      const { id, categoryName } = anno
+      const currentColor = categoryColorsR.current[categoryName!]
+      const visible =
+        forceVisable || (isAnnotationsVisible && isFocused(categoryName, id))
 
-        const rect = new fabric.Rect({
-          ...rectDefaultConfig,
-          left: x,
-          top: y,
-          width: w,
-          height: h,
-          visible: isVisible,
-          stroke: color
-        })
-        rect.setOptions({ id, categoryName, labelType: 'Rect' })
-
-        const textbox = new fabric.Textbox(id.toString(), {
-          ...textboxDefaultConfig,
-          left: x + strokeWidth,
-          top: y + strokeWidth,
-          backgroundColor: color,
-          visible: isVisible,
-          fontSize: Math.min(14, w / 2, h / 2)
-        })
-        textbox.setOptions({ id, categoryName, labelType: 'Rect' })
-
-        canvas.add(rect, textbox)
-      } else if (anno.type === 'Point') {
-        const { id, categoryName } = anno
-        const visible =
-          forceVisable || (isAnnotationsVisible && isFocused(categoryName, id))
-        const { point, textbox } = anno.getFabricObjects({ visible })
-        canvas.add(point, textbox)
-      } else if (anno.type === 'Line') {
-        const { id, categoryName } = anno
-        const visible =
-          forceVisable || (isAnnotationsVisible && isFocused(categoryName, id))
-        const fabricObjects = anno.getFabricObjects()
-
-        canvas.add(
-          ...Object.values(fabricObjects).map((obj: any) =>
-            obj.set({ visible })
-          )
-        )
-      }
+      const fabricObjects = anno.getFabricObjects({ currentColor })
+      canvas.add(
+        ...Object.values(fabricObjects).map((obj: any) => obj.set({ visible }))
+      )
     })
-
     canvas.renderAll()
   }
 
@@ -747,7 +709,8 @@ export const ImageAnnotater = ({
           categoryName: (obj as any).categoryName,
           scale: scaleR.current,
           offset: offsetR.current,
-          strokeWidth
+          strokeWidth,
+          color: (obj as any).color
         })
       )
     })
@@ -888,7 +851,7 @@ export const ImageAnnotater = ({
    */
   const keyboardEventRouter = (event: KeyboardEvent) => {
     event.preventDefault() // prevent default event such as save html
-    console.log(event) // TODO: remove
+    // console.log(event) // TODO: remove
     switch (event.code) {
       case 'Backspace':
       case 'Delete':

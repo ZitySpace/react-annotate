@@ -32,6 +32,20 @@ export const LineDefaultConfig: fabric.ILineOptions = {
   visible: true
 }
 
+export const RectDefaultConfig: fabric.IRectOptions | any = {
+  lockRotation: true,
+  fill: Transparent,
+  strokeWidth: StrokeWidth,
+  noScaleCache: false,
+  strokeUniform: true,
+  hasBorders: false,
+  cornerSize: 8,
+  transparentCorners: false,
+  perPixelTargetFind: true,
+  selectable: !IsTouchScreen,
+  _controlsVisibility: { mtr: false }
+}
+
 export const TextboxDefaultConfig: fabric.ITextboxOptions = {
   fill: 'black',
   selectable: false,

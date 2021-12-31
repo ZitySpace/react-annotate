@@ -103,13 +103,13 @@ export class LineLabel implements Line {
     }
   }
 
-  getFabricObjects() {
+  getFabricObjects({ currentColor }: { currentColor: string }) {
     const { x, y, _x, _y, color, id, categoryName } = this
     const line = new fabric.Line(
       [x, y, _x, _y].map((coord) => coord - StrokeWidth / 2),
       {
         ...LineDefaultConfig,
-        stroke: color
+        stroke: currentColor || color
       }
     )
 
@@ -121,7 +121,7 @@ export class LineLabel implements Line {
         ...PointDefaultConfig,
         left: coord[0],
         top: coord[1],
-        fill: color,
+        fill: currentColor || color,
         stroke: Transparent
       })
       endpoint.setOptions({
@@ -142,10 +142,16 @@ export class LineLabel implements Line {
       top: topPoint.top! - Radius,
       originX: 'center',
       originY: 'bottom',
-      backgroundColor: color
+      backgroundColor: currentColor || color
     })
     textbox.setOptions({ id, categoryName, labelType: 'Line' })
-    line.setOptions({ id, categoryName, color, endpoints, labelType: 'Line' })
+    line.setOptions({
+      id,
+      categoryName,
+      color: currentColor || color,
+      endpoints,
+      labelType: 'Line'
+    })
     return { line, textbox, point1: endpoints[0], point2: endpoints[1] }
   }
 }

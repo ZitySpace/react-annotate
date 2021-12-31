@@ -1,3 +1,10 @@
+import { fabric } from 'fabric'
+import {
+  RectDefaultConfig,
+  StrokeWidth,
+  TextboxDefaultConfig
+} from '../interface/config'
+import { getRandomColors } from '../utils/categorys&colors'
 // eslint-disable-next-line no-unused-vars
 import { Point } from './pointLabel'
 
@@ -22,6 +29,7 @@ export class RectLabel implements Rect {
   id: number
   categoryId: number | null
   categoryName: string | null
+  color: string
   constructor({
     x,
     y,
@@ -32,7 +40,8 @@ export class RectLabel implements Rect {
     categoryName,
     offset,
     scale,
-    strokeWidth
+    strokeWidth,
+    color
   }: {
     x: number
     y: number
@@ -44,6 +53,7 @@ export class RectLabel implements Rect {
     offset?: Point
     scale?: number
     strokeWidth?: number
+    color?: string
   }) {
     this.x = x
     this.y = y
@@ -57,6 +67,7 @@ export class RectLabel implements Rect {
     this.offset = offset || { x: 0, y: 0 }
     this.scale = scale || 1
     this.strokeWidth = strokeWidth || 1.5
+    this.color = color || getRandomColors(1)[0]
   }
 
   scaleTransform(scale: number, offset: Point = { x: 0, y: 0 }) {
@@ -94,5 +105,34 @@ export class RectLabel implements Rect {
       x1: (this.x1 + this.strokeWidth - this.offset.x) / this.scale,
       y1: (this.y1 + this.strokeWidth - this.offset.y) / this.scale
     }
+  }
+
+  getFabricObjects({ currentColor }: { currentColor: string }) {
+    const { x, y, w, h, color, id, categoryName } = this
+    const rect = new fabric.Rect({
+      ...RectDefaultConfig,
+      left: x,
+      top: y,
+      width: w,
+      height: h,
+      stroke: currentColor || color
+    })
+    rect.setOptions({
+      id,
+      categoryName,
+      color: currentColor || color,
+      labelType: 'Rect'
+    })
+
+    const textbox = new fabric.Textbox(id.toString(), {
+      ...TextboxDefaultConfig,
+      left: x + StrokeWidth,
+      top: y + StrokeWidth,
+      backgroundColor: currentColor || color,
+      fontSize: Math.min(14, w / 2, h / 2)
+    })
+    textbox.setOptions({ id, categoryName, labelType: 'Rect' })
+
+    return { rect, textbox }
   }
 }

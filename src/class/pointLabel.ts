@@ -90,26 +90,29 @@ export class PointLabel implements Point {
     }
   }
 
-  getFabricObjects({ visible = true }: { visible: boolean }) {
+  getFabricObjects({ currentColor }: { currentColor: string }) {
     const { x, y, radius, color, id, categoryName } = this
     const point = new fabric.Circle({
       ...PointDefaultConfig,
       left: x,
       top: y,
       radius: radius,
-      fill: color,
-      stroke: Transparent,
-      visible
+      fill: currentColor || color,
+      stroke: Transparent
     })
-    point.setOptions({ id, categoryName, color, labelType: 'Point' })
+    point.setOptions({
+      id,
+      categoryName,
+      color: currentColor || color,
+      labelType: 'Point'
+    })
 
     const textbox = new fabric.Textbox(id.toString(), {
       ...TextboxDefaultConfig,
       left: x + radius - StrokeWidth / 2,
       top: y - radius + StrokeWidth / 2,
       originY: 'bottom',
-      backgroundColor: color,
-      visible
+      backgroundColor: currentColor || color
     })
     textbox.setOptions({ id, categoryName, labelType: 'Point' })
 
