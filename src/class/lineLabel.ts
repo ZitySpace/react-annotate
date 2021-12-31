@@ -1,3 +1,13 @@
+import { fabric } from 'fabric'
+import {
+  LineDefaultConfig,
+  PointDefaultConfig,
+  Radius,
+  StrokeWidth,
+  TextboxDefaultConfig,
+  Transparent
+} from '../interface/config'
+import { getRandomColors } from '../utils/categorys&colors'
 // eslint-disable-next-line no-unused-vars
 import { Point } from './pointLabel'
 
@@ -20,6 +30,7 @@ export class LineLabel implements Line {
   id: number
   categoryId: number | null
   categoryName: string | null
+  color: string
   constructor({
     x,
     y,
@@ -30,7 +41,8 @@ export class LineLabel implements Line {
     categoryName,
     offset,
     scale,
-    strokeWidth
+    strokeWidth,
+    color
   }: {
     x: number
     y: number
@@ -42,6 +54,7 @@ export class LineLabel implements Line {
     offset?: Point
     scale?: number
     strokeWidth?: number
+    color: string
   }) {
     this.x = x
     this.y = y
@@ -56,6 +69,7 @@ export class LineLabel implements Line {
     this.offset = offset || { x: 0, y: 0 }
     this.scale = scale || 1
     this.strokeWidth = strokeWidth || 1.5
+    this.color = color || getRandomColors(1)[0]
   }
 
   scaleTransform(scale: number, offset: Point) {
@@ -87,5 +101,51 @@ export class LineLabel implements Line {
       _x: (this._x - this.offset.x + this.strokeWidth) / this.scale,
       _y: (this._y - this.offset.y + this.strokeWidth) / this.scale
     }
+  }
+
+  getFabricObjects() {
+    const { x, y, _x, _y, color, id, categoryName } = this
+    const line = new fabric.Line(
+      [x, y, _x, _y].map((coord) => coord - StrokeWidth / 2),
+      {
+        ...LineDefaultConfig,
+        stroke: color
+      }
+    )
+
+    const endpoints = [
+      [x, y],
+      [_x, _y]
+    ].map((coord, _id) => {
+      const endpoint = new fabric.Circle({
+        ...PointDefaultConfig,
+        left: coord[0],
+        top: coord[1],
+        fill: color,
+        stroke: Transparent
+      })
+      endpoint.setOptions({
+        id,
+        _id: _id + 1,
+        categoryName,
+        color,
+        line,
+        labelType: 'Line'
+      })
+      return endpoint
+    })
+
+    const topPoint = endpoints.sort((a, b) => a.top! - b.top!)[0]
+    const textbox = new fabric.Textbox(id.toString(), {
+      ...TextboxDefaultConfig,
+      left: topPoint.left!,
+      top: topPoint.top! - Radius,
+      originX: 'center',
+      originY: 'bottom',
+      backgroundColor: color
+    })
+    textbox.setOptions({ id, categoryName, labelType: 'Line' })
+    line.setOptions({ id, categoryName, color, endpoints, labelType: 'Line' })
+    return { line, textbox, point1: endpoints[0], point2: endpoints[1] }
   }
 }

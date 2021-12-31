@@ -1,8 +1,8 @@
 export const StrokeWidth = 1.5
 
-export const radius = 3
+export const Radius = 3
 
-export const isTouchScreen =
+export const IsTouchScreen =
   'ontouchstart' in window ||
   (navigator as any).maxTouchPoints > 0 ||
   (navigator as any).msMaxTouchPoints > 0
@@ -16,15 +16,25 @@ export const PointDefaultConfig: fabric.ICircleOptions = {
   fill: Transparent,
   hasControls: false,
   hasBorders: false,
-  selectable: !isTouchScreen,
+  selectable: !IsTouchScreen,
   originX: 'center',
   originY: 'center',
-  radius: radius
+  radius: Radius
+}
+
+export const LineDefaultConfig: fabric.ILineOptions = {
+  strokeWidth: StrokeWidth,
+  hasBorders: false,
+  hasControls: false,
+  strokeUniform: true,
+  selectable: false,
+  hoverCursor: 'default',
+  visible: true
 }
 
 export const TextboxDefaultConfig: fabric.ITextboxOptions = {
   fill: 'black',
   selectable: false,
   hoverCursor: 'default',
-  fontSize: radius * 2
+  fontSize: Radius * 2
 }

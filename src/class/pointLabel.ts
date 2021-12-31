@@ -113,6 +113,6 @@ export class PointLabel implements Point {
     })
     textbox.setOptions({ id, categoryName, labelType: 'Point' })
 
-    return [point, textbox]
+    return { point, textbox }
   }
 }

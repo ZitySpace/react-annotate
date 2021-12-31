@@ -278,60 +278,19 @@ export const ImageAnnotater = ({
         const { id, categoryName } = anno
         const visible =
           forceVisable || (isAnnotationsVisible && isFocused(categoryName, id))
-        const [point, textbox] = anno.getFabricObjects({ visible })
+        const { point, textbox } = anno.getFabricObjects({ visible })
         canvas.add(point, textbox)
       } else if (anno.type === 'Line') {
-        const { x, y, _x, _y, id, categoryName } = anno
-        const isVisible =
+        const { id, categoryName } = anno
+        const visible =
           forceVisable || (isAnnotationsVisible && isFocused(categoryName, id))
-        const color = categoryColorsR.current[categoryName!]
+        const fabricObjects = anno.getFabricObjects()
 
-        const line = new fabric.Line(
-          [x, y, _x, _y].map((coord) => coord - strokeWidth / 2),
-          {
-            ...lineDefaultConfig,
-            stroke: color,
-            visible: isVisible
-          }
+        canvas.add(
+          ...Object.values(fabricObjects).map((obj: any) =>
+            obj.set({ visible })
+          )
         )
-        const endpoints = [
-          [x, y],
-          [_x, _y]
-        ].map((coord, _id) => {
-          const endpoint = new fabric.Circle({
-            ...pointDefaultConfig,
-            left: coord[0],
-            top: coord[1],
-            fill: color,
-            stroke: transparent,
-            visible: isVisible
-          })
-          endpoint.setOptions({
-            id,
-            _id: _id + 1,
-            categoryName,
-            color,
-            line,
-            labelType: 'Line'
-          })
-          return endpoint
-        })
-
-        const topPoint = endpoints.sort((a, b) => a.top! - b.top!)[0]
-
-        const textbox = new fabric.Textbox(id.toString(), {
-          ...textboxDefaultConfig,
-          left: topPoint.left!,
-          top: topPoint.top! - radius,
-          originX: 'center',
-          originY: 'bottom',
-          backgroundColor: color,
-          visible: isVisible
-        })
-        textbox.setOptions({ id, categoryName, labelType: 'Line' })
-
-        line.setOptions({ id, categoryName, labelType: 'Line', endpoints })
-        canvas.add(line, textbox, ...endpoints)
       }
     })
 
@@ -822,7 +781,8 @@ export const ImageAnnotater = ({
           categoryName: (obj as any).categoryName,
           scale: scaleR.current,
           offset: offsetR.current,
-          strokeWidth
+          strokeWidth,
+          color: (obj as any).color
         })
       )
     })
