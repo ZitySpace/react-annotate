@@ -16,7 +16,7 @@ import Draggable from 'react-draggable'
 import { LineLabel } from './label/LineLabel'
 import { Point, PointLabel } from './label/PointLabel'
 import { RectLabel } from './label/RectLabel'
-import { StateStack } from './stateStack'
+import { StateStack } from './hooks/stateStack'
 import { CloseButton } from './components/buttons/closeBtn'
 import {
   HeavyFloppyIcon,
@@ -27,7 +27,7 @@ import {
   ResetIcon,
   UndoIcon
 } from './components/icons'
-import { Focus, ImageObject, Label } from './interface/basic'
+import { Focus, Label } from './interface/basic'
 import {
   IsTouchScreen,
   LineDefaultConfig,
@@ -47,6 +47,7 @@ import {
 } from './utils/categorys&colors'
 import { getBetween, getDistance } from './utils/math'
 import { isTouchEvt } from './utils/mouse'
+import { useEffectOnce, useStateList } from 'react-use'
 
 export const ImageAnnotater = ({
   imagesList,
@@ -83,8 +84,8 @@ export const ImageAnnotater = ({
   })
 
   /** Handle inputs **/
-  const [imgObj, setImgObj] = useState<ImageObject>(imagesList[index])
-  const indexR = useRef<number>(index)
+  // const [imgObj, setImgObj] = useState<ImageObject>(imagesList[index])
+  // const indexR = useRef<number>(index)
   const categoryNames = getAllCategoryNames(
     imagesList.map((image) => image.annotations)
   )
@@ -93,6 +94,26 @@ export const ImageAnnotater = ({
     categoryNames,
     colors || []
   )
+
+  /** test part **/
+  // const imgRef = useCallback(
+  //   (node) => {
+  //     if (node) console.log(node.getBoundingClientRect())
+  //   },
+  //   [imgObj]
+  // )
+
+  const {
+    state: imageObj,
+    prev: prevImageObj,
+    next: nextImageObj,
+    setStateAt: setImageObjAt,
+    currentIndex: imageIndex
+  } = useStateList(imagesList)
+
+  useEffectOnce(() => {
+    setImageObjAt(index)
+  })
 
   /** Initialize variable **/
   const [stateStack] = useState<StateStack>(new StateStack()) // make stateStack as a state
@@ -399,8 +420,8 @@ export const ImageAnnotater = ({
   /**
    * Called when imgObj or window changed
    */
-  const onImgLoad = () => {
-    console.log('onImgLoad was called') // hint
+  const onImgLoad = (event: any) => {
+    console.log('onImgLoad was called: ', event) // hint
     console.log(onClose) // TODO: remove
 
     // Get the Elements attributes and calculate the variables
@@ -413,7 +434,7 @@ export const ImageAnnotater = ({
     const cew = CanvasExtendedDivAttrs.width
     const ceh = CanvasExtendedDivAttrs.height - 36 // 36 is the height of the operation bar
     offsetR.current = { x: (cew - cw) / 2, y: (ceh - ch) / 2 }
-    scaleR.current = (cw / imgObj.imageWidth + ch / imgObj.imageHeight) / 2
+    scaleR.current = (cw / imageObj.imageWidth + ch / imageObj.imageHeight) / 2
     boundaryR.current = {
       x: [(cew - cw) / 2, (cew + cw) / 2],
       y: [(ceh - ch) / 2, (ceh + ch) / 2]
@@ -421,7 +442,7 @@ export const ImageAnnotater = ({
 
     // Initialize state stack & focus & actions status & grouped annotations
     stateStack.pushState(
-      imgObj.annotations.map((anno) =>
+      imageObj.annotations.map((anno: any) =>
         anno.scaleTransform(scaleR.current, offsetR.current)
       )
     )
@@ -744,10 +765,14 @@ export const ImageAnnotater = ({
       event.stopPropagation()
     }
 
-    if (indexR.current) {
-      indexR.current -= 1
-      // allSave()  // TODO: implement save function
-      setImgObj(imagesList[indexR.current])
+    // if (indexR.current) {
+    //   indexR.current -= 1
+    //   // allSave()  // TODO: implement save function
+    //   setImgObj(imagesList[indexR.current])
+    //   if (onPrevious) onPrevious() // TODO: add params
+    // }
+    if (imageIndex) {
+      prevImageObj()
       if (onPrevious) onPrevious() // TODO: add params
     }
   }
@@ -761,10 +786,14 @@ export const ImageAnnotater = ({
       event.stopPropagation()
     }
 
-    if (indexR.current < imagesList.length - 1) {
-      indexR.current += 1
-      // allSave()  // TODO: implement save function
-      setImgObj(imagesList[indexR.current])
+    // if (indexR.current < imagesList.length - 1) {
+    //   indexR.current += 1
+    //   // allSave()  // TODO: implement save function
+    //   setImgObj(imagesList[indexR.current])
+    //   if (onNext) onNext() // TODO: add params
+    // }
+    if (imageIndex < imagesList.length - 1) {
+      nextImageObj()
       if (onNext) onNext() // TODO: add params
     }
   }
@@ -867,9 +896,9 @@ export const ImageAnnotater = ({
         id='canvas_extended'
       >
         <img
-          alt={imgObj.fileName}
-          title={imgObj.fileName}
-          src={imgObj.blobUrl}
+          alt={imageObj.fileName}
+          title={imageObj.fileName}
+          src={imageObj.blobUrl}
           loading='lazy'
           className='object-contain max-h-full invisible'
           onLoad={onImgLoad}
@@ -1121,7 +1150,8 @@ export const ImageAnnotater = ({
           onClick={showPrev}
           className={`h-6 w-6 rounded-sm md:h-8 md:w-8 md:rounded-full flex justify-center items-center bg-gray-200 cursor-pointer
               ${
-                indexR.current === 0
+                // indexR.current === 0
+                imageIndex === 0
                   ? 'text-gray-400'
                   : 'hover:bg-indigo-600 hover:text-gray-100'
               }`}
@@ -1133,7 +1163,8 @@ export const ImageAnnotater = ({
           onClick={showNext}
           className={`h-6 w-6 rounded-sm md:h-8 md:w-8 md:rounded-full flex justify-center items-center bg-gray-200 cursor-pointer
               ${
-                indexR.current === imagesList.length - 1
+                // indexR.current === imagesList.length - 1
+                imageIndex === imagesList.length - 1
                   ? 'text-gray-400'
                   : 'hover:bg-indigo-600 hover:text-gray-100'
               }`}

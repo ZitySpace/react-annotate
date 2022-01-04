@@ -73,6 +73,7 @@
     "fabric": "^4.6.0",
     "md5": "^2.3.0",
     "randomcolor": "^0.6.2",
-    "react-draggable": "^4.4.4"
+    "react-draggable": "^4.4.4",
+    "react-use": "^17.3.2"
   }
 }
