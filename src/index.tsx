@@ -85,8 +85,6 @@ export const ImageAnnotater = ({
   })
 
   /** Handle inputs **/
-  // const [imgObj, setImgObj] = useState<ImageObject>(imagesList[index])
-  // const indexR = useRef<number>(index)
   const categoryNames = getAllCategoryNames(
     imagesList.map((image) => image.annotations)
   )
@@ -95,14 +93,6 @@ export const ImageAnnotater = ({
     categoryNames,
     colors || []
   )
-
-  /** test part **/
-  // const imgRef = useCallback(
-  //   (node) => {
-  //     if (node) console.log(node.getBoundingClientRect())
-  //   },
-  //   [imgObj]
-  // )
 
   const {
     state: imageObj,
@@ -731,12 +721,6 @@ export const ImageAnnotater = ({
       event.stopPropagation()
     }
 
-    // if (indexR.current) {
-    //   indexR.current -= 1
-    //   // allSave()  // TODO: implement save function
-    //   setImgObj(imagesList[indexR.current])
-    //   if (onPrevious) onPrevious() // TODO: add params
-    // }
     if (imageIndex) {
       prevImageObj()
       if (onPrevious) onPrevious() // TODO: add params
@@ -752,12 +736,6 @@ export const ImageAnnotater = ({
       event.stopPropagation()
     }
 
-    // if (indexR.current < imagesList.length - 1) {
-    //   indexR.current += 1
-    //   // allSave()  // TODO: implement save function
-    //   setImgObj(imagesList[indexR.current])
-    //   if (onNext) onNext() // TODO: add params
-    // }
     if (imageIndex < imagesList.length - 1) {
       nextImageObj()
       if (onNext) onNext() // TODO: add params
