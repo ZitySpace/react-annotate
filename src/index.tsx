@@ -11,7 +11,7 @@ import {
 } from '@heroicons/react/solid'
 import { fabric } from 'fabric'
 import * as React from 'react'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import Draggable from 'react-draggable'
 import { LineLabel } from './label/LineLabel'
 import { Point, PointLabel } from './label/PointLabel'
@@ -410,6 +410,10 @@ export const ImageAnnotater = ({
 
   const canvasDimsRef = useRef<Dimension>({ w: 0, h: 0 })
   const { mouseEvents } = useMouse({ canvasRef, canvasDimsRef, onDrawObjRef })
+
+  useLayoutEffect(() => {
+    console.log(imgElRef.current, canvasElRef.current)
+  }, [imgElRef.current, canvasElRef.current])
 
   /**
    * Called when imgObj or window changed
