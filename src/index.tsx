@@ -27,7 +27,7 @@ import {
   ResetIcon,
   UndoIcon
 } from './components/icons'
-import { Focus, Label } from './interface/basic'
+import { Dimension, Focus, Label } from './interface/basic'
 import {
   IsTouchScreen,
   LineDefaultConfig,
@@ -48,6 +48,7 @@ import {
 import { getBetween, getDistance } from './utils/math'
 import { isTouchEvt } from './utils/mouse'
 import { useEffectOnce, useStateList } from 'react-use'
+import { useMouse } from './hooks/useMouse'
 
 export const ImageAnnotater = ({
   imagesList,
@@ -133,7 +134,7 @@ export const ImageAnnotater = ({
   const canvasElRef = useRef(null)
 
   // References as Variables for long life cycle, end with R
-  const canvasR = useRef<fabric.Canvas | null>(null)
+  const canvasRef = useRef<fabric.Canvas | null>(null)
   const offsetR = useRef<Point>({ x: 0, y: 0 }) // Image object edge offset to canvas edge
   const scaleR = useRef<number>(1) // Scale of image in canvas to originael
   const boundaryR = useRef<{ x: number[]; y: number[] }>({ x: [], y: [] }) // images boundary on canvas
@@ -147,7 +148,7 @@ export const ImageAnnotater = ({
   const isDrawingR = useRef<string | null>(null)
   isDrawingR.current = focus.isDrawing!
   const drawingStartedR = useRef(false)
-  const onDrawObjR = useRef<fabric.Object | null>(null)
+  const onDrawObjRef = useRef<fabric.Object | null>(null)
   const originPositionR = useRef<Point>({ x: 0, y: 0 })
   const focusCategoryR = useRef<string | null>(null)
   focusCategoryR.current = focus.categoryName as string
@@ -223,7 +224,7 @@ export const ImageAnnotater = ({
     // TODO: remove this part
     console.log('Draw objects from state', state) // hint
 
-    const canvas = canvasR.current
+    const canvas = canvasRef.current
     if (!canvas) return
 
     canvas.remove(...canvas.getObjects().filter((obj) => obj.type !== 'image')) // remove all annotations
@@ -246,7 +247,7 @@ export const ImageAnnotater = ({
    * Synchronize the canvas' objects as state's annotations
    */
   const syncCanvasToState = () => {
-    const canvas = canvasR.current
+    const canvas = canvasRef.current
     if (!canvas) return
 
     const allCanvasObjects = canvas.getObjects()
@@ -289,7 +290,7 @@ export const ImageAnnotater = ({
   }
 
   const drawStartFromCursor = (event: fabric.IEvent) => {
-    const canvas = canvasR.current
+    const canvas = canvasRef.current
     if (!canvas) return
 
     const { x: nowX, y: nowY } = canvas.getPointer(event.e)
@@ -326,7 +327,7 @@ export const ImageAnnotater = ({
       textbox.setOptions({ id, categoryName, labelType: 'Rect' })
 
       canvas.add(rect, textbox)
-      onDrawObjR.current = rect
+      onDrawObjRef.current = rect
     } else if (isDrawingR.current === 'Point') {
       const point = new fabric.Circle({
         ...PointDefaultConfig,
@@ -345,7 +346,7 @@ export const ImageAnnotater = ({
       textbox.setOptions({ id, categoryName, labelType: 'Point' })
 
       canvas.add(point, textbox)
-      onDrawObjR.current = point
+      onDrawObjRef.current = point
     } else if (isDrawingR.current === 'Line') {
       const line = new fabric.Line(
         [x, y, x, y].map((coord) => coord - StrokeWidth / 2),
@@ -384,7 +385,7 @@ export const ImageAnnotater = ({
       textbox.setOptions({ id, categoryName, labelType: 'Line' })
 
       canvas.add(line, textbox, ...endpoints)
-      onDrawObjR.current = line
+      onDrawObjRef.current = line
     }
 
     drawingStartedR.current = true
@@ -394,10 +395,10 @@ export const ImageAnnotater = ({
    * called when is drawing and mouse is up
    */
   const drawEndAtCursor = () => {
-    const canvas = canvasR.current
+    const canvas = canvasRef.current
     if (!canvas) return
 
-    const obj = onDrawObjR.current as any
+    const obj = onDrawObjRef.current as any
 
     if (isInvalid(obj, isDrawingR.current)) {
       canvas.remove(obj)
@@ -414,8 +415,11 @@ export const ImageAnnotater = ({
     }
 
     drawingStartedR.current = false
-    onDrawObjR.current = null
+    onDrawObjRef.current = null
   }
+
+  const canvasDimsRef = useRef<Dimension>({ w: 0, h: 0 })
+  const { mouseEvents } = useMouse({ canvasRef, canvasDimsRef, onDrawObjRef })
 
   /**
    * Called when imgObj or window changed
@@ -433,6 +437,7 @@ export const ImageAnnotater = ({
     ).getBoundingClientRect()
     const cew = CanvasExtendedDivAttrs.width
     const ceh = CanvasExtendedDivAttrs.height - 36 // 36 is the height of the operation bar
+    canvasDimsRef.current = { w: cew, h: ceh }
     offsetR.current = { x: (cew - cw) / 2, y: (ceh - ch) / 2 }
     scaleR.current = (cw / imageObj.imageWidth + ch / imageObj.imageHeight) / 2
     boundaryR.current = {
@@ -449,15 +454,15 @@ export const ImageAnnotater = ({
     setFocus({ isDrawing: null, objectId: null }) // keep category focus when switching images, so we can quickly browse one specific category objects on all images
 
     // If there is not currently canvas, new one and set its attributes
-    if (canvasR.current === null) {
-      canvasR.current = new fabric.Canvas(canvasElRef.current, {
+    if (canvasRef.current === null) {
+      canvasRef.current = new fabric.Canvas(canvasElRef.current, {
         defaultCursor: 'default',
         selection: false,
         targetFindTolerance: 5,
         uniformScaling: false
       })
 
-      const lowerCanvasEl = canvasR.current.getElement()
+      const lowerCanvasEl = canvasRef.current.getElement()
       const canvasContainerEl = lowerCanvasEl.parentElement as HTMLElement
       canvasContainerEl.style.position = 'absolute'
       canvasContainerEl.style.top = '0'
@@ -470,7 +475,7 @@ export const ImageAnnotater = ({
     }
 
     // Initialize canvas viewBox
-    const canvas = canvasR.current
+    const canvas = canvasRef.current
     canvas.clear()
     canvas.setWidth(cew)
     canvas.setHeight(ceh)
@@ -498,27 +503,7 @@ export const ImageAnnotater = ({
 
     // Mouse events listener
     canvas.off('mouse:wheel') // remove old eventHandler
-    // update eventHandler
-    canvas.on('mouse:wheel', (o) => {
-      const evt = o.e as any as React.WheelEvent
-      const delta = evt.deltaY
-      const zoom = getBetween(canvas.getZoom() * 0.999 ** delta, 0.01, 20)
-      canvas.zoomToPoint(
-        new fabric.Point((evt as any).offsetX, (evt as any).offsetY),
-        zoom
-      )
-      evt.preventDefault()
-      evt.stopPropagation()
-
-      const vpt: any = canvas.viewportTransform
-      if (zoom < 1) {
-        vpt[4] = (cew * (1 - zoom)) / 2
-        vpt[5] = (ceh * (1 - zoom)) / 2
-      } else {
-        vpt[4] = getBetween(vpt[4], cew * (1 - zoom), 0)
-        vpt[5] = getBetween(vpt[5], cew * (1 - zoom), 0)
-      }
-    })
+    canvas.on('mouse:wheel', mouseEvents.onWheel)
 
     canvas.off('mouse:down')
     canvas.on('mouse:down', (o) => {
@@ -550,7 +535,7 @@ export const ImageAnnotater = ({
         const { x: origX, y: origY } = originPositionR.current
         const { x: nowX, y: nowY } = pointer
         const boundary = boundaryR.current
-        const obj = onDrawObjR.current as any
+        const obj = onDrawObjRef.current as any
 
         if (isDrawingR.current === 'Rect') {
           const left =
@@ -654,29 +639,10 @@ export const ImageAnnotater = ({
     })
 
     canvas.off('mouse:over')
-    canvas.on('mouse:over', (e) => {
-      const obj = e.target as any
-      if (obj?.type === 'circle')
-        obj.set({
-          fill: Transparent,
-          stroke: obj.color
-        })
-      canvas.renderAll()
-    })
+    canvas.on('mouse:over', mouseEvents.onOver)
 
     canvas.off('mouse:out')
-    canvas.on('mouse:out', (e) => {
-      const obj = e.target as any
-      const onDrawObj = onDrawObjR.current as any
-
-      if (obj?.type === 'circle' && (!onDrawObj || obj.id !== onDrawObj.id))
-        obj.set({
-          fill: obj.color,
-          stroke: Transparent
-        })
-
-      canvas.renderAll()
-    })
+    canvas.on('mouse:out', mouseEvents.onOut)
 
     canvas.off('object:moving')
     canvas.on('object:moving', (e) => {
@@ -710,7 +676,7 @@ export const ImageAnnotater = ({
    * Delete active annotation
    */
   const cDelete = () => {
-    const canvas = canvasR.current
+    const canvas = canvasRef.current
     if (!canvas) return
 
     const { id } = canvas.getActiveObject() as any
@@ -726,7 +692,7 @@ export const ImageAnnotater = ({
    * Undo
    */
   const cUndo = () => {
-    const canvas = canvasR.current
+    const canvas = canvasRef.current
     if (!canvas) return
 
     setFocus({ categoryName: null, objectId: null })
@@ -737,7 +703,7 @@ export const ImageAnnotater = ({
    * Redo
    */
   const cRedo = () => {
-    const canvas = canvasR.current
+    const canvas = canvasRef.current
     if (!canvas) return
 
     setFocus({ categoryName: null, objectId: null })
@@ -748,7 +714,7 @@ export const ImageAnnotater = ({
    * Reset
    */
   const cReset = () => {
-    const canvas = canvasR.current
+    const canvas = canvasRef.current
     if (!canvas) return
 
     setFocus({ categoryName: null, objectId: null })
@@ -863,7 +829,7 @@ export const ImageAnnotater = ({
   window.onkeydown = keyboardEventRouter
 
   useEffect(() => {
-    const canvas = canvasR.current
+    const canvas = canvasRef.current
     if (!canvas) return
 
     if (focus.isDrawing) canvas.discardActiveObject() // to hide active object controls

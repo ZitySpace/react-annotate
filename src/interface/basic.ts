@@ -19,3 +19,8 @@ export interface Focus {
   categoryName?: string | null
   objectId?: number | null
 }
+
+export interface Dimension {
+  w: number
+  h: number
+}
