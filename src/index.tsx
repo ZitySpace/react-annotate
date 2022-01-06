@@ -45,10 +45,11 @@ import {
   getRandomColors,
   parseCategorysAndColors
 } from './utils/categorys&colors'
-import { getBetween, getDistance } from './utils/math'
+import { getBetween } from './utils/math'
 import { isTouchEvt } from './utils/mouse'
 import { useEffectOnce, useStateList } from 'react-use'
 import { useMouse } from './hooks/useMouse'
+import { isInvalid, setLinePosition } from './utils/util'
 
 export const ImageAnnotater = ({
   imagesList,
@@ -173,37 +174,6 @@ export const ImageAnnotater = ({
         (focus.categoryName === categoryName &&
           (focus.objectId === null || (focus.objectId === id && !isText))))
     )
-  }
-
-  /**
-   *
-   * @param obj target object
-   * @param labelType 'Rect' | 'Line'
-   * @returns is the obj invalid
-   */
-  const isInvalid = (obj: any, labelType: string | null) => {
-    return labelType === 'Rect'
-      ? obj.width <= StrokeWidth || obj.height <= StrokeWidth
-      : labelType === 'Line'
-      ? getDistance(
-          ...obj.endpoints.map((circle: any) => circle.getPointByOrigin())
-        ) <
-        (Radius + StrokeWidth) * 2
-      : false
-  }
-
-  /**
-   * set endpoint's corresponding line's position
-   * @param endpoint Line's one endpoint
-   */
-  const setLinePosition = (endpoint: fabric.Circle) => {
-    const { left, top, line, _id } = endpoint as any
-    if (line && _id) {
-      line.set({
-        [`x${_id}`]: left - StrokeWidth / 2,
-        [`y${_id}`]: top - StrokeWidth / 2
-      })
-    }
   }
 
   /**
