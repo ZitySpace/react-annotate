@@ -410,11 +410,13 @@ export const ImageAnnotater = ({
     }
 
     // Initialize state stack & focus & actions status & grouped annotations
-    stateStack.pushState(
-      imageObj.annotations.map((anno: any) =>
-        anno.scaleTransform(scaleR.current, offsetR.current)
+    stateStack
+      .reset()
+      .pushState(
+        imageObj.annotations.map((anno: any) =>
+          anno.scaleTransform(scaleR.current, offsetR.current)
+        )
       )
-    )
     setFocus({ isDrawing: null, objectId: null }) // keep category focus when switching images, so we can quickly browse one specific category objects on all images
 
     // If there is not currently canvas, new one and set its attributes

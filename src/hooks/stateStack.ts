@@ -24,6 +24,13 @@ export class StateStack {
     this.updateCan()
   }
 
+  reset() {
+    this.stateStack = []
+    this.index = 0
+    this.updateCan()
+    return this
+  }
+
   nowState() {
     this.updateCan()
     return this.stateStack[this.index - 1]
