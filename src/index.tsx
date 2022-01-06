@@ -1209,3 +1209,5 @@ export const ImageAnnotater = ({
     </div>
   ) : null
 }
+
+export { NewImageAnnotater } from './new-index'
