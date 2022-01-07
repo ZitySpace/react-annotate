@@ -1,7 +1,9 @@
 import { fabric } from 'fabric'
-import React, { useLayoutEffect, useRef } from 'react'
+import React, { useEffect, useLayoutEffect, useRef } from 'react'
 import { useEffectOnce, useStateList } from 'react-use'
-import { UseContainer } from './hooks/useContainer'
+import { useContainer } from './hooks/useContainer'
+import { useStateStack } from './hooks/useStateStack'
+import { Label } from './interface/basic'
 import { RectLabel } from './label/RectLabel'
 
 export const NewImageAnnotater = ({
@@ -31,23 +33,31 @@ export const NewImageAnnotater = ({
     // next: nextImageObj,
     setStateAt: setImageObjAt
     // currentIndex: imageIndex
-  } = useStateList(imagesList)
+  } = useStateList<{ annotations: Label[] }>(imagesList)
+
+  const stateStack = useStateStack()
 
   useEffectOnce(() => {
     if (index) setImageObjAt(index)
+    console.log(imageDims, canvasDims, boundary, offset, scale)
     // setTimeout(nextImageObj, 3000)
   })
 
   const canvasRef = useRef<fabric.Canvas | null>(null)
   const { imageContainer, imageDims, canvasDims, boundary, offset, scale } =
-    UseContainer({
+    useContainer({
       imageObj,
       canvasRef
     })
 
   useLayoutEffect(() => {
-    console.log(imageDims, canvasDims, boundary, offset, scale)
+    // console.log(imageDims, canvasDims, boundary, offset, scale)
+    stateStack.pushState(imageObj.annotations)
   }, [imageDims, canvasDims])
+
+  useEffect(() => {
+    console.log(stateStack.state)
+  }, [stateStack.state])
 
   return isAnnotationsVisible ? (
     <div className='w-full h-full flex flex-col justify-center items-center relative'>

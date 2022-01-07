@@ -3,7 +3,13 @@ import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { Dimension } from '../interface/basic'
 import { Point } from '../label/PointLabel'
 
-export const UseContainer = ({
+/**
+ * Load image and re-initialize canvas, then calculate the dimensions ans so on.
+ * @param imageObj: an image object with basic info
+ * @param canvasRef reference to canvas
+ * @returns node of image&canvas container, and some calculated variables
+ */
+export const useContainer = ({
   imageObj,
   canvasRef
 }: {
@@ -52,16 +58,20 @@ export const UseContainer = ({
       setScale(_scale)
 
       // initialize canvas
-      const canvas = new fabric.Canvas(canvasElm, {
-        width: cew,
-        height: ceh,
-        defaultCursor: 'default',
-        selection: false,
-        targetFindTolerance: 5,
-        uniformScaling: false
-      })
+      const canvas =
+        canvasRef.current ||
+        new fabric.Canvas(canvasElm, {
+          defaultCursor: 'default',
+          selection: false,
+          targetFindTolerance: 5,
+          uniformScaling: false
+        })
+
+      canvas.setWidth(cew)
+      canvas.setHeight(ceh)
 
       // add image
+      canvas.clear()
       canvas.add(
         new fabric.Image(imgElm, {
           left: _offset.x,
@@ -90,7 +100,6 @@ export const UseContainer = ({
       canvas.renderAll()
       canvas.setViewportTransform([1, 0, 0, 1, 0, 0])
       canvasRef.current = canvas
-      // imgElm.classList.replace('invisible', 'hidden')
     }
   }, [imgElRef.current, canvasElRef.current])
 

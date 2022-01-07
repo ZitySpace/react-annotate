@@ -13,7 +13,7 @@ const App = () => {
         index={1}
         colors={Object.values(projectMock.colors)}
       /> */}
-      <NewImageAnnotater imagesList={pagingData} />
+      <NewImageAnnotater imagesList={pagingData} index={1} />
     </div>
   )
 }
