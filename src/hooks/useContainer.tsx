@@ -1,5 +1,5 @@
 import { fabric } from 'fabric'
-import React, { useCallback, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { Dimension } from '../interface/basic'
 import { Point } from '../label/PointLabel'
 
@@ -16,6 +16,7 @@ export const UseContainer = ({
     null
   )
   const [offset, setOffset] = useState<Point | null>(null)
+  const [scale, setScale] = useState<number>(1)
 
   const imgElRef = useRef(null)
   const canvasElRef = useRef(null)
@@ -28,58 +29,74 @@ export const UseContainer = ({
       ? (canvasElRef.current as unknown as HTMLCanvasElement)
       : canvasElRef.current
 
-    if (imgElm) {
-      console.log(imgElm)
+    if (imgElm && canvasElm) {
+      let extendElm = document.getElementById('canvas_extended') as HTMLElement
 
       const { width: iw, height: ih } = imgElm.getBoundingClientRect()
-      setImageDims({ w: iw, h: ih })
-    }
-
-    if (canvasElm) {
-      console.log(canvasElm)
-
-      // const canvas = new fabric.Canvas(canvasElm, {
-      //   defaultCursor: 'default',
-      //   selection: false,
-      //   targetFindTolerance: 5,
-      //   uniformScaling: false
-      // })
-      console.log(canvasRef)
-
-      const extendElm = canvasElm.parentElement as HTMLElement
-      // extendElm.style.position = 'absolute'
-      // extendElm.style.top = '0'
-      // extendElm.classList.add('bg-gray-200')
-      // extendElm.style.touchAction = 'none'
-
-      // canvasElm.classList.remove('hidden')
-      // const upperCanvasEl = canvasElm.nextElementSibling as Element
-      // upperCanvasEl.classList.remove('hidden')
-
-      const { width: cw, height: ch } = canvasElm.getBoundingClientRect()
       const { width: cew, height: ceh } = extendElm.getBoundingClientRect()
 
-      setCanvasDims({ w: cw, h: ch })
+      // necessary for using in below step because setState in async
+      const _offset = {
+        x: (cew - iw) / 2,
+        y: (ceh - ih) / 2
+      }
+      const _scale = (iw / imgElm.naturalWidth + ih / imgElm.naturalHeight) / 2
+
+      setImageDims({ w: iw, h: ih })
+      setCanvasDims({ w: cew, h: cew }) // canvas dimensions will be set as same as extend element
       setBoundary({
-        x: [(cew - cw) / 2, (cew + cw) / 2],
-        y: [(ceh - ch) / 2, (ceh + ch) / 2]
+        x: [(cew - iw) / 2, (cew + iw) / 2],
+        y: [(ceh - ih) / 2, (ceh + ih) / 2]
       })
-      setOffset({
-        x: (cew - cw) / 2,
-        y: (ceh - ch) / 2
+      setOffset(_offset)
+      setScale(_scale)
+
+      // initialize canvas
+      const canvas = new fabric.Canvas(canvasElm, {
+        width: cew,
+        height: ceh,
+        defaultCursor: 'default',
+        selection: false,
+        targetFindTolerance: 5,
+        uniformScaling: false
       })
 
-      // canvas.clear()
-      // canvas.setWidth(cew)
-      // canvas.setHeight(ceh)
-      // canvas.setViewportTransform([1, 0, 0, 1, 0, 0])
-      // canvasRef.current = canvas
-      // console.log(canvas)
-    }
+      // add image
+      canvas.add(
+        new fabric.Image(imgElm, {
+          left: _offset.x,
+          top: _offset.y,
+          scaleX: _scale,
+          scaleY: _scale,
+          hasBorders: false,
+          hasControls: false,
+          selectable: false,
+          hoverCursor: 'default'
+        })
+      )
 
-    if (imgElm && canvasElm) {
+      const lowerCanvasElm = canvas.getElement()
+      const upperCanvasElm = lowerCanvasElm.nextElementSibling as Element
+      extendElm = lowerCanvasElm.parentElement as HTMLElement
+
+      extendElm.style.position = 'absolute'
+      extendElm.style.top = '0'
+      extendElm.style.touchAction = 'none'
+      extendElm.classList.add('bg-gray-200')
+
+      lowerCanvasElm.classList.remove('hidden')
+      upperCanvasElm.classList.remove('hidden')
+
+      canvas.renderAll()
+      canvas.setViewportTransform([1, 0, 0, 1, 0, 0])
+      canvasRef.current = canvas
+      // imgElm.classList.replace('invisible', 'hidden')
     }
   }, [imgElRef.current, canvasElRef.current])
+
+  useEffect(() => {
+    window.onresize = onLoad
+  })
 
   return {
     imageContainer: (
@@ -102,6 +119,7 @@ export const UseContainer = ({
     imageDims,
     canvasDims,
     boundary,
-    offset
+    offset,
+    scale
   }
 }

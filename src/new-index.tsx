@@ -35,32 +35,23 @@ export const NewImageAnnotater = ({
 
   useEffectOnce(() => {
     if (index) setImageObjAt(index)
+    // setTimeout(nextImageObj, 3000)
   })
 
   const canvasRef = useRef<fabric.Canvas | null>(null)
-  const { imageContainer, imageDims, canvasDims, boundary, offset } =
+  const { imageContainer, imageDims, canvasDims, boundary, offset, scale } =
     UseContainer({
       imageObj,
       canvasRef
     })
 
   useLayoutEffect(() => {
-    console.log(imageDims, canvasDims, boundary, offset)
-    const canvasElm = document.getElementsByTagName('canvas')[0]
-    const canvas = new fabric.Canvas(canvasElm)
-    console.log(canvas)
+    console.log(imageDims, canvasDims, boundary, offset, scale)
   }, [imageDims, canvasDims])
 
   return isAnnotationsVisible ? (
     <div className='w-full h-full flex flex-col justify-center items-center relative'>
       {imageContainer}
-      {/* <div
-        className='h-full relative pb-7 md:pb-9 select-none w-full flex justify-center items-center overflow-y-hidden'
-        id='canvas_extended'
-      >
-        {ImageContaioner}
-        <canvas ref={canvasElRef} className='hidden' />
-      </div> */}
     </div>
   ) : null
 }
