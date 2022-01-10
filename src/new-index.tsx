@@ -48,14 +48,16 @@ export const NewImageAnnotater = ({
   const { state: imageObj, setStateAt: setImageObjAt } =
     useStateList<{ annotations: Label[] }>(imagesList)
 
-  const { canvasRef } = useCanvas({
-    isAnnosVisible,
-    categoryColorsRef
-  })
-
-  const { imageContainer, imageDims, canvasDims, boundary, offset, scale } =
-    useContainer({ imageObj, canvasRef })
-
+  const {
+    imageContainer,
+    canvasRef,
+    imageDims,
+    canvasDims,
+    boundary,
+    offset,
+    scale
+  } = useContainer({ imageObj })
+  useCanvas({ canvasRef, isAnnosVisible, categoryColorsRef })
   const stateStack = useStateStack({ categoryColorsRef, isAnnosVisible })
   stateStack.bindCanvas(canvasRef)
 
