@@ -10,12 +10,12 @@ import { Point } from '../label/PointLabel'
  * @returns node of image&canvas container, and some calculated variables
  */
 export const useContainer = ({ imageObj }: { imageObj: any }) => {
-  const [imageDims, setImageDims] = useState<Dimension | null>(null)
-  const [canvasDims, setCanvasDims] = useState<Dimension | null>(null)
+  const [imageDims, setImageDims] = useState<Dimension>({ w: 0, h: 0 })
+  const [canvasDims, setCanvasDims] = useState<Dimension>({ w: 0, h: 0 })
   const [boundary, setBoundary] = useState<{ x: number[]; y: number[] } | null>(
     null
   )
-  const [offset, setOffset] = useState<Point | null>(null)
+  const [offset, setOffset] = useState<Point>({ x: 0, y: 0 })
   const [scale, setScale] = useState<number>(1)
 
   const imgElRef = useRef<HTMLImageElement>(null)

@@ -57,8 +57,18 @@ export const NewImageAnnotater = ({
     offset,
     scale
   } = useContainer({ imageObj })
-  useCanvas({ canvasRef, isAnnosVisible, categoryColorsRef })
   const stateStack = useStateStack({ categoryColorsRef, isAnnosVisible })
+  useCanvas({
+    canvasRef,
+    isAnnosVisible,
+    categoryColorsRef,
+    imageDims,
+    canvasDims,
+    boundary,
+    offset,
+    scale,
+    pushState: stateStack.push
+  })
   stateStack.bindCanvas(canvasRef)
 
   useEffectOnce(() => {

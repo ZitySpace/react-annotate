@@ -1,61 +1,72 @@
 import { MutableRefObject } from 'react'
-import { Label } from '../interface/basic'
-// import { LineLabel } from '../label/LineLabel'
-// import { PointLabel } from '../label/PointLabel'
-// import { RectLabel } from '../label/RectLabel'
+import { Dimension, Label } from '../interface/basic'
+import { Point } from '../label/PointLabel'
+import { LineLabel } from '../label/LineLabel'
+import { PointLabel } from '../label/PointLabel'
+import { RectLabel } from '../label/RectLabel'
 import { setLinePosition } from '../utils/util'
-import { State } from './stateStack'
 
 export const useCanvas = ({
   canvasRef,
   isAnnosVisible,
-  categoryColorsRef
+  categoryColorsRef,
+  imageDims,
+  canvasDims,
+  boundary,
+  offset,
+  scale,
+  pushState
 }: {
   canvasRef: MutableRefObject<fabric.Canvas | null>
   isAnnosVisible: boolean
   categoryColorsRef: MutableRefObject<any>
+  imageDims: Dimension
+  canvasDims: Dimension
+  boundary: { x: number[]; y: number[] } | null
+  offset: Point
+  scale: number
+  pushState?: Function
 }) => {
   const canvas = canvasRef.current
-  const colors = categoryColorsRef.current
+  // const colors = categoryColorsRef.current
+  let nothing: any = {
+    isAnnosVisible,
+    categoryColorsRef,
+    imageDims,
+    canvasDims,
+    boundary
+  }
+  nothing = 0
+  console.log(nothing)
 
-  // const syncCanvasToState = () => {
-  //   if (!canvas) return
+  const syncCanvasToState = () => {
+    if (!canvas) return
 
-  //   const allCanvasObjects = canvas.getObjects()
-  //   const Rects = allCanvasObjects.filter(
-  //     (obj: any) => obj.type === 'rect' && obj.labelType === 'Rect'
-  //   )
-  //   const Points = allCanvasObjects.filter(
-  //     (obj: any) => obj.type === 'circle' && obj.labelType === 'Point'
-  //   )
-  //   const Lines = allCanvasObjects.filter(
-  //     (obj: any) => obj.type === 'line' && obj.labelType === 'Line'
-  //   )
+    const allCanvasObjects = canvas.getObjects()
+    const Rects = allCanvasObjects.filter(
+      (obj: any) => obj.type === 'rect' && obj.labelType === 'Rect'
+    )
+    const Points = allCanvasObjects.filter(
+      (obj: any) => obj.type === 'circle' && obj.labelType === 'Point'
+    )
+    const Lines = allCanvasObjects.filter(
+      (obj: any) => obj.type === 'line' && obj.labelType === 'Line'
+    )
 
-  //   const nowState: Label[] = [
-  //     ...Rects.map((obj: fabric.Rect) => {
-  //       return RectLabel.fromFabricRect({
-  //         obj,
-  //         offset: offsetR.current,
-  //         scale: scaleR.current
-  //       })
-  //     }),
-  //     ...Points.map((obj: fabric.Circle) => {
-  //       return PointLabel.fromFabricPoint({
-  //         obj,
-  //         offset: offsetR.current,
-  //         scale: scaleR.current
-  //       })
-  //     }),
-  //     ...Lines.map((obj: fabric.Line) => {
-  //       return LineLabel.fromFabricLine({
-  //         obj,
-  //         offset: offsetR.current,
-  //         scale: scaleR.current
-  //       })
-  //     })
-  //   ]
-  // }
+    const nowState: Label[] = [
+      ...Rects.map((obj: fabric.Rect) => {
+        return RectLabel.fromFabricRect({ obj, offset, scale })
+      }),
+      ...Points.map((obj: fabric.Circle) => {
+        return PointLabel.fromFabricPoint({ obj, offset, scale })
+      }),
+      ...Lines.map((obj: fabric.Line) => {
+        return LineLabel.fromFabricLine({ obj, offset, scale })
+      })
+    ]
+
+    pushState && pushState(nowState)
+  }
 
   // If canvas no null, mount listeners
   canvas &&
@@ -63,27 +74,11 @@ export const useCanvas = ({
     canvas.on('object:moving', (e) => {
       setLinePosition(e.target as any)
     }) &&
-    canvas.on('object:modified', () => {})
+    canvas.on('object:modified', () => {
+      syncCanvasToState()
+    })
 
-  const methods = {
-    syncStateToCanvas(state: State, forceVisable: boolean = false) {
-      if (!canvas) return
-      canvas.remove(
-        ...canvas.getObjects().filter((obj: any) => obj.type !== 'image')
-      )
-      state.forEach((anno: Label) => {
-        const { categoryName } = anno
-        const currentColor = colors[categoryName!]
-        const visible = forceVisable || isAnnosVisible // && isFocused(categoryName, id))
-        const fabricObjects = anno.getFabricObjects({ currentColor })
-        canvas.add(
-          ...Object.values(fabricObjects).map((obj: any) =>
-            obj.set({ visible })
-          )
-        )
-      })
-    }
-  }
+  const methods = {}
 
   return { ...methods }
 }
