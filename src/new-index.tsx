@@ -1,19 +1,26 @@
-import { fabric } from 'fabric'
-import React, { useEffect, useLayoutEffect, useRef } from 'react'
+// import { fabric } from 'fabric'
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useEffectOnce, useStateList } from 'react-use'
+import { useCanvas } from './hooks/useCanvas'
 import { useContainer } from './hooks/useContainer'
 import { useStateStack } from './hooks/useStateStack'
 import { Label } from './interface/basic'
 import { RectLabel } from './label/RectLabel'
+import {
+  getAllCategoryNames,
+  parseCategorysAndColors
+} from './utils/categorys&colors'
 
 export const NewImageAnnotater = ({
   imagesList,
   index = 0,
-  isAnnotationsVisible = true
+  isAnnotationsVisible = true,
+  colors
 }: {
   imagesList: any[]
   index?: number
   isAnnotationsVisible?: boolean
+  colors?: string[]
 }) => {
   // Handle inputs with old shape
   // TODO: remove
@@ -27,38 +34,50 @@ export const NewImageAnnotater = ({
     }
   })
 
-  const {
-    state: imageObj,
-    // prev: prevImageObj,
-    // next: nextImageObj,
-    setStateAt: setImageObjAt
-    // currentIndex: imageIndex
-  } = useStateList<{ annotations: Label[] }>(imagesList)
+  const categoryNames = getAllCategoryNames(
+    imagesList.map((image) => image.annotations)
+  )
+  const { categoryColors } = parseCategorysAndColors(
+    categoryNames,
+    colors || []
+  )
 
-  const stateStack = useStateStack()
+  const [isAnnosVisible] = useState(isAnnotationsVisible)
+  const categoryColorsRef = useRef(categoryColors)
+
+  const { state: imageObj, setStateAt: setImageObjAt } =
+    useStateList<{ annotations: Label[] }>(imagesList)
+
+  const { canvasRef } = useCanvas({
+    isAnnosVisible,
+    categoryColorsRef
+  })
+
+  const { imageContainer, imageDims, canvasDims, boundary, offset, scale } =
+    useContainer({ imageObj, canvasRef })
+
+  const stateStack = useStateStack({ categoryColorsRef, isAnnosVisible })
+  stateStack.bindCanvas(canvasRef)
 
   useEffectOnce(() => {
     if (index) setImageObjAt(index)
     console.log(imageDims, canvasDims, boundary, offset, scale)
   })
 
-  const canvasRef = useRef<fabric.Canvas | null>(null)
-  const { imageContainer, imageDims, canvasDims, boundary, offset, scale } =
-    useContainer({
-      imageObj,
-      canvasRef
-    })
-
   useLayoutEffect(() => {
-    // console.log(imageDims, canvasDims, boundary, offset, scale)
-    stateStack.push(imageObj.annotations)
+    // Initialize state stack
+    stateStack.push(
+      imageObj.annotations.map((anno: any) =>
+        anno.scaleTransform(scale, offset)
+      )
+    )
   }, [imageDims, canvasDims])
 
   useEffect(() => {
-    console.log(stateStack.nowState)
+    console.log('state', stateStack.nowState)
   }, [stateStack.nowState])
 
-  return isAnnotationsVisible ? (
+  return isAnnosVisible ? (
     <div className='w-full h-full flex flex-col justify-center items-center relative'>
       {imageContainer}
     </div>

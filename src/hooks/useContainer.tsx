@@ -1,5 +1,11 @@
 import { fabric } from 'fabric'
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+import React, {
+  MutableRefObject,
+  useCallback,
+  useEffect,
+  useRef,
+  useState
+} from 'react'
 import { Dimension } from '../interface/basic'
 import { Point } from '../label/PointLabel'
 
@@ -9,7 +15,13 @@ import { Point } from '../label/PointLabel'
  * @param canvasRef reference to canvas
  * @returns node of image&canvas container, and some calculated variables
  */
-export const useContainer = ({ imageObj }: { imageObj: any }) => {
+export const useContainer = ({
+  imageObj,
+  canvasRef
+}: {
+  imageObj: any
+  canvasRef: MutableRefObject<fabric.Canvas | null>
+}) => {
   const [imageDims, setImageDims] = useState<Dimension | null>(null)
   const [canvasDims, setCanvasDims] = useState<Dimension | null>(null)
   const [boundary, setBoundary] = useState<{ x: number[]; y: number[] } | null>(
@@ -20,7 +32,6 @@ export const useContainer = ({ imageObj }: { imageObj: any }) => {
 
   const imgElRef = useRef<HTMLImageElement>(null)
   const canvasElRef = useRef<HTMLCanvasElement>(null)
-  const canvasRef = useRef<fabric.Canvas | null>(null)
 
   const onLoad = useCallback(() => {
     const imgElm = imgElRef.current
@@ -120,7 +131,6 @@ export const useContainer = ({ imageObj }: { imageObj: any }) => {
         <canvas ref={canvasElRef} className='hidden' />
       </div>
     ),
-    canvasRef,
     imageDims,
     canvasDims,
     boundary,

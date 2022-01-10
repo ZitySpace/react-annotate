@@ -1,37 +1,46 @@
-import { fabric } from 'fabric'
-import { MutableRefObject } from 'react'
-// import { Dimension } from '../interface/basic'
-// import { Transparent } from '../interface/config'
-// import { Point } from '../label/PointLabel'
-// import { getBetween } from '../utils/math'
+import { MutableRefObject, useRef } from 'react'
+import { Label } from '../interface/basic'
 import { setLinePosition } from '../utils/util'
+import { State } from './stateStack'
 
 export const useCanvas = ({
-  canvasRef
-}: // canvasDimsRef
-// drawingStartedRef,
-// onDrawObjRef,
-// boundaryRef
-{
-  canvasRef: MutableRefObject<fabric.Canvas | null>
-  // canvasDimsRef: MutableRefObject<Dimension>
-  // drawingStartedRef: MutableRefObject<boolean>
-  // onDrawObjRef: MutableRefObject<fabric.Object | null>
-  // boundaryRef: MutableRefObject<{ x: number[]; y: number[] }>
+  isAnnosVisible,
+  categoryColorsRef
+}: {
+  isAnnosVisible: boolean
+  categoryColorsRef: MutableRefObject<any>
 }) => {
-  // const prevMousePosition = useRef<Point>({ x: 0, y: 0 })
-  // const mousePosition = useRef<Point>({ x: 0, y: 0 })
-  // console.log(boundaryRef, drawingStartedRef) // TODO: remove
+  const canvasRef = useRef<fabric.Canvas | null>(null)
+  const canvas = canvasRef.current
+  const colors = categoryColorsRef.current
 
-  const canvasHandler = {
-    onMoving: (e: fabric.IEvent<Event>) => {
-      const canvas = canvasRef.current
+  // If canvas no null, mount listeners
+  canvas &&
+    canvas.off() &&
+    canvas.on('object:moving', (e) => {
+      setLinePosition(e.target as any)
+    }) &&
+    canvas.on('object:modified', () => {})
+
+  const methods = {
+    syncStateToCanvas(state: State, forceVisable: boolean = false) {
       if (!canvas) return
-
-      const obj = e.target as any
-      setLinePosition(obj)
+      canvas.remove(
+        ...canvas.getObjects().filter((obj: any) => obj.type !== 'image')
+      )
+      state.forEach((anno: Label) => {
+        const { categoryName } = anno
+        const currentColor = colors[categoryName!]
+        const visible = forceVisable || isAnnosVisible // && isFocused(categoryName, id))
+        const fabricObjects = anno.getFabricObjects({ currentColor })
+        canvas.add(
+          ...Object.values(fabricObjects).map((obj: any) =>
+            obj.set({ visible })
+          )
+        )
+      })
     }
   }
 
-  return { canvasHandler }
+  return { canvasRef, ...methods }
 }

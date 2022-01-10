@@ -1,4 +1,4 @@
-import { useMemo, useRef } from 'react'
+import { MutableRefObject, useMemo, useRef } from 'react'
 import { useUpdate, useUpdateEffect } from 'react-use'
 import { resolveHookState } from 'react-use/lib/misc/hookState'
 import { Label } from '../interface/basic'
@@ -11,9 +11,17 @@ interface Can {
   save: boolean
 }
 
-interface State extends Array<Label> {}
+export interface State extends Array<Label> {}
 
-export const useStateStack = (initialState: State = []) => {
+export const useStateStack = ({
+  categoryColorsRef,
+  isAnnosVisible,
+  initialState = []
+}: {
+  categoryColorsRef: MutableRefObject<any>
+  isAnnosVisible: boolean
+  initialState?: State
+}) => {
   const stack = useRef<State[]>(resolveHookState([initialState] || []))
   const can = useRef<Can>({
     redo: false,
@@ -22,8 +30,26 @@ export const useStateStack = (initialState: State = []) => {
     save: false
   })
   const index = useRef<number>(0)
+  const canvasR = useRef<fabric.Canvas | null>(null)
+  const canvas = canvasR.current
+  const colors = categoryColorsRef.current
 
   const update = useUpdate()
+
+  const syncStateToCanvas = (state: State, forceVisable: boolean = false) => {
+    if (!canvas) return
+    canvas.remove(...canvas.getObjects().filter((obj) => obj.type !== 'image'))
+
+    state.forEach((anno: Label) => {
+      const { categoryName } = anno
+      const currentColor = colors[categoryName!]
+      const visible = forceVisable || isAnnosVisible // && isFocused(categoryName, id))
+      const fabricObjects = anno.getFabricObjects({ currentColor })
+      canvas.add(
+        ...Object.values(fabricObjects).map((obj: any) => obj.set({ visible }))
+      )
+    })
+  }
 
   useUpdateEffect(() => {
     can.current = {
@@ -32,12 +58,13 @@ export const useStateStack = (initialState: State = []) => {
       reset: stack.current.length > 1,
       save: index.current > 1 || index.current < stack.current.length
     }
+    syncStateToCanvas(actions.nowState)
     update()
   }, [stack.current.length, index.current])
 
   const actions = useMemo(
     () => ({
-      nowState: stack.current[index.current - 1],
+      nowState: stack.current[index.current - 1] || [],
       set: (newStack: State[]) => {
         stack.current = resolveHookState(newStack, stack.current)
         index.current = stack.current.length
@@ -64,7 +91,11 @@ export const useStateStack = (initialState: State = []) => {
       },
 
       grouped: () =>
-        actions.nowState ? groupBy(actions.nowState, 'categoryName') : {}
+        actions.nowState ? groupBy(actions.nowState, 'categoryName') : {},
+
+      bindCanvas: (canvasRef: MutableRefObject<fabric.Canvas | null>) => {
+        canvasR.current = canvasRef.current ? canvasRef.current : null
+      }
     }),
     [stack.current, index.current, can.current]
   )
