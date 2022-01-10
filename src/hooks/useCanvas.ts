@@ -41,6 +41,7 @@ export const useCanvas = ({
 
   const syncCanvasToState = () => {
     if (!canvas) return
+    console.log('syncCanvasToState called') // TODO: remove
 
     const allCanvasObjects = canvas.getObjects()
     const Rects = allCanvasObjects.filter(
@@ -69,14 +70,16 @@ export const useCanvas = ({
   }
 
   // If canvas no null, mount listeners
-  canvas &&
-    canvas.off() &&
+  if (canvas) {
+    canvas.off()
     canvas.on('object:moving', (e) => {
       setLinePosition(e.target as any)
-    }) &&
+    })
     canvas.on('object:modified', () => {
       syncCanvasToState()
     })
+    // canvas.on('mouse:wheel', mouseEvents.onWheel)
+  }
 
   const methods = {}
 

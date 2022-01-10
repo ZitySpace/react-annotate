@@ -38,6 +38,8 @@ export const useStateStack = ({
 
   const syncStateToCanvas = (state: State, forceVisable: boolean = false) => {
     if (!canvas) return
+    console.log('syncStateToCanvas called') // TODO: remove
+
     canvas.remove(...canvas.getObjects().filter((obj) => obj.type !== 'image'))
 
     state.forEach((anno: Label) => {
