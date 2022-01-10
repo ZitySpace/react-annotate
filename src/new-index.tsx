@@ -40,7 +40,6 @@ export const NewImageAnnotater = ({
   useEffectOnce(() => {
     if (index) setImageObjAt(index)
     console.log(imageDims, canvasDims, boundary, offset, scale)
-    // setTimeout(nextImageObj, 3000)
   })
 
   const canvasRef = useRef<fabric.Canvas | null>(null)
@@ -52,12 +51,12 @@ export const NewImageAnnotater = ({
 
   useLayoutEffect(() => {
     // console.log(imageDims, canvasDims, boundary, offset, scale)
-    stateStack.pushState(imageObj.annotations)
+    stateStack.push(imageObj.annotations)
   }, [imageDims, canvasDims])
 
   useEffect(() => {
-    console.log(stateStack.state)
-  }, [stateStack.state])
+    console.log(stateStack.nowState)
+  }, [stateStack.nowState])
 
   return isAnnotationsVisible ? (
     <div className='w-full h-full flex flex-col justify-center items-center relative'>

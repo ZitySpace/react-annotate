@@ -9,13 +9,7 @@ import { Point } from '../label/PointLabel'
  * @param canvasRef reference to canvas
  * @returns node of image&canvas container, and some calculated variables
  */
-export const useContainer = ({
-  imageObj,
-  canvasRef
-}: {
-  imageObj: any
-  canvasRef: React.MutableRefObject<fabric.Canvas | null>
-}) => {
+export const useContainer = ({ imageObj }: { imageObj: any }) => {
   const [imageDims, setImageDims] = useState<Dimension | null>(null)
   const [canvasDims, setCanvasDims] = useState<Dimension | null>(null)
   const [boundary, setBoundary] = useState<{ x: number[]; y: number[] } | null>(
@@ -24,8 +18,9 @@ export const useContainer = ({
   const [offset, setOffset] = useState<Point | null>(null)
   const [scale, setScale] = useState<number>(1)
 
-  const imgElRef = useRef(null)
-  const canvasElRef = useRef(null)
+  const imgElRef = useRef<HTMLImageElement>(null)
+  const canvasElRef = useRef<HTMLCanvasElement>(null)
+  const canvasRef = useRef<fabric.Canvas | null>(null)
 
   const onLoad = useCallback(() => {
     const imgElm = imgElRef.current
@@ -125,6 +120,7 @@ export const useContainer = ({
         <canvas ref={canvasElRef} className='hidden' />
       </div>
     ),
+    canvasRef,
     imageDims,
     canvasDims,
     boundary,
