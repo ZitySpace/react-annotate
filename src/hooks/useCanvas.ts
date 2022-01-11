@@ -58,15 +58,15 @@ export const useCanvas = ({
         )
 
         const nowState: Label[] = [
-          ...Rects.map((obj: fabric.Rect) => {
-            return RectLabel.fromFabricRect({ obj, offset, scale })
-          }),
-          ...Points.map((obj: fabric.Circle) => {
-            return PointLabel.fromFabricPoint({ obj, offset, scale })
-          }),
-          ...Lines.map((obj: fabric.Line) => {
-            return LineLabel.fromFabricLine({ obj, offset, scale })
-          })
+          ...Rects.map((obj: fabric.Rect) =>
+            RectLabel.fromFabricRect({ obj, offset, scale })
+          ),
+          ...Points.map((obj: fabric.Circle) =>
+            PointLabel.fromFabricPoint({ obj, offset, scale })
+          ),
+          ...Lines.map((obj: fabric.Line) =>
+            LineLabel.fromFabricLine({ obj, offset, scale })
+          )
         ]
 
         pushState && pushState(nowState)
