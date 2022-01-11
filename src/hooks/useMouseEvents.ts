@@ -1,9 +1,10 @@
 import { fabric } from 'fabric'
-import { MutableRefObject, useMemo } from 'react'
+import { MutableRefObject, useMemo, useRef } from 'react'
 import { Dimension } from '../interface/basic'
 import { TRANSPARENT } from '../interface/config'
 import { Point } from '../label/PointLabel'
 import { getBetween } from '../utils/math'
+import { isTouchEvt } from '../utils/mouse'
 
 export const useMouse = ({
   canvasRef,
@@ -21,6 +22,10 @@ export const useMouse = ({
   scale: number
 }) => {
   console.log(imageDims, canvasDims, boundary, offset, scale) // TODO: remove
+  const onDrawObjRef = useRef<fabric.Object>(null)
+  const onDrawObj = onDrawObjRef.current
+  const lastPositionRef = useRef<Point>({ x: 0, y: 0 })
+  const isPanningRef = useRef<boolean>(false)
   const canvas = canvasRef.current!
 
   const listeners = useMemo(
@@ -48,7 +53,7 @@ export const useMouse = ({
           vpt[5] = getBetween(vpt[5], h * (1 - zoom), 0)
         }
       },
-      'mouse:over': (e: fabric.IEvent<WheelEvent>) => {
+      'mouse:over': (e: fabric.IEvent) => {
         const obj = e.target as any
         if (obj?.type === 'circle')
           obj.set({
@@ -56,7 +61,7 @@ export const useMouse = ({
             stroke: obj.color
           })
         canvas.renderAll()
-      }
+      },
       // 'mouse:out': (e: fabric.IEvent<MouseEvent>) => {
       //   const obj = e.target as any
       //   const onDrawObj = onDrawObjRef.current as any
@@ -68,7 +73,18 @@ export const useMouse = ({
       //     })
 
       //   canvas.renderAll()
-      // }
+      // },
+      'mouse:down': (e: fabric.IEvent<MouseEvent>) => {
+        if (onDrawObj) return
+        else {
+          const evt = e.e as any
+          const { clientX, clientY } = isTouchEvt(evt) ? evt.touches[0] : evt
+          lastPositionRef.current = { x: clientX, y: clientY }
+
+          const selectedObj = canvas.getActiveObject()
+          isPanningRef.current = !selectedObj
+        }
+      }
     }),
     [canvas]
   )
