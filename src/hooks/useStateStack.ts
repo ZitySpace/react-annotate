@@ -36,23 +36,6 @@ export const useStateStack = ({
 
   const update = useUpdate()
 
-  const syncStateToCanvas = (state: State, forceVisable: boolean = false) => {
-    if (!canvas) return
-    console.log('syncStateToCanvas called') // TODO: remove
-
-    canvas.remove(...canvas.getObjects().filter((obj) => obj.type !== 'image'))
-
-    state.forEach((anno: Label) => {
-      const { categoryName } = anno
-      const currentColor = colors[categoryName!]
-      const visible = forceVisable || isAnnosVisible // && isFocused(categoryName, id))
-      const fabricObjects = anno.getFabricObjects({ currentColor })
-      canvas.add(
-        ...Object.values(fabricObjects).map((obj: any) => obj.set({ visible }))
-      )
-    })
-  }
-
   useUpdateEffect(() => {
     can.current = {
       redo: index.current < stack.current.length,
@@ -60,7 +43,7 @@ export const useStateStack = ({
       reset: stack.current.length > 1,
       save: index.current > 1 || index.current < stack.current.length
     }
-    syncStateToCanvas(actions.nowState)
+    actions.syncStateToCanvas(actions.nowState)
     update()
   }, [stack.current.length, index.current])
 
@@ -97,6 +80,27 @@ export const useStateStack = ({
 
       bindCanvas: (canvasRef: MutableRefObject<fabric.Canvas | null>) => {
         canvasR.current = canvasRef.current ? canvasRef.current : null
+      },
+
+      syncStateToCanvas: (state: State, forceVisable: boolean = false) => {
+        if (!canvas) return
+        console.log('syncStateToCanvas called') // TODO: remove
+
+        canvas.remove(
+          ...canvas.getObjects().filter((obj) => obj.type !== 'image')
+        )
+
+        state.forEach((anno: Label) => {
+          const { categoryName } = anno
+          const currentColor = colors[categoryName!]
+          const visible = forceVisable || isAnnosVisible // && isFocused(categoryName, id))
+          const fabricObjects = anno.getFabricObjects({ currentColor })
+          canvas.add(
+            ...Object.values(fabricObjects).map((obj: any) =>
+              obj.set({ visible })
+            )
+          )
+        })
       }
     }),
     [stack.current, index.current, can.current]

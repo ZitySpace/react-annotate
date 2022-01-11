@@ -39,36 +39,6 @@ export const useCanvas = ({
   nothing = 0
   console.log(nothing)
 
-  const syncCanvasToState = () => {
-    if (!canvas) return
-    console.log('syncCanvasToState called') // TODO: remove
-
-    const allCanvasObjects = canvas.getObjects()
-    const Rects = allCanvasObjects.filter(
-      (obj: any) => obj.type === 'rect' && obj.labelType === 'Rect'
-    )
-    const Points = allCanvasObjects.filter(
-      (obj: any) => obj.type === 'circle' && obj.labelType === 'Point'
-    )
-    const Lines = allCanvasObjects.filter(
-      (obj: any) => obj.type === 'line' && obj.labelType === 'Line'
-    )
-
-    const nowState: Label[] = [
-      ...Rects.map((obj: fabric.Rect) => {
-        return RectLabel.fromFabricRect({ obj, offset, scale })
-      }),
-      ...Points.map((obj: fabric.Circle) => {
-        return PointLabel.fromFabricPoint({ obj, offset, scale })
-      }),
-      ...Lines.map((obj: fabric.Line) => {
-        return LineLabel.fromFabricLine({ obj, offset, scale })
-      })
-    ]
-
-    pushState && pushState(nowState)
-  }
-
   // If canvas no null, mount listeners
   if (canvas) {
     canvas.off()
@@ -76,12 +46,42 @@ export const useCanvas = ({
       setLinePosition(e.target as any)
     })
     canvas.on('object:modified', () => {
-      syncCanvasToState()
+      actions.syncCanvasToState()
     })
     // canvas.on('mouse:wheel', mouseEvents.onWheel)
   }
 
-  const methods = {}
+  const actions = {
+    syncCanvasToState: () => {
+      if (!canvas) return
+      console.log('syncCanvasToState called') // TODO: remove
 
-  return { ...methods }
+      const allCanvasObjects = canvas.getObjects()
+      const Rects = allCanvasObjects.filter(
+        (obj: any) => obj.type === 'rect' && obj.labelType === 'Rect'
+      )
+      const Points = allCanvasObjects.filter(
+        (obj: any) => obj.type === 'circle' && obj.labelType === 'Point'
+      )
+      const Lines = allCanvasObjects.filter(
+        (obj: any) => obj.type === 'line' && obj.labelType === 'Line'
+      )
+
+      const nowState: Label[] = [
+        ...Rects.map((obj: fabric.Rect) => {
+          return RectLabel.fromFabricRect({ obj, offset, scale })
+        }),
+        ...Points.map((obj: fabric.Circle) => {
+          return PointLabel.fromFabricPoint({ obj, offset, scale })
+        }),
+        ...Lines.map((obj: fabric.Line) => {
+          return LineLabel.fromFabricLine({ obj, offset, scale })
+        })
+      ]
+
+      pushState && pushState(nowState)
+    }
+  }
+
+  return { ...actions }
 }
