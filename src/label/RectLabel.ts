@@ -1,8 +1,8 @@
 import { fabric } from 'fabric'
 import {
-  RectDefaultConfig,
-  StrokeWidth,
-  TextboxDefaultConfig
+  RECT_DEFAULT_CONFIG,
+  STROKE_WIDTH,
+  TEXTBOX_DEFAULT_CONFIG
 } from '../interface/config'
 import { getRandomColors } from '../utils/categorys&colors'
 // eslint-disable-next-line no-unused-vars
@@ -43,8 +43,8 @@ export class RectLabel implements Rect {
     return new this({
       x: obj.left!,
       y: obj.top!,
-      w: obj.getScaledWidth() - StrokeWidth,
-      h: obj.getScaledHeight() - StrokeWidth,
+      w: obj.getScaledWidth() - STROKE_WIDTH,
+      h: obj.getScaledHeight() - STROKE_WIDTH,
       id: (obj as any).id,
       categoryName: (obj as any).categoryName,
       strokeWidth: obj.strokeWidth,
@@ -135,7 +135,7 @@ export class RectLabel implements Rect {
     const { x, y, w, h, color: oriColor, id, categoryName } = this
     const color = currentColor || oriColor
     const rect = new fabric.Rect({
-      ...RectDefaultConfig,
+      ...RECT_DEFAULT_CONFIG,
       left: x,
       top: y,
       width: w,
@@ -145,9 +145,9 @@ export class RectLabel implements Rect {
     rect.setOptions({ id, categoryName, color, labelType: 'Rect' })
 
     const textbox = new fabric.Textbox(id.toString(), {
-      ...TextboxDefaultConfig,
-      left: x + StrokeWidth,
-      top: y + StrokeWidth,
+      ...TEXTBOX_DEFAULT_CONFIG,
+      left: x + STROKE_WIDTH,
+      top: y + STROKE_WIDTH,
       backgroundColor: color,
       fontSize: Math.min(14, w / 2, h / 2)
     })

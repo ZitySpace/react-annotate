@@ -1,12 +1,12 @@
 /* eslint-disable no-unused-vars */
 import { fabric } from 'fabric'
 import {
-  LineDefaultConfig,
-  PointDefaultConfig,
-  Radius,
-  StrokeWidth,
-  TextboxDefaultConfig,
-  Transparent
+  LINE_DEFAULT_CONFIG,
+  POINT_DEFAULT_CONFIG,
+  RADIUS,
+  STROKE_WIDTH,
+  TEXTBOX_DEFAULT_CONFIG,
+  TRANSPARENT
 } from '../interface/config'
 import { getRandomColors } from '../utils/categorys&colors'
 import { Point } from './PointLabel'
@@ -42,10 +42,10 @@ export class LineLabel implements Line {
     scale: number
   }): LineLabel {
     return new this({
-      x: obj.x1! + StrokeWidth / 2,
-      y: obj.y1! + StrokeWidth / 2,
-      _x: obj.x2! + StrokeWidth / 2,
-      _y: obj.y2! + StrokeWidth / 2,
+      x: obj.x1! + STROKE_WIDTH / 2,
+      y: obj.y1! + STROKE_WIDTH / 2,
+      _x: obj.x2! + STROKE_WIDTH / 2,
+      _y: obj.y2! + STROKE_WIDTH / 2,
       id: (obj as any).id,
       categoryName: (obj as any).categoryName,
       strokeWidth: obj.strokeWidth,
@@ -131,9 +131,9 @@ export class LineLabel implements Line {
     const { x, y, _x, _y, color: oriColor, id, categoryName } = this
     const color = currentColor || oriColor
     const line = new fabric.Line(
-      [x, y, _x, _y].map((coord) => coord - StrokeWidth / 2),
+      [x, y, _x, _y].map((coord) => coord - STROKE_WIDTH / 2),
       {
-        ...LineDefaultConfig,
+        ...LINE_DEFAULT_CONFIG,
         stroke: color
       }
     )
@@ -143,11 +143,11 @@ export class LineLabel implements Line {
       [_x, _y]
     ].map((coord, _id) => {
       const endpoint = new fabric.Circle({
-        ...PointDefaultConfig,
+        ...POINT_DEFAULT_CONFIG,
         left: coord[0],
         top: coord[1],
         fill: color,
-        stroke: Transparent
+        stroke: TRANSPARENT
       })
       endpoint.setOptions({
         id,
@@ -162,9 +162,9 @@ export class LineLabel implements Line {
 
     const topPoint = endpoints.sort((a, b) => a.top! - b.top!)[0]
     const textbox = new fabric.Textbox(id.toString(), {
-      ...TextboxDefaultConfig,
+      ...TEXTBOX_DEFAULT_CONFIG,
       left: topPoint.left!,
-      top: topPoint.top! - Radius,
+      top: topPoint.top! - RADIUS,
       originX: 'center',
       originY: 'bottom',
       backgroundColor: currentColor || color

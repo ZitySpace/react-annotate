@@ -1,7 +1,7 @@
 import { fabric } from 'fabric'
 import { MutableRefObject, useMemo } from 'react'
 import { Dimension } from '../interface/basic'
-import { Transparent } from '../interface/config'
+import { TRANSPARENT } from '../interface/config'
 import { Point } from '../label/PointLabel'
 import { getBetween } from '../utils/math'
 
@@ -52,7 +52,7 @@ export const useMouse = ({
         const obj = e.target as any
         if (obj?.type === 'circle')
           obj.set({
-            fill: Transparent,
+            fill: TRANSPARENT,
             stroke: obj.color
           })
         canvas.renderAll()

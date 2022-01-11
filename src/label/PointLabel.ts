@@ -1,9 +1,9 @@
 import { fabric } from 'fabric'
 import {
-  PointDefaultConfig,
-  StrokeWidth,
-  TextboxDefaultConfig,
-  Transparent
+  POINT_DEFAULT_CONFIG,
+  STROKE_WIDTH,
+  TEXTBOX_DEFAULT_CONFIG,
+  TRANSPARENT
 } from '../interface/config'
 import { getRandomColors } from '../utils/categorys&colors'
 
@@ -117,19 +117,19 @@ export class PointLabel implements Point {
     const { x, y, radius, color: oriColor, id, categoryName } = this
     const color = currentColor || oriColor
     const point = new fabric.Circle({
-      ...PointDefaultConfig,
+      ...POINT_DEFAULT_CONFIG,
       left: x,
       top: y,
       radius: radius,
       fill: color,
-      stroke: Transparent
+      stroke: TRANSPARENT
     })
     point.setOptions({ id, categoryName, color, labelType: 'Point' })
 
     const textbox = new fabric.Textbox(id.toString(), {
-      ...TextboxDefaultConfig,
-      left: x + radius - StrokeWidth / 2,
-      top: y - radius + StrokeWidth / 2,
+      ...TEXTBOX_DEFAULT_CONFIG,
+      left: x + radius - STROKE_WIDTH / 2,
+      top: y - radius + STROKE_WIDTH / 2,
       originY: 'bottom',
       backgroundColor: currentColor || color
     })
