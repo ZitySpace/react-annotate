@@ -1,4 +1,4 @@
-import { MutableRefObject, useRef } from 'react'
+import { MutableRefObject, useMemo, useRef } from 'react'
 import { Dimension, Label } from '../interface/basic'
 import { Point } from '../label/PointLabel'
 import { LineLabel } from '../label/LineLabel'
@@ -27,7 +27,7 @@ export const useCanvas = ({
   scale: number
   pushState?: Function
 }) => {
-  const canvas = canvasRef.current
+  const canvas = canvasRef.current!
   const listenersRef = useRef<object>({})
   const listeners = listenersRef.current
   // const colors = categoryColorsRef.current
@@ -41,49 +41,49 @@ export const useCanvas = ({
   nothing = 0
   console.log(nothing)
 
-  const actions = {
-    syncCanvasToState: () => {
-      if (!canvas) return
-      console.log('syncCanvasToState called') // TODO: remove
+  const actions = useMemo(
+    () => ({
+      syncCanvasToState: () => {
+        console.log('syncCanvasToState called') // TODO: remove
 
-      const allCanvasObjects = canvas.getObjects()
-      const Rects = allCanvasObjects.filter(
-        (obj: any) => obj.type === 'rect' && obj.labelType === 'Rect'
-      )
-      const Points = allCanvasObjects.filter(
-        (obj: any) => obj.type === 'circle' && obj.labelType === 'Point'
-      )
-      const Lines = allCanvasObjects.filter(
-        (obj: any) => obj.type === 'line' && obj.labelType === 'Line'
-      )
+        const allCanvasObjects = canvas.getObjects()
+        const Rects = allCanvasObjects.filter(
+          (obj: any) => obj.type === 'rect' && obj.labelType === 'Rect'
+        )
+        const Points = allCanvasObjects.filter(
+          (obj: any) => obj.type === 'circle' && obj.labelType === 'Point'
+        )
+        const Lines = allCanvasObjects.filter(
+          (obj: any) => obj.type === 'line' && obj.labelType === 'Line'
+        )
 
-      const nowState: Label[] = [
-        ...Rects.map((obj: fabric.Rect) => {
-          return RectLabel.fromFabricRect({ obj, offset, scale })
-        }),
-        ...Points.map((obj: fabric.Circle) => {
-          return PointLabel.fromFabricPoint({ obj, offset, scale })
-        }),
-        ...Lines.map((obj: fabric.Line) => {
-          return LineLabel.fromFabricLine({ obj, offset, scale })
-        })
-      ]
+        const nowState: Label[] = [
+          ...Rects.map((obj: fabric.Rect) => {
+            return RectLabel.fromFabricRect({ obj, offset, scale })
+          }),
+          ...Points.map((obj: fabric.Circle) => {
+            return PointLabel.fromFabricPoint({ obj, offset, scale })
+          }),
+          ...Lines.map((obj: fabric.Line) => {
+            return LineLabel.fromFabricLine({ obj, offset, scale })
+          })
+        ]
 
-      pushState && pushState(nowState)
-    },
+        pushState && pushState(nowState)
+      },
 
-    loadListeners: (newListeners: object) => {
-      // save new listeners
-      Object.assign(listeners, newListeners)
+      loadListeners: (newListeners: object) => {
+        // save new listeners
+        Object.assign(listeners, newListeners)
 
-      if (canvas) {
         canvas.off() // remove all existed listeners
         Object.entries(listeners).forEach(([event, handler]) => {
           canvas.on(event, handler)
         })
       }
-    }
-  }
+    }),
+    [canvas]
+  )
 
   // set default listeners and must after declare actions otherwise it will not work
   Object.assign(listeners, {

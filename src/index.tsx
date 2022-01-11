@@ -3,6 +3,7 @@ import React, { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useEffectOnce, useStateList } from 'react-use'
 import { useCanvas } from './hooks/useCanvas'
 import { useContainer } from './hooks/useContainer'
+import { useMouse } from './hooks/useMouseEvents'
 import { useStateStack } from './hooks/useStateStack'
 import { Label } from './interface/basic'
 import { RectLabel } from './label/RectLabel'
@@ -74,18 +75,22 @@ export const NewImageAnnotater = ({
   })
   stateStack.bindCanvas(canvasRef)
 
+  const mouseListeners = useMouse({
+    canvasRef,
+    imageDims,
+    canvasDims,
+    boundary,
+    offset,
+    scale
+  })
+
   useEffectOnce(() => {
     if (index) setImageObjAt(index)
     console.log(imageDims, canvasDims, boundary, offset, scale)
   })
 
   useLayoutEffect(() => {
-    const test = {
-      'mouse:wheel': () => {
-        console.log('test')
-      }
-    }
-    loadListeners(test) // TODO: remove
+    canvasRef.current && loadListeners(mouseListeners)
     // Initialize state stack
     stateStack.push(
       imageObj.annotations.map((anno: any) =>
