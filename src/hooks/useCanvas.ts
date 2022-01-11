@@ -1,4 +1,4 @@
-import { MutableRefObject } from 'react'
+import { MutableRefObject, useRef } from 'react'
 import { Dimension, Label } from '../interface/basic'
 import { Point } from '../label/PointLabel'
 import { LineLabel } from '../label/LineLabel'
@@ -28,6 +28,8 @@ export const useCanvas = ({
   pushState?: Function
 }) => {
   const canvas = canvasRef.current
+  const listenersRef = useRef<object>({})
+  const listeners = listenersRef.current
   // const colors = categoryColorsRef.current
   let nothing: any = {
     isAnnosVisible,
@@ -38,18 +40,6 @@ export const useCanvas = ({
   }
   nothing = 0
   console.log(nothing)
-
-  // If canvas no null, mount listeners
-  if (canvas) {
-    canvas.off()
-    canvas.on('object:moving', (e) => {
-      setLinePosition(e.target as any)
-    })
-    canvas.on('object:modified', () => {
-      actions.syncCanvasToState()
-    })
-    // canvas.on('mouse:wheel', mouseEvents.onWheel)
-  }
 
   const actions = {
     syncCanvasToState: () => {
@@ -80,8 +70,34 @@ export const useCanvas = ({
       ]
 
       pushState && pushState(nowState)
+    },
+
+    loadListeners: (newListeners: object) => {
+      // save new listeners
+      Object.assign(listeners, newListeners)
+
+      if (canvas) {
+        canvas.off() // remove all existed listeners
+        Object.entries(listeners).forEach(([event, handler]) => {
+          canvas.on(event, handler)
+        })
+      }
     }
   }
+
+  // set default listeners and must after declare actions otherwise it will not work
+  Object.assign(listeners, {
+    'object:moving': (e: fabric.IEvent<Event>) => {
+      setLinePosition(e.target as any)
+    },
+    'object:modified': () => {
+      console.log('modified')
+      actions.syncCanvasToState()
+    }
+  })
+
+  // If canvas no null, mount listeners
+  canvas && actions.loadListeners(listeners)
 
   return { ...actions }
 }

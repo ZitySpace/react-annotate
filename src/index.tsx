@@ -21,6 +21,8 @@ export const NewImageAnnotater = ({
   index?: number
   isAnnotationsVisible?: boolean
   colors?: string[]
+
+  onSwitchVisible?: Function // TODO: bind to button
 }) => {
   // Handle inputs with old shape
   // TODO: remove
@@ -48,6 +50,7 @@ export const NewImageAnnotater = ({
   const { state: imageObj, setStateAt: setImageObjAt } =
     useStateList<{ annotations: Label[] }>(imagesList)
 
+  // Initialize the main variables
   const {
     imageContainer,
     canvasRef,
@@ -58,7 +61,7 @@ export const NewImageAnnotater = ({
     scale
   } = useContainer({ imageObj })
   const stateStack = useStateStack({ categoryColorsRef, isAnnosVisible })
-  useCanvas({
+  const { loadListeners } = useCanvas({
     canvasRef,
     isAnnosVisible,
     categoryColorsRef,
@@ -77,6 +80,12 @@ export const NewImageAnnotater = ({
   })
 
   useLayoutEffect(() => {
+    const test = {
+      'mouse:wheel': () => {
+        console.log('test')
+      }
+    }
+    loadListeners(test) // TODO: remove
     // Initialize state stack
     stateStack.push(
       imageObj.annotations.map((anno: any) =>
