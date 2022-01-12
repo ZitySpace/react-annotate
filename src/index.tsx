@@ -49,8 +49,12 @@ export const NewImageAnnotater = ({
   const [isAnnosVisible] = useState(isAnnotationsVisible)
   const categoryColorsRef = useRef(categoryColors)
 
-  const { state: imageObj, setStateAt: setImageObjAt } =
-    useStateList<{ annotations: Label[] }>(imagesList)
+  const {
+    state: imageObj,
+    setStateAt: setImageObjAt,
+    next,
+    prev
+  } = useStateList<{ annotations: Label[] }>(imagesList)
 
   // Initialize the main variables
   const {
@@ -98,13 +102,13 @@ export const NewImageAnnotater = ({
   }, [imageDims, canvasDims])
 
   useEffect(() => {
-    console.log('state', stateStack.nowState)
-  }, [stateStack.nowState])
+    console.log('effect')
+  }, [imageObj, imageDims])
 
   return isAnnosVisible ? (
     <div className='w-full h-full flex flex-col justify-center items-center relative'>
       {imageContainer}
-      <ButtonBar can={stateStack.can} />
+      <ButtonBar can={stateStack.can} next={next} prev={prev} />
     </div>
   ) : null
 }

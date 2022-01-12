@@ -17,27 +17,25 @@ import {
   UndoIcon
 } from './icons'
 
-export const ButtonBar = ({ can }: { can: Can }) => {
+export const ButtonBar = ({
+  can,
+  next,
+  prev
+}: {
+  can: Can
+  next: (event: any) => void
+  prev: (event: any) => void
+}) => {
   console.log(can)
 
   return (
     <div id='test' className='flex justify-center items-center'>
       <div className='flex justify-center space-x-1 absolute bottom-0 right-1 md:right-1/4'>
-        <Button
-          canUse={true}
-          onClick={() => {
-            console.log('prev clicked')
-          }}
-        >
+        <Button canUse={true} onClick={prev}>
           <ChevronLeftIcon className='h-4 w-4' />
         </Button>
 
-        <Button
-          canUse={true}
-          onClick={() => {
-            console.log('next clicked')
-          }}
-        >
+        <Button canUse={true} onClick={next}>
           <ChevronRightIcon className='h-4 w-4' />
         </Button>
       </div>
