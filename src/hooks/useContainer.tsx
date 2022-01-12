@@ -35,7 +35,8 @@ export const useContainer = ({ imageObj }: { imageObj: any }) => {
       let extendElm = document.getElementById('canvas_extended') as HTMLElement
 
       const { width: iw, height: ih } = imgElm.getBoundingClientRect()
-      const { width: cew, height: ceh } = extendElm.getBoundingClientRect()
+      const { width: cew, height: _ceh } = extendElm.getBoundingClientRect()
+      const ceh = _ceh - 36
 
       // necessary for using in below step because setState in async
       const _offset = {
@@ -92,7 +93,6 @@ export const useContainer = ({ imageObj }: { imageObj: any }) => {
       upperCanvasElm.classList.remove('hidden')
 
       // canvas.renderAll()
-      console.log('onload called')
       canvas.setViewportTransform([1, 0, 0, 1, 0, 0])
       canvasRef.current = canvas
     }
