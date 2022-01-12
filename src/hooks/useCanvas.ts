@@ -38,8 +38,7 @@ export const useCanvas = ({
     canvasDims,
     boundary
   }
-  nothing = 0
-  console.log(nothing)
+  nothing = !nothing
 
   const actions = useMemo(
     () => ({

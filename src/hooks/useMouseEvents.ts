@@ -21,7 +21,10 @@ export const useMouse = ({
   offset: Point
   scale: number
 }) => {
-  console.log(imageDims, canvasDims, boundary, offset, scale) // TODO: remove
+  // TODO: remove this
+  let nothing: any = { imageDims, boundary, offset, scale }
+  nothing = !nothing
+
   const onDrawObj = useRef<fabric.Object>(null)
   const lastPosition = useRef<Point>({ x: 0, y: 0 })
   const isPanning = useRef<boolean>(false)
