@@ -4,7 +4,7 @@ import { resolveHookState } from 'react-use/lib/misc/hookState'
 import { Label } from '../interface/basic'
 import { groupBy } from '../utils/categorys&colors'
 
-interface Can {
+export interface Can {
   redo: boolean
   undo: boolean
   reset: boolean
@@ -51,8 +51,8 @@ export const useStateStack = ({
     () => ({
       nowState: stack.current[index.current - 1] || [],
       set: (newStack: State[]) => {
-        stack.current = resolveHookState(newStack, stack.current)
-        index.current = stack.current.length
+        stack.current = resolveHookState(newStack)
+        index.current = stack.current[0].length ? stack.current.length : 0
         update()
       },
 
@@ -108,6 +108,7 @@ export const useStateStack = ({
   )
 
   return {
+    can: can.current,
     currentIndex: index.current,
     ...actions
   }
