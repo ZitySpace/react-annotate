@@ -86,7 +86,6 @@ export const NewImageAnnotater = ({
 
   useEffectOnce(() => {
     if (index) setImageObjAt(index)
-    console.log(imageDims, canvasDims, boundary, offset, scale)
   })
 
   useLayoutEffect(() => {

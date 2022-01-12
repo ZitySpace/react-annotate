@@ -4,7 +4,7 @@ import { Dimension } from '../interface/basic'
 import { TRANSPARENT } from '../interface/config'
 import { Point } from '../label/PointLabel'
 import { getBetween } from '../utils/math'
-import { isTouchEvt } from '../utils/mouse'
+import { isTouchEvent } from '../utils/util'
 
 export const useMouse = ({
   canvasRef,
@@ -22,72 +22,104 @@ export const useMouse = ({
   scale: number
 }) => {
   console.log(imageDims, canvasDims, boundary, offset, scale) // TODO: remove
-  const onDrawObjRef = useRef<fabric.Object>(null)
-  const onDrawObj = onDrawObjRef.current
-  const lastPositionRef = useRef<Point>({ x: 0, y: 0 })
-  const isPanningRef = useRef<boolean>(false)
+  const onDrawObj = useRef<fabric.Object>(null)
+  const lastPosition = useRef<Point>({ x: 0, y: 0 })
+  const isPanning = useRef<boolean>(false)
+  const isDrawingStarted = useRef<boolean>(false)
   const canvas = canvasRef.current!
 
-  const listeners = useMemo(
-    () => ({
-      'mouse:wheel': (e: fabric.IEvent<WheelEvent>) => {
+  const setZoomAndGetNewZoom = useMemo(
+    () => (evt: any) => {
+      const { deltaY: delta, offsetX, offsetY } = evt
+      const zoom = canvas.getZoom()
+      const newZoom = getBetween(zoom * 0.999 ** delta, 0.01, 20)
+      canvas.zoomToPoint(new fabric.Point(offsetX, offsetY), newZoom)
+      return newZoom
+    },
+    [canvas]
+  )
+
+  const setViewport = useMemo(
+    () =>
+      ({ zoom, offset = { x: 0, y: 0 } }: { zoom: number; offset?: Point }) => {
         const { w, h } = canvasDims
-        const { e: evt } = e
-        const delta = evt.deltaY
-
-        evt.preventDefault()
-        evt.stopPropagation()
-
-        const zoom = getBetween(canvas.getZoom() * 0.999 ** delta, 0.01, 20)
-        canvas.zoomToPoint(
-          new fabric.Point((evt as any).offsetX, (evt as any).offsetY),
-          zoom
-        )
-
-        const vpt: any = canvas.viewportTransform
+        const { x, y } = offset
+        const vpt = canvas.viewportTransform as number[]
         if (zoom < 1) {
           vpt[4] = (w * (1 - zoom)) / 2
           vpt[5] = (h * (1 - zoom)) / 2
         } else {
-          vpt[4] = getBetween(vpt[4], w * (1 - zoom), 0)
-          vpt[5] = getBetween(vpt[5], h * (1 - zoom), 0)
+          vpt[4] = getBetween(vpt[4] + x, w * (1 - zoom), 0)
+          vpt[5] = getBetween(vpt[5] + y, h * (1 - zoom), 0)
         }
+        canvas.requestRenderAll()
       },
-      'mouse:over': (e: fabric.IEvent) => {
-        const obj = e.target as any
-        if (obj?.type === 'circle')
-          obj.set({
-            fill: TRANSPARENT,
-            stroke: obj.color
-          })
-        canvas.renderAll()
-      },
-      // 'mouse:out': (e: fabric.IEvent<MouseEvent>) => {
-      //   const obj = e.target as any
-      //   const onDrawObj = onDrawObjRef.current as any
-
-      //   if (obj?.type === 'circle' && (!onDrawObj || obj.id !== onDrawObj.id))
-      //     obj.set({
-      //       fill: obj.color,
-      //       stroke: Transparent
-      //     })
-
-      //   canvas.renderAll()
-      // },
-      'mouse:down': (e: fabric.IEvent<MouseEvent>) => {
-        if (onDrawObj) return
-        else {
-          const evt = e.e as any
-          const { clientX, clientY } = isTouchEvt(evt) ? evt.touches[0] : evt
-          lastPositionRef.current = { x: clientX, y: clientY }
-
-          const selectedObj = canvas.getActiveObject()
-          isPanningRef.current = !selectedObj
-        }
-      }
-    }),
-    [canvas]
+    [canvas, canvasDims]
   )
+
+  const listeners = {
+    ...useMemo(
+      () => ({
+        'mouse:wheel': (e: fabric.IEvent<WheelEvent>) => {
+          const zoom = setZoomAndGetNewZoom(e.e)
+          setViewport({ zoom })
+        },
+        'mouse:out': (e: fabric.IEvent) => {
+          const obj = e.target as any
+          if (obj?.type === 'circle')
+            obj.set({
+              fill: TRANSPARENT,
+              stroke: obj.color
+            })
+          canvas.renderAll()
+        }
+      }),
+      [canvas]
+    ),
+    ...useMemo(
+      () => ({
+        'mouse:down': (e: fabric.IEvent<MouseEvent>) => {
+          if (onDrawObj.current) return
+          // TODO: draw
+          else {
+            const evt = e.e as any
+            const { clientX, clientY } = isTouchEvent(evt)
+              ? evt.touches[0]
+              : evt
+            lastPosition.current = { x: clientX, y: clientY }
+
+            const selectedObj = canvas.getActiveObject()
+            isPanning.current = !selectedObj
+          }
+        },
+        'mouse:move': (e: fabric.IEvent<MouseEvent>) => {
+          if (isDrawingStarted.current) return
+          // TODO: draw
+          else if (isPanning.current) {
+            const { e: evt } = e as any
+            const { clientX: x, clientY: y } = isTouchEvent(evt)
+              ? evt.touches[0]
+              : evt
+            const { x: lastX, y: lastY } = lastPosition.current
+            const offset = { x: x - lastX, y: y - lastY }
+            lastPosition.current = { x, y }
+
+            const zoom = canvas.getZoom()
+            setViewport({ zoom, offset })
+          }
+        },
+        'mouse:up': () => {
+          if (isDrawingStarted.current) return
+          // TODO: draw
+          else if (isPanning.current) {
+            canvas.setViewportTransform(canvas.viewportTransform as number[])
+            isPanning.current = false
+          }
+        }
+      }),
+      [canvas]
+    )
+  }
 
   return { ...listeners }
 }
