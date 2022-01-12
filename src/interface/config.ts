@@ -1,11 +1,8 @@
+import { isTouchScreen } from '../utils/util'
+
 export const STROKE_WIDTH = 1.5
 
 export const RADIUS = 3
-
-export const IS_TOUCH_SCREEN =
-  'ontouchstart' in window ||
-  (navigator as any).maxTouchPoints > 0 ||
-  (navigator as any).msMaxTouchPoints > 0
 
 export const NEW_CATEGORY_NAME = 'new_category'
 
@@ -16,7 +13,7 @@ export const POINT_DEFAULT_CONFIG: fabric.ICircleOptions = {
   fill: TRANSPARENT,
   hasControls: false,
   hasBorders: false,
-  selectable: !IS_TOUCH_SCREEN,
+  selectable: !isTouchScreen(),
   originX: 'center',
   originY: 'center',
   radius: RADIUS
@@ -42,7 +39,7 @@ export const RECT_DEFAULT_CONFIG: fabric.IRectOptions | any = {
   cornerSize: 8,
   transparentCorners: false,
   perPixelTargetFind: true,
-  selectable: !IS_TOUCH_SCREEN,
+  selectable: !isTouchScreen(),
   _controlsVisibility: { mtr: false }
 }
 
