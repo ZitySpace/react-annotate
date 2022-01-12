@@ -66,20 +66,18 @@ export const useContainer = ({ imageObj }: { imageObj: any }) => {
       canvas.setWidth(cew)
       canvas.setHeight(ceh)
 
-      // add image
-      canvas.clear()
-      canvas.add(
-        new fabric.Image(imgElm, {
-          left: _offset.x,
-          top: _offset.y,
-          scaleX: _scale,
-          scaleY: _scale,
-          hasBorders: false,
-          hasControls: false,
-          selectable: false,
-          hoverCursor: 'default'
-        })
-      )
+      // update background image
+      const img = new fabric.Image(imgElm, {
+        left: _offset.x,
+        top: _offset.y,
+        scaleX: _scale,
+        scaleY: _scale,
+        hasBorders: false,
+        hasControls: false,
+        selectable: false,
+        hoverCursor: 'default'
+      })
+      canvas.setBackgroundImage(img, () => {})
 
       const lowerCanvasElm = canvas.getElement()
       const upperCanvasElm = lowerCanvasElm.nextElementSibling as Element
@@ -93,7 +91,8 @@ export const useContainer = ({ imageObj }: { imageObj: any }) => {
       lowerCanvasElm.classList.remove('hidden')
       upperCanvasElm.classList.remove('hidden')
 
-      canvas.renderAll()
+      // canvas.renderAll()
+      console.log('onload called')
       canvas.setViewportTransform([1, 0, 0, 1, 0, 0])
       canvasRef.current = canvas
     }

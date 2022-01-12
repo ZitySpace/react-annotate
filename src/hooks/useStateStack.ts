@@ -1,5 +1,5 @@
-import { MutableRefObject, useMemo, useRef } from 'react'
-import { useUpdate, useUpdateEffect } from 'react-use'
+import { MutableRefObject, useEffect, useMemo, useRef } from 'react'
+import { useUpdate } from 'react-use'
 import { resolveHookState } from 'react-use/lib/misc/hookState'
 import { Label } from '../interface/basic'
 import { groupBy } from '../utils/categorys&colors'
@@ -36,7 +36,7 @@ export const useStateStack = ({
 
   const update = useUpdate()
 
-  useUpdateEffect(() => {
+  useEffect(() => {
     can.current = {
       redo: index.current < stack.current.length,
       undo: index.current > 1,
@@ -101,6 +101,7 @@ export const useStateStack = ({
             )
           )
         })
+        // canvas.renderAll()
       }
     }),
     [stack.current, index.current, can.current]
