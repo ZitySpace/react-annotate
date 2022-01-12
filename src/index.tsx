@@ -1,6 +1,7 @@
 // import { fabric } from 'fabric'
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useEffectOnce, useStateList } from 'react-use'
+import { ButtonBar } from './components/ButtonBar'
 import { useCanvas } from './hooks/useCanvas'
 import { useContainer } from './hooks/useContainer'
 import { useMouse } from './hooks/useMouseEvents'
@@ -89,13 +90,11 @@ export const NewImageAnnotater = ({
   })
 
   useLayoutEffect(() => {
-    canvasRef.current && loadListeners(mouseListeners)
+    canvasRef.current && loadListeners(mouseListeners) // mount event listeners
     // Initialize state stack
-    stateStack.push(
-      imageObj.annotations.map((anno: any) =>
-        anno.scaleTransform(scale, offset)
-      )
-    )
+    stateStack.set([
+      imageObj.annotations.map((anno) => anno.scaleTransform(scale, offset))
+    ])
   }, [imageDims, canvasDims])
 
   useEffect(() => {
@@ -105,6 +104,7 @@ export const NewImageAnnotater = ({
   return isAnnosVisible ? (
     <div className='w-full h-full flex flex-col justify-center items-center relative'>
       {imageContainer}
+      <ButtonBar can={stateStack.can} />
     </div>
   ) : null
 }
