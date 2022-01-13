@@ -5,9 +5,11 @@ import { LineLabel } from '../label/LineLabel'
 import { PointLabel } from '../label/PointLabel'
 import { RectLabel } from '../label/RectLabel'
 import { setLinePosition } from '../utils/util'
+import { UseFocusReturnProps } from './useFocus'
 
 export const useCanvas = ({
   canvasRef,
+  focus,
   isAnnosVisible,
   categoryColorsRef,
   imageDims,
@@ -18,6 +20,7 @@ export const useCanvas = ({
   pushState
 }: {
   canvasRef: MutableRefObject<fabric.Canvas | null>
+  focus: UseFocusReturnProps
   isAnnosVisible: boolean
   categoryColorsRef: MutableRefObject<any>
   imageDims: Dimension
@@ -39,6 +42,8 @@ export const useCanvas = ({
     boundary
   }
   nothing = !nothing
+
+  const { setObject } = focus
 
   const actions = useMemo(
     () => ({
@@ -89,9 +94,12 @@ export const useCanvas = ({
     'object:moving': (e: fabric.IEvent<Event>) => {
       setLinePosition(e.target as any)
     },
-    'object:modified': () => {
-      console.log('modified')
-      actions.syncCanvasToState()
+    'object:modified': actions.syncCanvasToState,
+    'selection:updated': (e: fabric.IEvent<Event>) => {
+      setObject(e.target)
+    },
+    'selection:created': (e: fabric.IEvent<Event>) => {
+      setObject(e.target)
     }
   })
 
