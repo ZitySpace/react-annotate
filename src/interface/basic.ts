@@ -4,6 +4,7 @@ import { PointLabel } from '../label/PointLabel'
 import { RectLabel } from '../label/RectLabel'
 
 export type Label = PointLabel | LineLabel | RectLabel
+export const LABEL = RectLabel || PointLabel || LineLabel
 
 export interface ImageObject {
   fileName: string
