@@ -45,7 +45,6 @@ export const ButtonBar = ({
   const deleteObj = () => {
     const newState = nowState.filter((anno) => anno.id !== focus.now.objectId)
     pushState(newState)
-    focus.setObject()
   }
 
   return (

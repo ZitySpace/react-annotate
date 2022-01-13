@@ -43,7 +43,9 @@ export const useCanvas = ({
   }
   nothing = !nothing
 
-  const { setObject } = focus
+  const setFocus = (e: fabric.IEvent<Event>) => {
+    focus.setObject(e.e ? e.target : undefined)
+  }
 
   const actions = useMemo(
     () => ({
@@ -95,12 +97,9 @@ export const useCanvas = ({
       setLinePosition(e.target as any)
     },
     'object:modified': actions.syncCanvasToState,
-    'selection:updated': (e: fabric.IEvent<Event>) => {
-      setObject(e.target)
-    },
-    'selection:created': (e: fabric.IEvent<Event>) => {
-      setObject(e.target)
-    }
+    'selection:updated': setFocus,
+    'selection:created': setFocus,
+    'selection:cleared': setFocus
   })
 
   // If canvas no null, mount listeners
