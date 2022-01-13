@@ -13,6 +13,20 @@ export interface Can {
 
 export interface State extends Array<Label> {}
 
+export interface UseStateStackReturnProps {
+  can: Can
+  currentIndex: number
+  nowState: State
+  set: (newStack: State[]) => void
+  push: (newState: State) => void
+  prev: () => void
+  next: () => void
+  reset: () => void
+  grouped: () => any
+  bindCanvas: (canvasRef: MutableRefObject<fabric.Canvas | null>) => void
+  syncStateToCanvas: (state: State, forceVisable: boolean) => void
+}
+
 export const useStateStack = ({
   categoryColorsRef,
   isAnnosVisible,
@@ -21,7 +35,7 @@ export const useStateStack = ({
   categoryColorsRef: MutableRefObject<any>
   isAnnosVisible: boolean
   initialState?: State
-}) => {
+}): UseStateStackReturnProps => {
   const stack = useRef<State[]>(resolveHookState([initialState] || []))
   const can = useRef<Can>({
     redo: false,
@@ -50,6 +64,7 @@ export const useStateStack = ({
   const actions = useMemo(
     () => ({
       nowState: stack.current[index.current - 1] || [],
+
       set: (newStack: State[]) => {
         stack.current = resolveHookState(newStack)
         index.current = stack.current[0].length ? stack.current.length : 0
@@ -64,15 +79,18 @@ export const useStateStack = ({
 
       prev: () => {
         index.current -= can.current.undo ? 1 : 0
+        update()
       },
 
       next: () => {
         index.current += can.current.redo ? 1 : 0
+        update()
       },
 
       reset: () => {
         if (can.current.reset)
           index.current = index.current !== 1 ? 1 : stack.current.length
+        update()
       },
 
       grouped: () =>
