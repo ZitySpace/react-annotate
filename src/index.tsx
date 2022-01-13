@@ -1,9 +1,10 @@
 // import { fabric } from 'fabric'
-import React, { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import React, { useLayoutEffect, useRef, useState } from 'react'
 import { useEffectOnce, useStateList } from 'react-use'
 import { ButtonBar } from './components/ButtonBar'
 import { useCanvas } from './hooks/useCanvas'
 import { useContainer } from './hooks/useContainer'
+import { useFocus } from './hooks/useFocus'
 import { useMouse } from './hooks/useMouseEvents'
 import { useStateStack } from './hooks/useStateStack'
 import { Label } from './interface/basic'
@@ -57,6 +58,7 @@ export const NewImageAnnotater = ({
   } = useStateList<{ annotations: Label[] }>(imagesList)
 
   // Initialize the main variables
+  const focus = useFocus()
   const {
     imageContainer,
     canvasRef,
@@ -69,6 +71,7 @@ export const NewImageAnnotater = ({
   const stateStack = useStateStack({ categoryColorsRef, isAnnosVisible })
   const { loadListeners } = useCanvas({
     canvasRef,
+    focus,
     isAnnosVisible,
     categoryColorsRef,
     imageDims,
@@ -94,6 +97,8 @@ export const NewImageAnnotater = ({
   })
 
   useLayoutEffect(() => {
+    console.log('imageDims or canvasDims changed')
+
     canvasRef.current && loadListeners(mouseListeners) // mount event listeners
     // Initialize state stack
     stateStack.set([
@@ -101,14 +106,15 @@ export const NewImageAnnotater = ({
     ])
   }, [imageDims, canvasDims])
 
-  useEffect(() => {
-    console.log('effect')
-  }, [imageObj, imageDims])
-
   return isAnnosVisible ? (
     <div className='w-full h-full flex flex-col justify-center items-center relative'>
       {imageContainer}
-      <ButtonBar can={stateStack.can} next={next} prev={prev} />
+      <ButtonBar
+        stateStack={stateStack}
+        focus={focus}
+        nextImg={next}
+        prevImg={prev}
+      />
     </div>
   ) : null
 }

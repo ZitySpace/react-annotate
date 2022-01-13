@@ -5,7 +5,8 @@ import {
   XIcon
 } from '@heroicons/react/solid'
 import React from 'react'
-import { Can } from '../hooks/useStateStack'
+import { UseFocusReturnProps } from '../hooks/useFocus'
+import { UseStateStackReturnProps } from '../hooks/useStateStack'
 import { Button } from './Button'
 import {
   HeavyFloppyIcon,
@@ -15,39 +16,53 @@ import {
   RedoIcon,
   ResetIcon,
   UndoIcon
-} from './icons'
+} from './Icons'
 
 export const ButtonBar = ({
-  can,
-  next,
-  prev
+  focus,
+  stateStack,
+  nextImg,
+  prevImg
 }: {
-  can: Can
-  next: (event: any) => void
-  prev: (event: any) => void
+  focus: UseFocusReturnProps
+  stateStack: UseStateStackReturnProps
+  nextImg: (event: any) => void
+  prevImg: (event: any) => void
 }) => {
-  console.log(can)
+  // console.log(can)
+
+  const {
+    nowState,
+    can,
+    push: pushState,
+    prev: undo,
+    next: redo,
+    reset
+  } = stateStack
+
+  const { redo: canRedo, undo: canUndo, reset: canReset, save: canSave } = can
+
+  const deleteObj = () => {
+    const newState = nowState.filter((anno) => anno.id !== focus.now.objectId)
+    pushState(newState)
+    focus.setObject()
+  }
 
   return (
     <div id='test' className='flex justify-center items-center'>
       <div className='flex justify-center space-x-1 absolute bottom-0 right-1 md:right-1/4'>
-        <Button canUse={true} onClick={prev}>
+        <Button canUse={true} onClick={prevImg}>
           <ChevronLeftIcon className='h-4 w-4' />
         </Button>
 
-        <Button canUse={true} onClick={next}>
+        <Button canUse={true} onClick={nextImg}>
           <ChevronRightIcon className='h-4 w-4' />
         </Button>
       </div>
 
       <div className={`flex justify-center space-x-2 absolute bottom-0`}>
         <div className='flex justify-center space-x-1'>
-          <Button
-            canUse={false}
-            onClick={() => {
-              console.log('delete clicked')
-            }}
-          >
+          <Button canUse={!!focus.now.objectId} onClick={deleteObj}>
             <TrashIcon className='h-4 w-4' />
           </Button>
 
@@ -78,35 +93,20 @@ export const ButtonBar = ({
             <LineIcon />
           </Button>
 
-          <Button
-            canUse={can.undo}
-            onClick={() => {
-              console.log('undo clicked')
-            }}
-          >
+          <Button canUse={canUndo} onClick={undo}>
             <UndoIcon />
           </Button>
 
-          <Button
-            canUse={can.redo}
-            onClick={() => {
-              console.log('redo clicked')
-            }}
-          >
+          <Button canUse={canRedo} onClick={redo}>
             <RedoIcon />
           </Button>
 
-          <Button
-            canUse={can.reset}
-            onClick={() => {
-              console.log('reset clicked')
-            }}
-          >
+          <Button canUse={canReset} onClick={reset}>
             <ResetIcon />
           </Button>
 
           <Button
-            canUse={can.save}
+            canUse={canSave}
             onClick={() => {
               console.log('sava clicked')
             }}

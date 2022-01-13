@@ -1,5 +1,17 @@
-import { useMemo, useState } from 'react'
-import { Focus } from '../interface/basic'
+import { fabric } from 'fabric'
+import { useMemo, useRef } from 'react'
+import { useUpdate } from 'react-use'
+import { Focus, LABEL, Label } from '../interface/basic'
+
+export interface UseFocusReturnProps {
+  now: Focus
+  isFocused: (
+    categoryName: string | null,
+    id: number,
+    isText: boolean
+  ) => boolean
+  setObject: (object?: Label | fabric.Object) => void
+}
 
 const initialFocus: Focus = {
   isDrawing: null,
@@ -8,7 +20,9 @@ const initialFocus: Focus = {
 }
 
 export const useFocus = () => {
-  const [focus, setFocus] = useState<Focus>(initialFocus)
+  const focusRef = useRef<Focus>(initialFocus)
+  const focus = focusRef.current
+  const update = useUpdate()
 
   const methods = useMemo(
     () => ({
@@ -23,9 +37,22 @@ export const useFocus = () => {
             (focus.categoryName === categoryName &&
               (focus.objectId === null || (focus.objectId === id && !isText))))
         )
+      },
+      setObject: (object?: Label | fabric.Object) => {
+        if (!object) {
+          focusRef.current = { ...focus, objectId: null }
+        } else if (object instanceof LABEL) {
+          const { id, categoryName } = object
+          focusRef.current = { ...focus, categoryName, objectId: id }
+        } else if (object instanceof fabric.Object) {
+          const { id, categoryName } = object as any
+          if (id && categoryName)
+            focusRef.current = { ...focus, categoryName, objectId: id }
+        }
+        update()
       }
     }),
     [focus]
   )
-  return { focus, setFocus, ...methods }
+  return { now: focus, ...methods }
 }
