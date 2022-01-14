@@ -68,7 +68,7 @@ export const NewImageAnnotater = ({
     offset,
     scale
   } = useContainer({ imageObj })
-  const stateStack = useStateStack({ categoryColorsRef, isAnnosVisible })
+  const stateStack = useStateStack()
   const { loadListeners } = useCanvas({
     canvasRef,
     focus,
@@ -79,9 +79,9 @@ export const NewImageAnnotater = ({
     boundary,
     offset,
     scale,
-    pushState: stateStack.push
+    stateStack
   })
-  stateStack.bindCanvas(canvasRef)
+  // stateStack.bindCanvas(canvasRef)
 
   const mouseListeners = useMouse({
     canvasRef,

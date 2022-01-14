@@ -1,4 +1,4 @@
-import { MutableRefObject, useMemo, useRef } from 'react'
+import { MutableRefObject, useEffect, useMemo, useRef } from 'react'
 import { Dimension, Label } from '../interface/basic'
 import { Point } from '../label/PointLabel'
 import { LineLabel } from '../label/LineLabel'
@@ -6,6 +6,7 @@ import { PointLabel } from '../label/PointLabel'
 import { RectLabel } from '../label/RectLabel'
 import { setLinePosition } from '../utils/util'
 import { UseFocusReturnProps } from './useFocus'
+import { State, UseStateStackReturnProps } from './useStateStack'
 
 export const useCanvas = ({
   canvasRef,
@@ -17,7 +18,7 @@ export const useCanvas = ({
   boundary,
   offset,
   scale,
-  pushState
+  stateStack
 }: {
   canvasRef: MutableRefObject<fabric.Canvas | null>
   focus: UseFocusReturnProps
@@ -28,24 +29,37 @@ export const useCanvas = ({
   boundary: { x: number[]; y: number[] } | null
   offset: Point
   scale: number
-  pushState?: Function
+  stateStack: UseStateStackReturnProps
 }) => {
   const canvas = canvasRef.current!
   const listenersRef = useRef<object>({})
   const listeners = listenersRef.current
-  // const colors = categoryColorsRef.current
+  const colors = categoryColorsRef.current
   let nothing: any = {
-    isAnnosVisible,
-    categoryColorsRef,
     imageDims,
     canvasDims,
     boundary
   }
   nothing = !nothing
 
+  const renderLock = useRef<boolean>(false)
+  const setRenderLock = () => {
+    renderLock.current = true
+  }
+  const getRenderLock = () => {
+    const nowLock = renderLock.current
+    renderLock.current = false // if it was queried, unlock
+    return nowLock
+  }
+
+  const { nowState, currentIndex, push: pushState } = stateStack
   const setFocus = (e: fabric.IEvent<Event>) => {
     focus.setObject(e.e ? e.target : undefined)
   }
+
+  useEffect(() => {
+    actions.syncStateToCanvas(nowState)
+  }, [currentIndex])
 
   const actions = useMemo(
     () => ({
@@ -76,6 +90,26 @@ export const useCanvas = ({
         ]
 
         pushState && pushState(nowState)
+        setRenderLock()
+      },
+
+      syncStateToCanvas: (nowState: State, forceVisable: boolean = false) => {
+        if (!canvas || getRenderLock()) return
+        console.log('syncStateToCanvas called') // TODO: remove
+
+        canvas.remove(...canvas.getObjects())
+        nowState.forEach((anno: Label) => {
+          const { categoryName } = anno
+          const currentColor = colors[categoryName!]
+          const visible = forceVisable || isAnnosVisible // && isFocused(categoryName, id))
+          const fabricObjects = anno.getFabricObjects({ currentColor })
+          canvas.add(
+            ...Object.values(fabricObjects).map((obj: any) =>
+              obj.set({ visible })
+            )
+          )
+        })
+        canvas.renderAll()
       },
 
       loadListeners: (newListeners: object) => {
