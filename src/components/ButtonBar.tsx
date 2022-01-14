@@ -29,8 +29,6 @@ export const ButtonBar = ({
   nextImg: (event: any) => void
   prevImg: (event: any) => void
 }) => {
-  // console.log(can)
-
   const {
     nowState,
     can,
@@ -41,11 +39,25 @@ export const ButtonBar = ({
   } = stateStack
 
   const { redo: canRedo, undo: canUndo, reset: canReset, save: canSave } = can
+  const { now: nowFocus, setDrawing } = focus
 
   const deleteObj = () => {
-    const newState = nowState.filter((anno) => anno.id !== focus.now.objectId)
+    const newState = nowState.filter((anno) => anno.id !== nowFocus.objectId)
     pushState(newState)
   }
+
+  const draw = (labelType: string | null) => () => {
+    setDrawing(nowFocus.isDrawing === labelType ? null : labelType)
+  }
+  const drawPoint = draw('Point')
+  const drawLine = draw('Line')
+  const drawRect = draw('Rect')
+
+  const isDrawingMe = (labelType: string | null) =>
+    nowFocus.isDrawing === labelType
+  const isDrawingPoint = isDrawingMe('Point')
+  const isDrawingLine = isDrawingMe('Line')
+  const isDrawingRect = isDrawingMe('Rect')
 
   return (
     <div id='test' className='flex justify-center items-center'>
@@ -65,30 +77,15 @@ export const ButtonBar = ({
             <TrashIcon className='h-4 w-4' />
           </Button>
 
-          <Button
-            isUsing={false}
-            onClick={() => {
-              console.log('point clicked')
-            }}
-          >
+          <Button isUsing={isDrawingRect} onClick={drawRect}>
             <RectangleIcon />
           </Button>
 
-          <Button
-            isUsing={false}
-            onClick={() => {
-              console.log('point clicked')
-            }}
-          >
+          <Button isUsing={isDrawingPoint} onClick={drawPoint}>
             <PointIcon />
           </Button>
 
-          <Button
-            isUsing={false}
-            onClick={() => {
-              console.log('line clicked')
-            }}
-          >
+          <Button isUsing={isDrawingLine} onClick={drawLine}>
             <LineIcon />
           </Button>
 

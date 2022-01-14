@@ -59,6 +59,8 @@ export const NewImageAnnotater = ({
 
   // Initialize the main variables
   const focus = useFocus()
+  const stateStack = useStateStack()
+  
   const {
     imageContainer,
     canvasRef,
@@ -68,7 +70,7 @@ export const NewImageAnnotater = ({
     offset,
     scale
   } = useContainer({ imageObj })
-  const stateStack = useStateStack()
+
   const { loadListeners } = useCanvas({
     canvasRef,
     focus,
@@ -81,7 +83,6 @@ export const NewImageAnnotater = ({
     scale,
     stateStack
   })
-  // stateStack.bindCanvas(canvasRef)
 
   const mouseListeners = useMouse({
     canvasRef,

@@ -11,6 +11,7 @@ export interface UseFocusReturnProps {
     isText: boolean
   ) => boolean
   setObject: (object?: Label | fabric.Object) => void
+  setDrawing: (drawing: string | null) => void
 }
 
 const initialFocus: Focus = {
@@ -49,6 +50,10 @@ export const useFocus = () => {
           if (id && categoryName)
             focusRef.current = { ...focus, categoryName, objectId: id }
         }
+        update()
+      },
+      setDrawing: (drawing: string | null) => {
+        focusRef.current.isDrawing = drawing
         update()
       }
     }),
