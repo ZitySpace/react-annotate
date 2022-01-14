@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useUpdate } from 'react-use'
 import { resolveHookState } from 'react-use/lib/misc/hookState'
 import { Label } from '../interface/basic'
@@ -27,7 +27,7 @@ export interface UseStateStackReturnProps {
 
 export const useStateStack = (): UseStateStackReturnProps => {
   const stack = useRef<State[]>(resolveHookState([]))
-  const can = useRef<Can>({
+  const [can, setCan] = useState<Can>({
     redo: false,
     undo: false,
     reset: false,
@@ -38,13 +38,12 @@ export const useStateStack = (): UseStateStackReturnProps => {
   const update = useUpdate()
 
   useEffect(() => {
-    can.current = {
+    setCan({
       redo: index.current < stack.current.length,
       undo: index.current > 1,
       reset: stack.current.length > 1,
       save: index.current > 1 || index.current < stack.current.length
-    }
-    update()
+    })
   }, [stack.current.length, index.current])
 
   const actions = useMemo(
@@ -64,17 +63,17 @@ export const useStateStack = (): UseStateStackReturnProps => {
       },
 
       prev: () => {
-        index.current -= can.current.undo ? 1 : 0
+        index.current -= can.undo ? 1 : 0
         update()
       },
 
       next: () => {
-        index.current += can.current.redo ? 1 : 0
+        index.current += can.redo ? 1 : 0
         update()
       },
 
       reset: () => {
-        if (can.current.reset)
+        if (can.reset)
           index.current = index.current !== 1 ? 1 : stack.current.length
         update()
       },
@@ -82,11 +81,11 @@ export const useStateStack = (): UseStateStackReturnProps => {
       grouped: () =>
         actions.nowState ? groupBy(actions.nowState, 'categoryName') : {}
     }),
-    [stack.current, index.current, can.current]
+    [stack.current, index.current, can]
   )
 
   return {
-    can: can.current,
+    can: can,
     currentIndex: index.current,
     ...actions
   }

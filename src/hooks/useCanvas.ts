@@ -130,7 +130,7 @@ export const useCanvas = ({
     'object:moving': (e: fabric.IEvent<Event>) => {
       setLinePosition(e.target as any)
     },
-    'object:modified': actions.syncCanvasToState,
+    'object:modified': actions.syncCanvasToState, // TODO: update textbox and more
     'selection:updated': setFocus,
     'selection:created': setFocus,
     'selection:cleared': setFocus
