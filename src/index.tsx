@@ -98,12 +98,12 @@ export const NewImageAnnotater = ({
 
   useLayoutEffect(() => {
     console.log('imageDims or canvasDims changed')
-
     canvasRef.current && loadListeners(mouseListeners) // mount event listeners
     // Initialize state stack
-    stateStack.set([
-      imageObj.annotations.map((anno) => anno.scaleTransform(scale, offset))
-    ])
+    const imageAnnos = imageObj.annotations.map((anno) =>
+      anno.scaleTransform(scale, offset)
+    )
+    stateStack.set([imageAnnos])
   }, [imageDims, canvasDims])
 
   return isAnnosVisible ? (

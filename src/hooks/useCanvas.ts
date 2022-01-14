@@ -59,7 +59,7 @@ export const useCanvas = ({
 
   useEffect(() => {
     actions.syncStateToCanvas(nowState)
-  }, [currentIndex])
+  }, [nowState, currentIndex])
 
   const actions = useMemo(
     () => ({
