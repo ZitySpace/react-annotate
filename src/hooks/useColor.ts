@@ -18,8 +18,17 @@ export const useColors = ({
 }) => {
   const color = useRef<Map<string, string>>()
 
-  const getRandomColor = () =>
-    randomColor({ seed: Date.now(), format: 'rgba', alpha: 0.75, count: 1 })[0]
+  const getRandomColor = () => {
+    const random = randomColor({
+      seed: Date.now(),
+      format: 'rgba',
+      alpha: 0.75,
+      count: 1
+    })[0]
+    let newColor = random
+    while (Array.from(colors.values()).includes(newColor)) newColor = random
+    return newColor
+  }
 
   // initialize colors
   if (categoryColors) color.current = categoryColors
