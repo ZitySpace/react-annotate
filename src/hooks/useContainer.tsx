@@ -1,5 +1,5 @@
 import { fabric } from 'fabric'
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+import React, { useCallback, useRef, useState } from 'react'
 import { Dimension } from '../interface/basic'
 import { Point } from '../label/PointLabel'
 
@@ -98,12 +98,10 @@ export const useContainer = ({ imageObj }: { imageObj: any }) => {
     }
   }, [imgElRef.current, canvasElRef.current])
 
-  useEffect(() => {
-    window.onresize = onLoad
-  })
+  window.onresize = onLoad
 
   return {
-    imageContainer: (
+    ImageContainer: (
       <div
         className='h-full relative pb-7 md:pb-9 select-none w-full flex justify-center items-center overflow-y-hidden'
         id='canvas_extended'
