@@ -1,13 +1,24 @@
 import { fabric } from 'fabric'
 import { MutableRefObject, useMemo, useRef } from 'react'
 import { Dimension } from '../interface/basic'
-import { TRANSPARENT } from '../interface/config'
+import {
+  NEW_CATEGORY_NAME,
+  STROKE_WIDTH,
+  TRANSPARENT
+} from '../interface/config'
+import { newFabricObjects } from '../label/Label'
 import { Point } from '../label/PointLabel'
 import { getBetween } from '../utils/math'
 import { isTouchEvent } from '../utils/util'
+import { UseColorsReturnProps } from './useColor'
+import { UseFocusReturnProps } from './useFocus'
+import { UseStateStackReturnProps } from './useStateStack'
 
 export const useMouse = ({
   canvasRef,
+  stateStack,
+  focus,
+  annoColors,
   imageDims,
   canvasDims,
   boundary,
@@ -15,21 +26,35 @@ export const useMouse = ({
   scale
 }: {
   canvasRef: MutableRefObject<fabric.Canvas | null>
+  stateStack: UseStateStackReturnProps
+  focus: UseFocusReturnProps
+  annoColors: UseColorsReturnProps
   imageDims: Dimension
   canvasDims: Dimension
   boundary: { x: number[]; y: number[] }
   offset: Point
   scale: number
 }) => {
-  // TODO: remove this
-  let nothing: any = { imageDims, boundary, offset, scale }
-  nothing = !nothing
-
-  const onDrawObj = useRef<fabric.Object>(null)
+  const onDrawObj = useRef<fabric.Object>()
   const lastPosition = useRef<Point>({ x: 0, y: 0 })
   const isPanning = useRef<boolean>(false)
   const isDrawingStarted = useRef<boolean>(false)
   const canvas = canvasRef.current!
+
+  const { nowState } = stateStack
+  const nowFocus = focus.now
+
+  // TODO: remove this
+  let nothing: any = {
+    onDrawObj,
+    imageDims,
+    boundary,
+    offset,
+    scale,
+    nowState,
+    annoColors
+  }
+  nothing = !nothing
 
   const setZoomAndGetNewZoom = useMemo(
     () => (evt: any) => {
@@ -60,68 +85,113 @@ export const useMouse = ({
     [canvas, canvasDims]
   )
 
+  const drawOnMouseDown = (event: fabric.IEvent) => {
+    const { x: nowX, y: nowY } = canvas.getPointer(event.e)
+    const x = getBetween(nowX, ...boundary.x)
+    const y = getBetween(nowY, ...boundary.y)
+    lastPosition.current = { x, y }
+
+    const categoryName = nowFocus.categoryName || NEW_CATEGORY_NAME
+    const id = Math.max(-1, ...nowState.map((anno) => anno.id)) + 1
+    const color = annoColors.get(categoryName)
+
+    const fabricObjects = newFabricObjects({
+      position: { x, y },
+      type: nowFocus.isDrawing!,
+      categoryName,
+      id,
+      color
+    })
+
+    canvas.add(...fabricObjects)
+    onDrawObj.current = fabricObjects[0]
+    isDrawingStarted.current = true
+  }
+
+  const drawOnMouseMove = (event: fabric.IEvent) => {
+    const { x, y } = canvas.getPointer(event.e)
+    const nowX = getBetween(x, ...boundary.x)
+    const nowY = getBetween(y, ...boundary.y)
+    const { x: lastX, y: lastY } = lastPosition.current
+    const obj = onDrawObj.current as any
+    if (!obj) return
+
+    if (nowFocus.isDrawing === 'Rect') {
+      const left = Math.min(lastX, nowX) - STROKE_WIDTH
+      const right = Math.max(lastX, nowX)
+      const top = Math.min(lastY, nowY) - STROKE_WIDTH
+      const bottom = Math.max(lastY, nowY)
+
+      obj.set({
+        left: left,
+        top: top,
+        width: right - left,
+        height: bottom - top
+      })
+    } else if (nowFocus.isDrawing === 'Point') {
+      const left = nowX
+      const top = nowY
+      obj.set({ left, top })
+    } else if (nowFocus.isDrawing === 'Line') {
+      const left = nowX
+      const top = nowY
+      obj.endpoints[1].set({ left, top })
+      obj.set({ x2: left - STROKE_WIDTH / 2, y2: top - STROKE_WIDTH / 2 })
+    }
+    canvas.requestRenderAll()
+  }
+
+  const drawStopOnMouseUp = () => {
+    
+  }
+
   const listeners = {
-    ...useMemo(
-      () => ({
-        'mouse:wheel': (e: fabric.IEvent<WheelEvent>) => {
-          const zoom = setZoomAndGetNewZoom(e.e)
-          setViewport({ zoom })
-        },
-        'mouse:out': (e: fabric.IEvent) => {
-          const obj = e.target as any
-          if (obj?.type === 'circle')
-            obj.set({
-              fill: TRANSPARENT,
-              stroke: obj.color
-            })
-          canvas.renderAll()
-        }
-      }),
-      [canvas]
-    ),
-    ...useMemo(
-      () => ({
-        'mouse:down': (e: fabric.IEvent<MouseEvent>) => {
-          if (onDrawObj.current) return
-          // TODO: draw
-          else {
-            const evt = e.e as any
-            const { clientX, clientY } = isTouchEvent(evt)
-              ? evt.touches[0]
-              : evt
-            lastPosition.current = { x: clientX, y: clientY }
+    'mouse:wheel': (e: fabric.IEvent<WheelEvent>) => {
+      const zoom = setZoomAndGetNewZoom(e.e)
+      setViewport({ zoom })
+    },
+    'mouse:out': (e: fabric.IEvent) => {
+      const obj = e.target as any
+      if (obj?.type === 'circle')
+        obj.set({
+          fill: TRANSPARENT,
+          stroke: obj.color
+        })
+      canvas.renderAll()
+    },
+    'mouse:down': (e: fabric.IEvent<MouseEvent>) => {
+      if (nowFocus.isDrawing) drawOnMouseDown(e)
+      else {
+        const evt = e.e as any
+        const { clientX, clientY } = isTouchEvent(evt) ? evt.touches[0] : evt
+        lastPosition.current = { x: clientX, y: clientY }
 
-            const selectedObj = canvas.getActiveObject()
-            isPanning.current = !selectedObj
-          }
-        },
-        'mouse:move': (e: fabric.IEvent<MouseEvent>) => {
-          if (isDrawingStarted.current) return
-          // TODO: draw
-          else if (isPanning.current) {
-            const { e: evt } = e as any
-            const { clientX: x, clientY: y } = isTouchEvent(evt)
-              ? evt.touches[0]
-              : evt
-            const { x: lastX, y: lastY } = lastPosition.current
-            const offset = { x: x - lastX, y: y - lastY }
-            lastPosition.current = { x, y }
+        const selectedObj = canvas.getActiveObject()
+        isPanning.current = !selectedObj
+      }
+    },
+    'mouse:move': (e: fabric.IEvent<MouseEvent>) => {
+      if (isDrawingStarted.current) drawOnMouseMove(e)
+      else if (isPanning.current) {
+        const { e: evt } = e as any
+        const { clientX: x, clientY: y } = isTouchEvent(evt)
+          ? evt.touches[0]
+          : evt
+        const { x: lastX, y: lastY } = lastPosition.current
+        const offset = { x: x - lastX, y: y - lastY }
+        lastPosition.current = { x, y }
 
-            const zoom = canvas.getZoom()
-            setViewport({ zoom, offset })
-          }
-        },
-        'mouse:up': () => {
-          if (isDrawingStarted.current) return
-          // TODO: draw
-          else if (isPanning.current) {
-            canvas.setViewportTransform(canvas.viewportTransform as number[])
-            isPanning.current = false
-          }
-        }
-      }),
-      [canvas]
-    )
+        const zoom = canvas.getZoom()
+        setViewport({ zoom, offset })
+      }
+    },
+    'mouse:up': () => {
+      if (isDrawingStarted.current) drawStopOnMouseUp()
+      else if (isPanning.current) {
+        canvas.setViewportTransform(canvas.viewportTransform as number[])
+        isPanning.current = false
+      }
+    }
   }
 
   return { ...listeners }

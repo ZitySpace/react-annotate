@@ -8,7 +8,7 @@ import { useContainer } from './hooks/useContainer'
 import { useFocus } from './hooks/useFocus'
 import { useMouse } from './hooks/useMouseEvents'
 import { useStateStack } from './hooks/useStateStack'
-import { Label } from './interface/basic'
+import { Label } from './label/Label'
 import { RectLabel } from './label/RectLabel'
 
 export const NewImageAnnotater = ({
@@ -86,6 +86,7 @@ export const NewImageAnnotater = ({
     canvasRef,
     stateStack,
     focus,
+    annoColors,
     imageDims,
     canvasDims,
     boundary,
