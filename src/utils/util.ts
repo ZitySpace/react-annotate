@@ -32,15 +32,6 @@ export const setLinePosition = (endpoint: fabric.Circle) => {
 }
 
 /**
- * Judge that is the screen support touch
- * @returns boolean: Is the screen support touch
- */
-export const isTouchScreen = () =>
-  'ontouchstart' in window ||
-  (navigator as any).maxTouchPoints > 0 ||
-  (navigator as any).msMaxTouchPoints > 0
-
-/**
  * Determine whether the event is a touch event
  * @param event Mouse listeners catched event detail
  * @returns
