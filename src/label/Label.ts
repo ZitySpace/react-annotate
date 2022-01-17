@@ -29,3 +29,24 @@ export const newFabricObjects = ({
       return []
   }
 }
+
+export const newLabelFromFabricObj = ({
+  obj,
+  offset,
+  scale
+}: {
+  obj: any
+  offset: Point
+  scale: number
+}) => {
+  switch ((obj as any).labelType) {
+    case 'Point':
+      return PointLabel.fromFabricPoint({ obj, offset, scale })
+    case 'Line':
+      return LineLabel.fromFabricLine({ obj, offset, scale })
+    case 'Rect':
+      return RectLabel.fromFabricRect({ obj, offset, scale })
+    default:
+      throw new Error('obj types error')
+  }
+}

@@ -1,14 +1,11 @@
 import { MutableRefObject, useEffect, useMemo, useRef } from 'react'
 import { Dimension } from '../interface/basic'
 import { Point } from '../label/PointLabel'
-import { LineLabel } from '../label/LineLabel'
-import { PointLabel } from '../label/PointLabel'
-import { RectLabel } from '../label/RectLabel'
 import { setLinePosition } from '../utils/util'
 import { UseFocusReturnProps } from './useFocus'
 import { State, UseStateStackReturnProps } from './useStateStack'
 import { UseColorsReturnProps } from './useColor'
-import { Label } from '../label/Label'
+import { Label, newLabelFromFabricObj } from '../label/Label'
 
 export const useCanvas = ({
   canvasRef,
@@ -68,28 +65,20 @@ export const useCanvas = ({
       syncCanvasToState: () => {
         console.log('syncCanvasToState called') // TODO: remove
 
-        const allCanvasObjects = canvas.getObjects()
-        const Rects = allCanvasObjects.filter(
-          (obj: any) => obj.type === 'rect' && obj.labelType === 'Rect'
-        )
-        const Points = allCanvasObjects.filter(
-          (obj: any) => obj.type === 'circle' && obj.labelType === 'Point'
-        )
-        const Lines = allCanvasObjects.filter(
-          (obj: any) => obj.type === 'line' && obj.labelType === 'Line'
-        )
+        const isRect = ({ type, labelType }: any) =>
+          type === 'rect' && labelType === 'Rect'
+        const isPoint = ({ type, labelType }: any) =>
+          type === 'circle' && labelType === 'Point'
+        const isLine = ({ type, labelType }: any) =>
+          type === 'line' && labelType === 'Line'
 
-        const nowState: Label[] = [
-          ...Rects.map((obj: fabric.Rect) =>
-            RectLabel.fromFabricRect({ obj, offset, scale })
-          ),
-          ...Points.map((obj: fabric.Circle) =>
-            PointLabel.fromFabricPoint({ obj, offset, scale })
-          ),
-          ...Lines.map((obj: fabric.Line) =>
-            LineLabel.fromFabricLine({ obj, offset, scale })
-          )
-        ]
+        const allCanvasObjects = canvas
+          .getObjects()
+          .filter((obj: any) => isRect(obj) || isLine(obj) || isPoint(obj))
+
+        const nowState: Label[] = allCanvasObjects.map((obj) =>
+          newLabelFromFabricObj({ obj, offset, scale })
+        )
 
         pushState && pushState(nowState)
         setRenderLock()
