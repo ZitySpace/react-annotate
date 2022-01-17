@@ -7,12 +7,13 @@ import { RectLabel } from '../label/RectLabel'
 import { setLinePosition } from '../utils/util'
 import { UseFocusReturnProps } from './useFocus'
 import { State, UseStateStackReturnProps } from './useStateStack'
+import { UseColorsReturnProps } from './useColor'
 
 export const useCanvas = ({
   canvasRef,
   focus,
   isAnnosVisible,
-  categoryColorsRef,
+  annoColors,
   imageDims,
   canvasDims,
   boundary,
@@ -23,7 +24,7 @@ export const useCanvas = ({
   canvasRef: MutableRefObject<fabric.Canvas | null>
   focus: UseFocusReturnProps
   isAnnosVisible: boolean
-  categoryColorsRef: MutableRefObject<any>
+  annoColors: UseColorsReturnProps
   imageDims: Dimension
   canvasDims: Dimension
   boundary: { x: number[]; y: number[] } | null
@@ -34,7 +35,7 @@ export const useCanvas = ({
   const canvas = canvasRef.current!
   const listenersRef = useRef<object>({})
   const listeners = listenersRef.current
-  const colors = categoryColorsRef.current
+
   let nothing: any = {
     imageDims,
     canvasDims,
@@ -100,7 +101,7 @@ export const useCanvas = ({
         canvas.remove(...canvas.getObjects())
         nowState.forEach((anno: Label) => {
           const { categoryName } = anno
-          const currentColor = colors[categoryName!]
+          const currentColor = annoColors.get(categoryName!)
           const visible = forceVisable || isAnnosVisible // && isFocused(categoryName, id))
           const fabricObjects = anno.getFabricObjects({ currentColor })
           canvas.add(

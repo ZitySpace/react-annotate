@@ -1,28 +1,29 @@
 // import { fabric } from 'fabric'
-import React, { useLayoutEffect, useRef, useState } from 'react'
+import React, { useLayoutEffect, useState } from 'react'
 import { useEffectOnce, useStateList } from 'react-use'
 import { ButtonBar } from './components/ButtonBar'
 import { useCanvas } from './hooks/useCanvas'
+import { useColors } from './hooks/useColor'
 import { useContainer } from './hooks/useContainer'
 import { useFocus } from './hooks/useFocus'
 import { useMouse } from './hooks/useMouseEvents'
 import { useStateStack } from './hooks/useStateStack'
 import { Label } from './interface/basic'
 import { RectLabel } from './label/RectLabel'
-import {
-  getAllCategoryNames,
-  parseCategorysAndColors
-} from './utils/categorys&colors'
 
 export const NewImageAnnotater = ({
   imagesList,
   index = 0,
   isAnnotationsVisible = true,
+  categoryColors,
+  categoryNames,
   colors
 }: {
   imagesList: any[]
   index?: number
   isAnnotationsVisible?: boolean
+  categoryColors?: Map<string, string>
+  categoryNames?: string[]
   colors?: string[]
 
   onSwitchVisible?: Function // TODO: bind to button
@@ -39,16 +40,13 @@ export const NewImageAnnotater = ({
     }
   })
 
-  const categoryNames = getAllCategoryNames(
-    imagesList.map((image) => image.annotations)
-  )
-  const { categoryColors } = parseCategorysAndColors(
-    categoryNames,
-    colors || []
-  )
+  if (!(categoryColors || categoryNames || colors))
+    throw new Error(
+      'Params categoryColors can not be empty if categoryNames and colors not exists.'
+    )
 
+  const annoColors = useColors({ categoryColors, categoryNames, colors })
   const [isAnnosVisible] = useState(isAnnotationsVisible)
-  const categoryColorsRef = useRef(categoryColors)
 
   const {
     state: imageObj,
@@ -60,9 +58,9 @@ export const NewImageAnnotater = ({
   // Initialize the main variables
   const focus = useFocus()
   const stateStack = useStateStack()
-  
+
   const {
-    imageContainer,
+    ImageContainer,
     canvasRef,
     imageDims,
     canvasDims,
@@ -75,7 +73,7 @@ export const NewImageAnnotater = ({
     canvasRef,
     focus,
     isAnnosVisible,
-    categoryColorsRef,
+    annoColors,
     imageDims,
     canvasDims,
     boundary,
@@ -86,6 +84,8 @@ export const NewImageAnnotater = ({
 
   const mouseListeners = useMouse({
     canvasRef,
+    stateStack,
+    focus,
     imageDims,
     canvasDims,
     boundary,
@@ -109,7 +109,7 @@ export const NewImageAnnotater = ({
 
   return isAnnosVisible ? (
     <div className='w-full h-full flex flex-col justify-center items-center relative'>
-      {imageContainer}
+      {ImageContainer}
       <ButtonBar
         stateStack={stateStack}
         focus={focus}

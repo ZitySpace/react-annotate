@@ -3,17 +3,19 @@ import React from 'react'
 import { NewImageAnnotater } from 'react-annotate-image'
 import 'react-annotate-image/dist/index.css'
 
-import { pagingData } from './mockdata'
+import { pagingData, projectMock } from './mockdata'
 
 const App = () => {
+  const colors = projectMock.colors
+  const categoryColors = new Map<string, string>(Object.entries(colors))
+
   return (
     <div className='h-screen w-screen'>
-      {/* <ImageAnnotater
+      <NewImageAnnotater
         imagesList={pagingData}
         index={1}
-        colors={Object.values(projectMock.colors)}
-      /> */}
-      <NewImageAnnotater imagesList={pagingData} index={1} />
+        categoryColors={categoryColors}
+      />
     </div>
   )
 }
