@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useUpdate } from 'react-use'
 import { resolveHookState } from 'react-use/lib/misc/hookState'
-import { Label } from '../interface/basic'
+import { Label } from '../label/Label';
 import { groupBy } from '../utils/categorys&colors'
 
 export interface Can {

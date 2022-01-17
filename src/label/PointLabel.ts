@@ -137,4 +137,34 @@ export class PointLabel implements Point {
 
     return { point, textbox }
   }
+
+  static newFabricObjects({
+    position,
+    id,
+    categoryName,
+    color
+  }: {
+    position: Point
+    id: number
+    categoryName: string
+    color: string
+  }) {
+    const { x, y } = position
+    const point = new fabric.Circle({
+      ...POINT_DEFAULT_CONFIG,
+      left: x,
+      top: y,
+      stroke: color
+    })
+    point.setOptions({ id, categoryName, color, labelType: 'Point' })
+
+    const textbox = new fabric.Textbox(id.toString(), {
+      ...TEXTBOX_DEFAULT_CONFIG,
+      originY: 'bottom',
+      backgroundColor: color,
+      visible: false
+    })
+    textbox.setOptions({ id, categoryName, labelType: 'Point' })
+    return [point, textbox]
+  }
 }

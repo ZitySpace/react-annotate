@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 import randomColor from 'randomcolor'
-import { Label } from '../interface/basic'
+import { Label } from '../label/Label'
 
 export const parseCategorysAndColors = (
   categoryNames: string[],

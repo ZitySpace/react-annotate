@@ -1,5 +1,5 @@
 import { MutableRefObject, useEffect, useMemo, useRef } from 'react'
-import { Dimension, Label } from '../interface/basic'
+import { Dimension } from '../interface/basic'
 import { Point } from '../label/PointLabel'
 import { LineLabel } from '../label/LineLabel'
 import { PointLabel } from '../label/PointLabel'
@@ -8,6 +8,7 @@ import { setLinePosition } from '../utils/util'
 import { UseFocusReturnProps } from './useFocus'
 import { State, UseStateStackReturnProps } from './useStateStack'
 import { UseColorsReturnProps } from './useColor'
+import { Label } from '../label/Label'
 
 export const useCanvas = ({
   canvasRef,

@@ -173,4 +173,54 @@ export class LineLabel implements Line {
     line.setOptions({ id, categoryName, color, endpoints, labelType: 'Line' })
     return { line, textbox, point1: endpoints[0], point2: endpoints[1] }
   }
+
+  static newFabricObjects({
+    position,
+    id,
+    categoryName,
+    color
+  }: {
+    position: Point
+    id: number
+    categoryName: string
+    color: string
+  }) {
+    const { x, y } = position
+    const line = new fabric.Line(
+      [x, y, x, y].map((coord) => coord - STROKE_WIDTH / 2),
+      {
+        ...LINE_DEFAULT_CONFIG,
+        stroke: color
+      }
+    )
+    const endpoints = [...Array(2).keys()].map((_id) => {
+      const endpoint = new fabric.Circle({
+        ...POINT_DEFAULT_CONFIG,
+        left: x,
+        top: y,
+        fill: color,
+        stroke: TRANSPARENT
+      })
+      endpoint.setOptions({
+        id,
+        _id: _id + 1,
+        categoryName,
+        color,
+        labelType: 'Line',
+        line
+      })
+      return endpoint
+    })
+    line.setOptions({ id, categoryName, color, labelType: 'Line', endpoints })
+
+    const textbox = new fabric.Textbox(id.toString(), {
+      ...TEXTBOX_DEFAULT_CONFIG,
+      originX: 'center',
+      originY: 'bottom',
+      backgroundColor: color,
+      visible: false
+    })
+    textbox.setOptions({ id, categoryName, labelType: 'Line' })
+    return [line, ...endpoints, textbox]
+  }
 }

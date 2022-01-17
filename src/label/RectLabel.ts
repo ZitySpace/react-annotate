@@ -155,4 +155,33 @@ export class RectLabel implements Rect {
 
     return { rect, textbox }
   }
+
+  static newFabricObjects({
+    position,
+    id,
+    categoryName,
+    color
+  }: {
+    position: Point
+    id: number
+    categoryName: string
+    color: string
+  }) {
+    const { x, y } = position
+    const rect = new fabric.Rect({
+      ...RECT_DEFAULT_CONFIG,
+      left: x - STROKE_WIDTH,
+      top: y - STROKE_WIDTH,
+      stroke: color
+    })
+    rect.setOptions({ id, categoryName, color, labelType: 'Rect' })
+
+    const textbox = new fabric.Textbox(id.toString(), {
+      ...TEXTBOX_DEFAULT_CONFIG,
+      backgroundColor: color,
+      visible: false
+    })
+    textbox.setOptions({ id, categoryName, labelType: 'Rect' })
+    return [rect, textbox]
+  }
 }
