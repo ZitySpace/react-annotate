@@ -50,3 +50,17 @@ export const newLabelFromFabricObj = ({
       throw new Error('obj types error')
   }
 }
+
+export const isRect = ({ type, labelType }: any) =>
+  type === 'rect' && labelType === 'Rect'
+
+export const isPoint = ({ type, labelType }: any) =>
+  type === 'circle' && labelType === 'Point'
+
+export const isLine = ({ type, labelType }: any) =>
+  type === 'line' && labelType === 'Line'
+
+export const isLabel = ({ type, labelType }: any) =>
+  isRect({ type, labelType }) ||
+  isLine({ type, labelType }) ||
+  isPoint({ type, labelType })

@@ -5,7 +5,7 @@ import { setLinePosition } from '../utils/util'
 import { UseFocusReturnProps } from './useFocus'
 import { State, UseStateStackReturnProps } from './useStateStack'
 import { UseColorsReturnProps } from './useColor'
-import { Label, newLabelFromFabricObj } from '../label/Label'
+import { isLabel, Label, newLabelFromFabricObj } from '../label/Label'
 
 export const useCanvas = ({
   canvasRef,
@@ -53,6 +53,7 @@ export const useCanvas = ({
 
   const { nowState, currentIndex, push: pushState } = stateStack
   const setFocus = (e: fabric.IEvent<Event>) => {
+    console.log('setFocus called in canvas', (e.target as any)?.id) // TODO: remove
     focus.setObject(e.e ? e.target : undefined)
   }
 
@@ -65,17 +66,7 @@ export const useCanvas = ({
       syncCanvasToState: () => {
         console.log('syncCanvasToState called') // TODO: remove
 
-        const isRect = ({ type, labelType }: any) =>
-          type === 'rect' && labelType === 'Rect'
-        const isPoint = ({ type, labelType }: any) =>
-          type === 'circle' && labelType === 'Point'
-        const isLine = ({ type, labelType }: any) =>
-          type === 'line' && labelType === 'Line'
-
-        const allCanvasObjects = canvas
-          .getObjects()
-          .filter((obj: any) => isRect(obj) || isLine(obj) || isPoint(obj))
-
+        const allCanvasObjects = canvas.getObjects().filter(isLabel)
         const nowState: Label[] = allCanvasObjects.map((obj) =>
           newLabelFromFabricObj({ obj, offset, scale })
         )
@@ -104,6 +95,7 @@ export const useCanvas = ({
       },
 
       loadListeners: (newListeners: object) => {
+        if (!canvas) return
         // save new listeners
         Object.assign(listeners, newListeners)
 
