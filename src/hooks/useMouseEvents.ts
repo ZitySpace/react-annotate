@@ -9,7 +9,7 @@ import {
 import { newFabricObjects } from '../label/Label'
 import { Point } from '../label/PointLabel'
 import { getBetween } from '../utils/math'
-import { isTouchEvent } from '../utils/util'
+import { isInvalid, isTouchEvent } from '../utils/util'
 import { UseColorsReturnProps } from './useColor'
 import { UseFocusReturnProps } from './useFocus'
 import { UseStateStackReturnProps } from './useStateStack'
@@ -35,25 +35,17 @@ export const useMouse = ({
   offset: Point
   scale: number
 }) => {
-  const onDrawObj = useRef<fabric.Object>()
+  const onDrawObj = useRef<fabric.Object | null>()
   const lastPosition = useRef<Point>({ x: 0, y: 0 })
   const isPanning = useRef<boolean>(false)
   const isDrawingStarted = useRef<boolean>(false)
   const canvas = canvasRef.current!
 
   const { nowState } = stateStack
-  const nowFocus = focus.now
+  const { now: nowFocus, setObject, setDrawing } = focus
 
   // TODO: remove this
-  let nothing: any = {
-    onDrawObj,
-    imageDims,
-    boundary,
-    offset,
-    scale,
-    nowState,
-    annoColors
-  }
+  let nothing: any = { imageDims, offset, scale }
   nothing = !nothing
 
   const setZoomAndGetNewZoom = useMemo(
@@ -142,7 +134,18 @@ export const useMouse = ({
   }
 
   const drawStopOnMouseUp = () => {
-    
+    const obj = onDrawObj.current as any
+
+    if (isInvalid(obj, nowFocus.isDrawing!)) {
+      canvas.remove(...canvas.getObjects().filter((o: any) => o.id === obj.id))
+    } else {
+      setObject(obj)
+      canvas.setActiveObject(obj.labelType !== 'Line' ? obj : obj.endpoints[1])
+    }
+
+    isDrawingStarted.current = false
+    onDrawObj.current = null
+    setDrawing(null)
   }
 
   const listeners = {
