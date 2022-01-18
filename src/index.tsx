@@ -1,5 +1,5 @@
 // import { fabric } from 'fabric'
-import React, { useLayoutEffect, useState } from 'react'
+import React, { useEffect, useLayoutEffect, useState } from 'react'
 import { useEffectOnce, useStateList } from 'react-use'
 import { ButtonBar } from './components/ButtonBar'
 import { useCanvas } from './hooks/useCanvas'
@@ -100,13 +100,16 @@ export const NewImageAnnotater = ({
 
   useLayoutEffect(() => {
     console.log('imageDims or canvasDims changed')
-    canvasRef.current && loadListeners(mouseListeners) // mount event listeners
     // Initialize state stack
     const imageAnnos = imageObj.annotations.map((anno) =>
       anno.scaleTransform(scale, offset)
     )
     stateStack.set([imageAnnos])
   }, [imageDims, canvasDims])
+
+  useEffect(() => {
+    canvasRef.current && loadListeners(mouseListeners) // mount event listeners
+  }, [mouseListeners])
 
   return isAnnosVisible ? (
     <div className='w-full h-full flex flex-col justify-center items-center relative'>
