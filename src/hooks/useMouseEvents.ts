@@ -146,6 +146,7 @@ export const useMouse = ({
     isDrawingStarted.current = false
     onDrawObj.current = null
     setDrawing(null)
+    canvas.requestRenderAll()
   }
 
   const listeners = {
