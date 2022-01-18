@@ -53,25 +53,30 @@ export const useCanvas = ({
 
   const { nowState, currentIndex, push: pushState } = stateStack
   const setFocus = (e: fabric.IEvent<Event>) => {
-    console.log('setFocus called in canvas', (e.target as any)?.id) // TODO: remove
-    focus.setObject(e.e ? e.target : undefined)
+    focus.setObject((e as any).selected ? e.target : undefined)
   }
+  const canvasLabelsCount =
+    canvas && canvas.getObjects ? canvas.getObjects().filter(isLabel).length : 0
 
   useEffect(() => {
     actions.syncStateToCanvas(nowState)
   }, [nowState, currentIndex])
 
+  useEffect(() => {
+    canvasLabelsCount !== nowState.length && actions.syncCanvasToState()
+  }, [canvasLabelsCount])
+
   const actions = useMemo(
     () => ({
       syncCanvasToState: () => {
-        console.log('syncCanvasToState called') // TODO: remove
+        console.log('syncCanvasToCanvas called') // TODO: remove
 
         const allCanvasObjects = canvas.getObjects().filter(isLabel)
-        const nowState: Label[] = allCanvasObjects.map((obj) =>
+        const newState: Label[] = allCanvasObjects.map((obj) =>
           newLabelFromFabricObj({ obj, offset, scale })
         )
 
-        pushState && pushState(nowState)
+        pushState && pushState(newState)
         setRenderLock()
       },
 
