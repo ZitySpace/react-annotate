@@ -67,7 +67,7 @@ export const useMouse = ({
       const offsetY = h * (1 - zoom)
       vpt[4] = zoom < 1 ? offsetX / 2 : getBetween(vpt[4] + x, offsetX, 0)
       vpt[5] = zoom < 1 ? offsetY / 2 : getBetween(vpt[5] + y, offsetY, 0)
-      canvas.requestRenderAll()
+      canvas.renderAll()
     },
     [canvas, canvasDims]
   )
@@ -119,7 +119,7 @@ export const useMouse = ({
       obj.endpoints[1].set({ left, top })
       obj.set({ x2: left - STROKE_WIDTH / 2, y2: top - STROKE_WIDTH / 2 })
     }
-    canvas.requestRenderAll()
+    canvas.renderAll()
   }
 
   const drawStopOnMouseUp = () => {
@@ -135,7 +135,7 @@ export const useMouse = ({
     isDrawingStarted.current = false
     onDrawObj.current = null
     setDrawing(null)
-    canvas.requestRenderAll()
+    canvas.renderAll()
   }
 
   const listeners = {
@@ -144,12 +144,21 @@ export const useMouse = ({
       const zoom = setZoomAndGetNewZoom(e.e)
       setViewport({ zoom })
     },
-    'mouse:out': (e: fabric.IEvent) => {
+    'mouse:over': (e: fabric.IEvent) => {
       const obj = e.target as any
       if (obj?.type === 'circle')
         obj.set({
           fill: TRANSPARENT,
           stroke: obj.color
+        })
+      canvas.renderAll()
+    },
+    'mouse:out': (e: fabric.IEvent) => {
+      const obj = e.target as any
+      if (obj?.type === 'circle')
+        obj.set({
+          fill: obj.color,
+          stroke: TRANSPARENT
         })
       canvas.renderAll()
     },
