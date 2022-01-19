@@ -1,12 +1,12 @@
 import { fabric } from 'fabric'
-import { MutableRefObject, useMemo, useRef } from 'react'
+import { MutableRefObject, useCallback, useRef } from 'react'
 import { Dimension } from '../interface/basic'
 import {
   NEW_CATEGORY_NAME,
   STROKE_WIDTH,
   TRANSPARENT
 } from '../interface/config'
-import { newFabricObjects } from '../label/Label'
+import { isLine, isPoint, isRect, newFabricObjects } from '../label/Label'
 import { Point } from '../label/PointLabel'
 import { getBetween } from '../utils/math'
 import { isInvalid, isTouchEvent } from '../utils/util'
@@ -48,32 +48,27 @@ export const useMouse = ({
   let nothing: any = { imageDims, offset, scale }
   nothing = !nothing
 
-  const setZoomAndGetNewZoom = useMemo(
-    () => (evt: any) => {
-      const { deltaY: delta, offsetX, offsetY } = evt
-      const zoom = canvas.getZoom()
-      const newZoom = getBetween(zoom * 0.999 ** delta, 0.01, 20)
-      canvas.zoomToPoint(new fabric.Point(offsetX, offsetY), newZoom)
-      return newZoom
+  const setZoomAndGetNewZoom = useCallback(
+    (evt: any) => {
+      const { deltaY: delta, offsetX: x, offsetY: y } = evt
+      const zoom = getBetween(canvas.getZoom() * 0.999 ** delta, 0.01, 20)
+      canvas.zoomToPoint({ x, y }, zoom)
+      return zoom
     },
     [canvas]
   )
 
-  const setViewport = useMemo(
-    () =>
-      ({ zoom, offset = { x: 0, y: 0 } }: { zoom: number; offset?: Point }) => {
-        const { w, h } = canvasDims
-        const { x, y } = offset
-        const vpt = canvas.viewportTransform as number[]
-        if (zoom < 1) {
-          vpt[4] = (w * (1 - zoom)) / 2
-          vpt[5] = (h * (1 - zoom)) / 2
-        } else {
-          vpt[4] = getBetween(vpt[4] + x, w * (1 - zoom), 0)
-          vpt[5] = getBetween(vpt[5] + y, h * (1 - zoom), 0)
-        }
-        canvas.requestRenderAll()
-      },
+  const setViewport = useCallback(
+    ({ zoom, offset = { x: 0, y: 0 } }: { zoom: number; offset?: Point }) => {
+      const { w, h } = canvasDims
+      const { x, y } = offset
+      const vpt = canvas.viewportTransform as number[]
+      const offsetX = w * (1 - zoom)
+      const offsetY = h * (1 - zoom)
+      vpt[4] = zoom < 1 ? offsetX / 2 : getBetween(vpt[4] + x, offsetX, 0)
+      vpt[5] = zoom < 1 ? offsetY / 2 : getBetween(vpt[5] + y, offsetY, 0)
+      canvas.requestRenderAll()
+    },
     [canvas, canvasDims]
   )
 
@@ -108,7 +103,7 @@ export const useMouse = ({
     const obj = onDrawObj.current as any
     if (!obj) return
 
-    if (nowFocus.isDrawing === 'Rect') {
+    if (isRect(obj)) {
       const left = Math.min(lastX, nowX) - STROKE_WIDTH
       const right = Math.max(lastX, nowX)
       const top = Math.min(lastY, nowY) - STROKE_WIDTH
@@ -120,11 +115,11 @@ export const useMouse = ({
         width: right - left,
         height: bottom - top
       })
-    } else if (nowFocus.isDrawing === 'Point') {
+    } else if (isPoint(obj)) {
       const left = nowX
       const top = nowY
       obj.set({ left, top })
-    } else if (nowFocus.isDrawing === 'Line') {
+    } else if (isLine(obj)) {
       const left = nowX
       const top = nowY
       obj.endpoints[1].set({ left, top })
@@ -150,6 +145,7 @@ export const useMouse = ({
   }
 
   const listeners = {
+    // Reference: http://fabricjs.com/fabric-intro-part-5
     'mouse:wheel': (e: fabric.IEvent<WheelEvent>) => {
       const zoom = setZoomAndGetNewZoom(e.e)
       setViewport({ zoom })

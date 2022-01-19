@@ -6,7 +6,6 @@ import { Point } from '../label/PointLabel'
 /**
  * Load image and re-initialize canvas, then calculate the dimensions ans so on.
  * @param imageObj: an image object with basic info
- * @param canvasRef reference to canvas
  * @returns node of image&canvas container, and some calculated variables
  */
 export const useContainer = ({ imageObj }: { imageObj: any }) => {
@@ -46,7 +45,7 @@ export const useContainer = ({ imageObj }: { imageObj: any }) => {
       const _scale = (iw / imgElm.naturalWidth + ih / imgElm.naturalHeight) / 2
 
       setImageDims({ w: iw, h: ih })
-      setCanvasDims({ w: cew, h: cew }) // canvas dimensions will be set as same as extend element
+      setCanvasDims({ w: cew, h: ceh }) // canvas dimensions will be set as same as extend element
       setBoundary({
         x: [(cew - iw) / 2, (cew + iw) / 2],
         y: [(ceh - ih) / 2, (ceh + ih) / 2]
