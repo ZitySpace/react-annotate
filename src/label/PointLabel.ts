@@ -113,7 +113,13 @@ export class PointLabel implements Point {
     }
   }
 
-  getFabricObjects({ currentColor }: { currentColor: string }) {
+  getFabricObjects({
+    currentColor,
+    visible = true
+  }: {
+    currentColor: string
+    visible?: boolean
+  }) {
     const { x, y, radius, color: oriColor, id, categoryName } = this
     const color = currentColor || oriColor
     const point = new fabric.Circle({
@@ -122,7 +128,8 @@ export class PointLabel implements Point {
       top: y,
       radius: radius,
       fill: color,
-      stroke: TRANSPARENT
+      stroke: TRANSPARENT,
+      visible
     })
     point.setOptions({ id, categoryName, color, labelType: 'Point' })
 
@@ -131,7 +138,8 @@ export class PointLabel implements Point {
       left: x + radius - STROKE_WIDTH / 2,
       top: y - radius + STROKE_WIDTH / 2,
       originY: 'bottom',
-      backgroundColor: currentColor || color
+      backgroundColor: currentColor || color,
+      visible
     })
     textbox.setOptions({ id, categoryName, labelType: 'Point' })
 

@@ -108,13 +108,7 @@ export const useMouse = ({
       const right = Math.max(lastX, nowX)
       const top = Math.min(lastY, nowY) - STROKE_WIDTH
       const bottom = Math.max(lastY, nowY)
-
-      obj.set({
-        left: left,
-        top: top,
-        width: right - left,
-        height: bottom - top
-      })
+      obj.set({ left, top, width: right - left, height: bottom - top })
     } else if (isPoint(obj)) {
       const left = nowX
       const top = nowY

@@ -131,7 +131,13 @@ export class RectLabel implements Rect {
     }
   }
 
-  getFabricObjects({ currentColor }: { currentColor: string }) {
+  getFabricObjects({
+    currentColor,
+    visible = true
+  }: {
+    currentColor: string
+    visible?: boolean
+  }) {
     const { x, y, w, h, color: oriColor, id, categoryName } = this
     const color = currentColor || oriColor
     const rect = new fabric.Rect({
@@ -140,7 +146,8 @@ export class RectLabel implements Rect {
       top: y,
       width: w,
       height: h,
-      stroke: color
+      stroke: color,
+      visible
     })
     rect.setOptions({ id, categoryName, color, labelType: 'Rect' })
 
@@ -149,7 +156,8 @@ export class RectLabel implements Rect {
       left: x + STROKE_WIDTH,
       top: y + STROKE_WIDTH,
       backgroundColor: color,
-      fontSize: Math.min(14, w / 2, h / 2)
+      fontSize: Math.min(14, w / 2, h / 2),
+      visible
     })
     textbox.setOptions({ id, categoryName, labelType: 'Rect' })
 

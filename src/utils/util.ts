@@ -18,20 +18,6 @@ export const isInvalid = (obj: any, labelType: string | null) => {
 }
 
 /**
- * Set endpoint's corresponding line's position
- * @param endpoint Line's one endpoint
- */
-export const setLinePosition = (endpoint: fabric.Circle) => {
-  const { left, top, line, _id } = endpoint as any
-  if (line && _id) {
-    line.set({
-      [`x${_id}`]: left - STROKE_WIDTH / 2,
-      [`y${_id}`]: top - STROKE_WIDTH / 2
-    })
-  }
-}
-
-/**
  * Determine whether the event is a touch event
  * @param event Mouse listeners catched event detail
  * @returns

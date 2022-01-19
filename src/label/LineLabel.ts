@@ -127,14 +127,21 @@ export class LineLabel implements Line {
     }
   }
 
-  getFabricObjects({ currentColor }: { currentColor: string }) {
+  getFabricObjects({
+    currentColor,
+    visible = true
+  }: {
+    currentColor: string
+    visible?: boolean
+  }) {
     const { x, y, _x, _y, color: oriColor, id, categoryName } = this
     const color = currentColor || oriColor
     const line = new fabric.Line(
       [x, y, _x, _y].map((coord) => coord - STROKE_WIDTH / 2),
       {
         ...LINE_DEFAULT_CONFIG,
-        stroke: color
+        stroke: color,
+        visible
       }
     )
 
@@ -147,7 +154,8 @@ export class LineLabel implements Line {
         left: coord[0],
         top: coord[1],
         fill: color,
-        stroke: TRANSPARENT
+        stroke: TRANSPARENT,
+        visible
       })
       endpoint.setOptions({
         id,
@@ -167,7 +175,8 @@ export class LineLabel implements Line {
       top: topPoint.top! - RADIUS,
       originX: 'center',
       originY: 'bottom',
-      backgroundColor: currentColor || color
+      backgroundColor: currentColor || color,
+      visible
     })
     textbox.setOptions({ id, categoryName, labelType: 'Line' })
     line.setOptions({ id, categoryName, color, endpoints, labelType: 'Line' })
