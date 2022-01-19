@@ -4,8 +4,15 @@ import { Point } from '../label/PointLabel'
 import { UseFocusReturnProps } from './useFocus'
 import { State, UseStateStackReturnProps } from './useStateStack'
 import { UseColorsReturnProps } from './useColor'
-import { isLabel, Label, newLabelFromFabricObj } from '../label/Label'
+import {
+  isLabel,
+  isLineEndpoint,
+  isRect,
+  Label,
+  newLabelFromFabricObj
+} from '../label/Label'
 import { STROKE_WIDTH } from '../interface/config'
+import { getBetween } from '../utils/math'
 
 export const useCanvas = ({
   canvasRef,
@@ -25,12 +32,14 @@ export const useCanvas = ({
   annoColors: UseColorsReturnProps
   imageDims: Dimension
   canvasDims: Dimension
-  boundary: { x: number[]; y: number[] } | null
+  boundary: { x: number[]; y: number[] }
   offset: Point
   scale: number
   stateStack: UseStateStackReturnProps
 }) => {
   const canvas = canvasRef.current!
+  const canvasLabelsCount =
+    canvas && canvas.getObjects ? canvas.getObjects().filter(isLabel).length : 0
   const listenersRef = useRef<object>({})
   const listeners = listenersRef.current
 
@@ -53,16 +62,13 @@ export const useCanvas = ({
     return nowLock
   }
 
-  const canvasLabelsCount =
-    canvas && canvas.getObjects ? canvas.getObjects().filter(isLabel).length : 0
-
   /**
    * Set line's position if moving its endpoint
    * @param event canvas' fabric object moving event
    */
-  const setLinePositionIfMovingEndpoint = (event: fabric.IEvent) => {
-    const { left, top, line, _id } = event.target as any // try to get attributes
-    if (line && _id) {
+  const setLinePositionIfMoveEndpoint = (object?: fabric.Object) => {
+    if (object && isLineEndpoint(object)) {
+      const { left, top, line, _id } = object as any // try to get attributes
       // judge if it is line
       line.set({
         [`x${_id}`]: left - STROKE_WIDTH / 2,
@@ -84,16 +90,12 @@ export const useCanvas = ({
   // Set objects' visibale attribute in canvas when isDrawing or focus changed
   useEffect(() => {
     if (!canvas) return
-    console.log(isDrawing, focusObj, focusCate)
-
     isDrawing && canvas.discardActiveObject()
     canvas.forEachObject((obj: fabric.Object) => {
       const { categoryName, id, type } = obj as any
       obj.visible = isFocused(categoryName, id, type === 'textbox')
-      if (isDrawing && focusObj === id && !['textbox', 'line'].includes(type)) {
-        console.log('some guys called')
+      if (isDrawing && focusObj === id && !['textbox', 'line'].includes(type))
         canvas.setActiveObject(obj)
-      }
     })
     canvas.renderAll()
   }, [isDrawing, focusObj, focusCate])
@@ -140,8 +142,23 @@ export const useCanvas = ({
 
   // set default listeners and must after declare actions otherwise it will not work
   Object.assign(listeners, {
-    'object:moving': setLinePositionIfMovingEndpoint,
-    'object:modified': actions.syncCanvasToState, // TODO: update textbox and more
+    'object:moving': (e: fabric.IEvent) => {
+      setLinePositionIfMoveEndpoint(e.target)
+    },
+    'object:modified': () => {
+      const obj: any = canvas.getActiveObject()
+      const _boundary = JSON.parse(JSON.stringify(boundary)) // deep clone to avoid rect-type calculate influences
+      if (isRect(obj)) {
+        _boundary.x[1] -= obj.getScaledWidth()
+        _boundary.y[1] -= obj.getScaledHeight()
+      }
+
+      obj.left = getBetween(obj.left, ..._boundary.x)
+      obj.top = getBetween(obj.top, ..._boundary.y)
+      setLinePositionIfMoveEndpoint(obj)
+
+      actions.syncCanvasToState()
+    },
 
     // Sync canvas's selection to focus
     'selection:created': (e: any) => {

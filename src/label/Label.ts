@@ -60,6 +60,9 @@ export const isPoint = ({ type, labelType }: any) =>
 export const isLine = ({ type, labelType }: any) =>
   type === 'line' && labelType === 'Line'
 
+export const isLineEndpoint = ({ type, labelType }: any) =>
+  type === 'circle' && labelType === 'Line'
+
 export const isLabel = ({ type, labelType }: any) =>
   isRect({ type, labelType }) ||
   isLine({ type, labelType }) ||
