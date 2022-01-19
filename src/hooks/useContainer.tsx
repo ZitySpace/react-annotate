@@ -22,7 +22,13 @@ export const useContainer = ({ imageObj }: { imageObj: any }) => {
   const canvasElRef = useRef<HTMLCanvasElement>(null)
   const canvasRef = useRef<fabric.Canvas | null>(null)
 
+  /**
+   * Callback of the image src changed trigger image loading event
+   * Get image element and canvas element, initialize canvas object and calculate the dimensions and so on,
+   *  then set them to the reference and state
+   */
   const onLoad = useCallback(() => {
+    // ensure that the image element and canvas element exist
     const imgElm = imgElRef.current
       ? (imgElRef.current as unknown as HTMLImageElement)
       : imgElRef.current
@@ -33,15 +39,15 @@ export const useContainer = ({ imageObj }: { imageObj: any }) => {
     if (imgElm && canvasElm) {
       let extendElm = document.getElementById('canvas_extended') as HTMLElement
 
-      const { width: iw, height: ih } = imgElm.getBoundingClientRect()
-      const { width: cew, height: _ceh } = extendElm.getBoundingClientRect()
-      const ceh = _ceh - 36
+      const { width: iw, height: ih } = imgElm.getBoundingClientRect() // get image dimensions in image dom contain
+      const { width: cew, height: _ceh } = extendElm.getBoundingClientRect() // get canvas extend element dimensions
+      const ceh = _ceh - 36 // minus the buttons bar's height
 
       // necessary for using in below step because setState in async
       const _offset = {
         x: (cew - iw) / 2,
         y: (ceh - ih) / 2
-      }
+      } // offset of scaled image to the canvas
       const _scale = (iw / imgElm.naturalWidth + ih / imgElm.naturalHeight) / 2
 
       setImageDims({ w: iw, h: ih })
@@ -67,18 +73,13 @@ export const useContainer = ({ imageObj }: { imageObj: any }) => {
       canvas.setHeight(ceh)
 
       // update background image
-      const img = new fabric.Image(imgElm, {
-        left: _offset.x,
-        top: _offset.y,
-        scaleX: _scale,
-        scaleY: _scale,
-        hasBorders: false,
-        hasControls: false,
-        selectable: false,
-        hoverCursor: 'default'
-      })
-      canvas.setBackgroundImage(img, () => {})
+      const { x: left, y: top } = _offset
+      const scaleX = _scale
+      const scaleY = _scale
+      const img = new fabric.Image(imgElm, { left, top, scaleX, scaleY })
+      canvas.setBackgroundImage(img, () => {}) // use background image can make canvas's objects plain
 
+      // set canvas element and its extend element styles
       const lowerCanvasElm = canvas.getElement()
       const upperCanvasElm = lowerCanvasElm.nextElementSibling as Element
       extendElm = lowerCanvasElm.parentElement as HTMLElement
@@ -91,13 +92,12 @@ export const useContainer = ({ imageObj }: { imageObj: any }) => {
       lowerCanvasElm.classList.remove('hidden')
       upperCanvasElm.classList.remove('hidden')
 
-      // canvas.renderAll()
-      canvas.setViewportTransform([1, 0, 0, 1, 0, 0])
+      canvas.setViewportTransform([1, 0, 0, 1, 0, 0]) // set viewport to the center
       canvasRef.current = canvas
     }
   }, [imgElRef.current, canvasElRef.current])
 
-  window.onresize = onLoad
+  window.onresize = onLoad // listen window resize event
 
   return {
     ImageContainer: (
