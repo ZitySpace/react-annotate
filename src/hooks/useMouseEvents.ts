@@ -42,7 +42,7 @@ export const useMouse = ({
   const canvas = canvasRef.current!
 
   const { nowState } = stateStack
-  const { now: nowFocus, setObject, setDrawing } = focus
+  const { now: nowFocus, setFocus, setDrawing } = focus
 
   // TODO: remove this
   let nothing: any = { imageDims, offset, scale }
@@ -128,7 +128,7 @@ export const useMouse = ({
     if (isInvalid(obj, nowFocus.isDrawing!)) {
       canvas.remove(...canvas.getObjects().filter((o: any) => o.id === obj.id))
     } else {
-      setObject(obj)
+      setFocus(obj)
       canvas.setActiveObject(obj.labelType !== 'Line' ? obj : obj.endpoints[1])
     }
 

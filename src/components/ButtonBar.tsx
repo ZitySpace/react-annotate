@@ -39,22 +39,26 @@ export const ButtonBar = ({
   } = stateStack
 
   const { redo: canRedo, undo: canUndo, reset: canReset, save: canSave } = can
-  const { now: nowFocus, setDrawing } = focus
+  const {
+    now: { categoryName, isDrawing, objectId },
+    setDrawing,
+    setFocus
+  } = focus
 
   const deleteObj = () => {
-    const newState = nowState.filter((anno) => anno.id !== nowFocus.objectId)
+    const newState = nowState.filter((anno) => anno.id !== objectId)
     pushState(newState)
   }
 
   const draw = (labelType: string | null) => () => {
-    setDrawing(nowFocus.isDrawing === labelType ? null : labelType)
+    setDrawing(isDrawing === labelType ? null : labelType)
+    setFocus({ categoryName })
   }
   const drawPoint = draw('Point')
   const drawLine = draw('Line')
   const drawRect = draw('Rect')
 
-  const isDrawingMe = (labelType: string | null) =>
-    nowFocus.isDrawing === labelType
+  const isDrawingMe = (labelType: string | null) => isDrawing === labelType
   const isDrawingPoint = isDrawingMe('Point')
   const isDrawingLine = isDrawingMe('Line')
   const isDrawingRect = isDrawingMe('Rect')
