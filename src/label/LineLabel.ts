@@ -131,7 +131,7 @@ export class LineLabel implements Line {
     currentColor,
     visible = true
   }: {
-    currentColor: string
+    currentColor?: string
     visible?: boolean
   }) {
     const { x, y, _x, _y, color: oriColor, id, categoryName } = this

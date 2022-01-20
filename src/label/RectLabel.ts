@@ -135,7 +135,7 @@ export class RectLabel implements Rect {
     currentColor,
     visible = true
   }: {
-    currentColor: string
+    currentColor?: string
     visible?: boolean
   }) {
     const { x, y, w, h, color: oriColor, id, categoryName } = this

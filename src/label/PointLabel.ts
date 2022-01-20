@@ -117,7 +117,7 @@ export class PointLabel implements Point {
     currentColor,
     visible = true
   }: {
-    currentColor: string
+    currentColor?: string
     visible?: boolean
   }) {
     const { x, y, radius, color: oriColor, id, categoryName } = this
