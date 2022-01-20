@@ -44,7 +44,7 @@ export const useCanvas = ({
   const listeners = listenersRef.current
 
   const { nowState, push: pushState } = stateStack
-  const { setFocus, isFocused } = focus
+  const { setFocus, canObjectShow } = focus
   const { isDrawing, objectId: focusObj, categoryName: focusCate } = focus.now
 
   // TODO: remove
@@ -110,7 +110,11 @@ export const useCanvas = ({
     isDrawing && canvas.discardActiveObject()
     canvas.forEachObject((obj: fabric.Object) => {
       const { categoryName, id, type } = obj as any
-      obj.visible = isFocused(categoryName, id, type === 'textbox')
+      obj.visible = canObjectShow({
+        categoryName,
+        id,
+        isText: type === 'textbox'
+      })
       if (isDrawing && focusObj === id && !['textbox', 'line'].includes(type))
         canvas.setActiveObject(obj)
     })
@@ -138,6 +142,7 @@ export const useCanvas = ({
         nowState.forEach((anno: Label) => {
           const { categoryName } = anno
           const currentColor = annoColors.get(categoryName!)
+          // TODO: ensure visible
           const visible = forceVisable || isAnnosVisible // && isFocused(categoryName, id))
           const fabricObjects = anno.getFabricObjects({ currentColor, visible })
           canvas.add(...Object.values(fabricObjects))

@@ -64,7 +64,7 @@ export const ButtonBar = ({
   const isDrawingRect = isDrawingMe('Rect')
 
   return (
-    <div id='test' className='flex justify-center items-center'>
+    <div className='flex justify-center items-center'>
       <div className='flex justify-center space-x-1 absolute bottom-0 right-1 md:right-1/4'>
         <Button canUse={true} onClick={prevImg}>
           <ChevronLeftIcon className='h-4 w-4' />

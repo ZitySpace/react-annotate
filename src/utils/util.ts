@@ -1,4 +1,5 @@
 import { RADIUS, STROKE_WIDTH } from '../interface/config'
+import { Label } from '../label/Label'
 
 /**
  * Judge that is the label invalid
@@ -25,3 +26,28 @@ export const isInvalid = (obj: any, labelType: string | null) => {
 export const isTouchEvent = (event: React.TouchEvent | React.MouseEvent) =>
   // safari and firefox has no TouchEvent
   typeof TouchEvent !== 'undefined' && event instanceof TouchEvent
+
+/**
+ * Intercept the string and use ... to replace
+ * @param str target string
+ * @param len target length of origin string
+ * @returns abbreviation
+ */
+export const getAbbreviation = (str: string, len: number = 7) =>
+  str.slice(0, len) + (str.length > len ? '...' : '')
+
+/**
+ *  Group annotations by given property
+ * @param annotations annotation list
+ * @param property target property
+ * @returns grouped annotations
+ */
+export const groupBy = (annotations: Label[], property: string) => {
+  return annotations.reduce((groupedAnnos: any, theAnno: Label) => {
+    if (!groupedAnnos[theAnno[property]]) {
+      groupedAnnos[theAnno[property]] = []
+    }
+    groupedAnnos[theAnno[property]].push(theAnno)
+    return groupedAnnos
+  }, {})
+}

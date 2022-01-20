@@ -8,7 +8,6 @@ import {
   TEXTBOX_DEFAULT_CONFIG,
   TRANSPARENT
 } from '../interface/config'
-import { getRandomColors } from '../utils/categorys&colors'
 import { Point } from './PointLabel'
 
 interface Line extends Point {
@@ -93,7 +92,7 @@ export class LineLabel implements Line {
     this.offset = offset || { x: 0, y: 0 }
     this.scale = scale || 1
     this.strokeWidth = strokeWidth || 1.5
-    this.color = color || getRandomColors(1)[0]
+    this.color = color
   }
 
   scaleTransform(scale: number, offset: Point) {

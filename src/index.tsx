@@ -6,7 +6,7 @@ import { useCanvas } from './hooks/useCanvas'
 import { useColors } from './hooks/useColor'
 import { useContainer } from './hooks/useContainer'
 import { useFocus } from './hooks/useFocus'
-import { useMouse } from './hooks/useMouseEvents'
+import { useMouseListeners } from './hooks/useMouseListeners'
 import { useStateStack } from './hooks/useStateStack'
 import { Label } from './label/Label'
 import { RectLabel } from './label/RectLabel'
@@ -82,7 +82,7 @@ export const NewImageAnnotater = ({
     stateStack
   })
 
-  const mouseListeners = useMouse({
+  const mouseListeners = useMouseListeners({
     canvasRef,
     stateStack,
     focus,

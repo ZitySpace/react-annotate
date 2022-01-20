@@ -5,7 +5,6 @@ import {
   TEXTBOX_DEFAULT_CONFIG,
   TRANSPARENT
 } from '../interface/config'
-import { getRandomColors } from '../utils/categorys&colors'
 
 export interface Point {
   x: number
@@ -68,7 +67,7 @@ export class PointLabel implements Point {
     offset?: Point
     radius?: number
     strokeWidth?: number
-    color?: string
+    color: string
   }) {
     this.x = x
     this.y = y
@@ -79,7 +78,7 @@ export class PointLabel implements Point {
     this.offset = offset || { x: 0, y: 0 }
     this.radius = radius || 5
     this.strokeWidth = strokeWidth || 1.5
-    this.color = color || getRandomColors(1)[0]
+    this.color = color
   }
 
   scaleTransform(scale: number, offset: Point = { x: 0, y: 0 }) {
