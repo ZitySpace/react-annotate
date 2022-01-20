@@ -77,6 +77,21 @@ export const useCanvas = ({
     }
   }
 
+  /**
+   * Update all labels' text position in canvas via regenerate them
+   */
+  const updateAllTextboxPosition = () => {
+    const allCanvasObjects = canvas.getObjects().filter(isLabel)
+    const allLabels = allCanvasObjects.map((obj) =>
+      newLabelFromFabricObj({ obj, offset, scale })
+    )
+
+    canvas.remove(...canvas.getObjects())
+    allLabels.forEach((anno) =>
+      canvas.add(...Object.values(anno.getFabricObjects({})))
+    )
+  }
+
   // Sync state to canvas if state changed
   useEffect(() => {
     actions.syncStateToCanvas(nowState)
@@ -90,6 +105,8 @@ export const useCanvas = ({
   // Set objects' visibale attribute in canvas when isDrawing or focus changed
   useEffect(() => {
     if (!canvas) return
+
+    !(isDrawing || focusObj || focusCate) && updateAllTextboxPosition()
     isDrawing && canvas.discardActiveObject()
     canvas.forEachObject((obj: fabric.Object) => {
       const { categoryName, id, type } = obj as any
@@ -103,7 +120,7 @@ export const useCanvas = ({
   const actions = useMemo(
     () => ({
       syncCanvasToState: () => {
-        console.log('syncCanvasToCanvas called') // TODO: remove
+        console.log('syncCanvasToState called') // TODO: remove
 
         const allCanvasObjects = canvas.getObjects().filter(isLabel)
         const newState: Label[] = allCanvasObjects.map((obj) =>
@@ -128,6 +145,10 @@ export const useCanvas = ({
         canvas.renderAll()
       },
 
+      /**
+       * Load event listeners to canvas.
+       * @param newListeners listeners object which want to load
+       */
       loadListeners: (newListeners: object) => {
         if (!canvas) return
         Object.assign(listeners, newListeners) // save new listeners
@@ -148,11 +169,12 @@ export const useCanvas = ({
     'object:modified': () => {
       const obj: any = canvas.getActiveObject()
       const _boundary = JSON.parse(JSON.stringify(boundary)) // deep clone to avoid rect-type calculate influences
+      // rect's boundary need consider of its dimensions
       if (isRect(obj)) {
         _boundary.x[1] -= obj.getScaledWidth()
         _boundary.y[1] -= obj.getScaledHeight()
       }
-
+      // as for other types label, they controlled by its endpoint
       obj.left = getBetween(obj.left, ..._boundary.x)
       obj.top = getBetween(obj.top, ..._boundary.y)
       setLinePositionIfMoveEndpoint(obj)

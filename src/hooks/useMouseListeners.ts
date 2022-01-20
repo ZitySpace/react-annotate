@@ -14,7 +14,7 @@ import { UseColorsReturnProps } from './useColor'
 import { UseFocusReturnProps } from './useFocus'
 import { UseStateStackReturnProps } from './useStateStack'
 
-export const useMouse = ({
+export const useMouseListeners = ({
   canvasRef,
   stateStack,
   focus,
