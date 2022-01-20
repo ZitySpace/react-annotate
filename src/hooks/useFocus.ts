@@ -6,16 +6,27 @@ import { LABEL, Label } from '../label/Label'
 
 export interface UseFocusReturnProps {
   now: Focus
-  isFocused: (
-    categoryName: string | null,
-    id: number,
-    isText: boolean
-  ) => boolean
+  isFocused: ({
+    categoryName,
+    id
+  }: {
+    categoryName: string
+    id?: number
+  }) => boolean
+  canObjectShow: ({
+    categoryName,
+    id,
+    isText
+  }: {
+    categoryName: string | null
+    id: number
+    isText?: boolean
+  }) => boolean
   setFocus: ({
     object,
     categoryName
   }: {
-    object?: Label | fabric.Object
+    object?: Label | fabric.Object | number
     categoryName?: string | null
   }) => void
   setDrawing: (drawing: string | null) => void
@@ -33,22 +44,31 @@ export const useFocus = () => {
   const update = useUpdate()
 
   const methods = {
-    isFocused: (
-      categoryName: string | null,
-      id: number,
-      isText: boolean = false
-    ) =>
-      focus.isDrawing
-        ? focus.objectId === id && !isText // if in drawing mode show the drawing object which is not text
-        : focus.categoryName === null || // if not in drawing mode and not focus on any special category
-          (focus.categoryName === categoryName && // if focus specific category
-            (focus.objectId === null || (focus.objectId === id && !isText))), // should specify not text object or any object
+    // for canvas
+    canObjectShow: ({
+      categoryName,
+      id,
+      isText = false
+    }: {
+      categoryName: string | null
+      id: number
+      isText?: boolean
+    }) =>
+      focus.isDrawing || focus.objectId !== null // If is drawing mode or focusing a label now,
+        ? focus.objectId === id && !isText // show corresponding non text object.
+        : !(focus.categoryName && focus.categoryName !== categoryName), // Ohterwise, only the wrong category will not be displayed.
+
+    // for category panel
+    isFocused: ({ categoryName, id }: { categoryName: string; id?: number }) =>
+      id !== undefined // If compare object,
+        ? focus.objectId === id // compare their id,
+        : focus.categoryName === categoryName, // Or not, compare the category
 
     setFocus: ({
       object,
       categoryName
     }: {
-      object?: Label | fabric.Object
+      object?: Label | fabric.Object | number
       categoryName?: string | null
     }) => {
       if (!object && !categoryName)
@@ -65,6 +85,8 @@ export const useFocus = () => {
         const { id, categoryName } = object as any
         if (id !== (null || undefined) && categoryName)
           focusRef.current = { ...focus, categoryName, objectId: id }
+      } else if (typeof object === 'number') {
+        focusRef.current = { ...focus, categoryName, objectId: object }
       }
       update()
     },
