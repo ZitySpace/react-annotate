@@ -2,6 +2,7 @@
 import React, { useEffect, useLayoutEffect, useState } from 'react'
 import { useEffectOnce, useStateList } from 'react-use'
 import { ButtonBar } from './components/ButtonBar'
+import { CategoryPanel } from './components/CategoryPanel'
 import { useCanvas } from './hooks/useCanvas'
 import { useColors } from './hooks/useColor'
 import { useContainer } from './hooks/useContainer'
@@ -25,7 +26,6 @@ export const NewImageAnnotater = ({
   categoryColors?: Map<string, string>
   categoryNames?: string[]
   colors?: string[]
-
   onSwitchVisible?: Function // TODO: bind to button
 }) => {
   // Handle inputs with old shape
@@ -114,6 +114,11 @@ export const NewImageAnnotater = ({
   return isAnnosVisible ? (
     <div className='w-full h-full flex flex-col justify-center items-center relative'>
       {ImageContainer}
+      <CategoryPanel
+        groupedState={stateStack.grouped()}
+        focus={focus}
+        annoColors={annoColors}
+      />
       <ButtonBar
         stateStack={stateStack}
         focus={focus}
