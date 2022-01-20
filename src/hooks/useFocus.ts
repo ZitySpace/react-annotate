@@ -63,7 +63,7 @@ export const useFocus = () => {
         focusRef.current = { ...focus, categoryName, objectId: id }
       } else if (object instanceof fabric.Object) {
         const { id, categoryName } = object as any
-        if (id && categoryName)
+        if (id !== (null || undefined) && categoryName)
           focusRef.current = { ...focus, categoryName, objectId: id }
       }
       update()
