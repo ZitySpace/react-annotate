@@ -75,7 +75,7 @@ export class RectLabel implements Rect {
     offset?: Point
     scale?: number
     strokeWidth?: number
-    color: string
+    color?: string
   }) {
     this.x = x
     this.y = y
@@ -89,7 +89,7 @@ export class RectLabel implements Rect {
     this.offset = offset || { x: 0, y: 0 }
     this.scale = scale || 1
     this.strokeWidth = strokeWidth || 1.5
-    this.color = color
+    this.color = color!
   }
 
   scaleTransform(scale: number, offset: Point = { x: 0, y: 0 }) {

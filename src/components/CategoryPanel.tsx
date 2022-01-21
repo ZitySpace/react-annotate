@@ -87,7 +87,6 @@ export const CategoryPanel = ({
               IS_TOUCH_SCREEN ? '' : 'hover:bg-indigo-600 hover:text-gray-100'
             }`}
             onClick={(e) => {
-              console.log(e)
               e.stopPropagation()
               setFocus({ categoryName, object: anno.id })
             }}
