@@ -25,6 +25,7 @@ export const useKeyboard = ({
   const { isDrawing, objectId, categoryName } = focus.now
 
   const deleteObj = () => {
+    if (objectId === null) return
     const newState = nowState.filter((anno) => anno.id !== objectId)
     pushState(newState)
   }
@@ -37,40 +38,45 @@ export const useKeyboard = ({
   const drawLine = draw('Line')
   const drawRect = draw('Rect')
 
+  const plainShortcutMap = {
+    Backspace: deleteObj,
+    Delete: deleteObj,
+    KeyR: drawRect,
+    KeyO: drawPoint,
+    KeyL: drawLine,
+    Period: nextImage,
+    ArrowRight: nextImage,
+    Comma: prevImage,
+    ArrowLeft: prevImage
+  }
+
   const keyboardEventRouter = (event: KeyboardEvent) => {
     event.preventDefault() // prevent default event such as save html
+    const { code, ctrlKey, metaKey, shiftKey, altKey } = event
+    const controlKey = ctrlKey || metaKey
+    const auxiliaryKey = shiftKey || altKey
 
-    switch (event.code) {
-      case 'Backspace':
-      case 'Delete':
-        objectId !== null && deleteObj()
-        break
-      case 'KeyZ':
-        if ((event.ctrlKey || event.metaKey) && !event.shiftKey && canUndo)
-          prevState()
-        else if ((event.ctrlKey || event.metaKey) && event.shiftKey && canRedo)
-          nextState()
-        break
-      case 'KeyR':
-        if ((event.ctrlKey || event.metaKey) && canReset) reset()
-        else if (!event.ctrlKey && !event.metaKey) drawRect()
-        break
-      case 'KeyO':
-        drawPoint()
-        break
-      case 'KeyL':
-        drawLine()
-        break
-      case 'Period':
-      case 'ArrowRight':
-        nextImage()
-        break
-      case 'Comma':
-      case 'ArrowLeft':
-        prevImage()
-        break
-      default:
-        break
+    const combinedShortcutMap = {
+      KeyR: () => {
+        if (!controlKey || auxiliaryKey) return
+        else if (canReset) reset()
+        else throw new Error('Cannot reset.')
+      },
+      KeyZ: () => {
+        if (!controlKey || altKey) return
+
+        if (!shiftKey && canUndo) prevState()
+        else if (!shiftKey && !canUndo) throw new Error('Cannot undo.')
+        else if (shiftKey && canRedo) nextState()
+        else throw new Error('Cannot redo.')
+      }
+    }
+
+    try {
+      if (controlKey || auxiliaryKey) combinedShortcutMap[code]()
+      else plainShortcutMap[code]()
+    } catch (error) {
+      if (!(error instanceof TypeError)) console.log(error)
     }
   }
 
