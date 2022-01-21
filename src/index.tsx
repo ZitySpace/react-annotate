@@ -7,6 +7,7 @@ import { useCanvas } from './hooks/useCanvas'
 import { useColors } from './hooks/useColor'
 import { useContainer } from './hooks/useContainer'
 import { useFocus } from './hooks/useFocus'
+import { useKeyboard } from './hooks/useKeyboard'
 import { useMouseListeners } from './hooks/useMouseListeners'
 import { useStateStack } from './hooks/useStateStack'
 import { Label } from './label/Label'
@@ -93,6 +94,8 @@ export const NewImageAnnotater = ({
     offset,
     scale
   })
+
+  useKeyboard({ stateStack, focus, next, prev })
 
   useEffectOnce(() => {
     if (index) setImageObjAt(index)
