@@ -36,6 +36,8 @@ export const CategoryPanel = ({
   const { setFocus, isFocused } = focus
   const { isDrawing } = focus.now
 
+  groupedState = Object.entries(groupedState)
+
   const CategoryNameAndGearIcon = ({
     categoryName
   }: {
@@ -75,10 +77,10 @@ export const CategoryPanel = ({
         panelType === 2 && !isFocused({ categoryName }) ? 'hidden' : ''
       } `}
     >
-      {annotations.map((anno, idx) => {
+      {annotations.map((anno) => {
         return (
           <div
-            key={idx}
+            key={anno.id}
             className={`h-5 w-5 rounded-md flex justify-center items-center ${
               isFocused({ id: anno.id, categoryName })
                 ? 'bg-indigo-600 text-gray-100'
@@ -117,21 +119,18 @@ export const CategoryPanel = ({
               >
                 <MenuIcon />
               </span>
-              category
+              Category
             </div>
             <div
-              className={`h-full w-full overflow-y-auto ${
+              className={`h-full w-full overflow-y-auto rounded-b-md ${
                 panelType ? '' : 'hidden'
               }`}
             >
-              {Object.entries(groupedState).map(
-                (
-                  [categoryName, annotations]: [string, Label[]],
-                  index: number
-                ) => {
+              {groupedState.map(
+                ([categoryName, annotations]: [string, Label[]]) => {
                   return (
                     <div
-                      key={index}
+                      key={categoryName}
                       className={`px-2 flex flex-col items-end w-full py-1 border-indigo-600 ${
                         isFocused({ categoryName }) ? 'border-l-8' : ''
                       }`}

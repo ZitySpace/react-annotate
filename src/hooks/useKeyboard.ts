@@ -51,7 +51,6 @@ export const useKeyboard = ({
   }
 
   const keyboardEventRouter = (event: KeyboardEvent) => {
-    event.preventDefault() // prevent default event such as save html
     const { code, ctrlKey, metaKey, shiftKey, altKey } = event
     const controlKey = ctrlKey || metaKey
     const auxiliaryKey = shiftKey || altKey
@@ -75,6 +74,7 @@ export const useKeyboard = ({
     try {
       if (controlKey || auxiliaryKey) combinedShortcutMap[code]()
       else plainShortcutMap[code]()
+      event.preventDefault() // prevent default event after execute such as save html
     } catch (error) {
       if (!(error instanceof TypeError)) console.log(error)
     }

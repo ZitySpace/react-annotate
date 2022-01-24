@@ -171,6 +171,7 @@ export const useMouseListeners = ({
 
         const selectedObj = canvas.getActiveObject()
         isPanning.current = !selectedObj
+        isPanning.current && setFocus({})
       }
     },
     'mouse:move': (e: fabric.IEvent<MouseEvent>) => {
