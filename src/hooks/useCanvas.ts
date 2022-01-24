@@ -1,9 +1,6 @@
 import { MutableRefObject, useEffect, useMemo, useRef } from 'react'
 import { Dimension } from '../interface/basic'
-import { Point } from '../label/PointLabel'
-import { UseFocusReturnProps } from './useFocus'
-import { State, UseStateStackReturnProps } from './useStateStack'
-import { UseColorsReturnProps } from './useColor'
+import { STROKE_WIDTH } from '../interface/config'
 import {
   isLabel,
   isLineEndpoint,
@@ -11,8 +8,11 @@ import {
   Label,
   newLabelFromFabricObj
 } from '../label/Label'
-import { STROKE_WIDTH } from '../interface/config'
+import { Point } from '../label/PointLabel'
 import { getBetween } from '../utils/math'
+import { UseColorsReturnProps } from './useColor'
+import { UseFocusReturnProps } from './useFocus'
+import { State, UseStateStackReturnProps } from './useStateStack'
 
 export const useCanvas = ({
   canvasRef,
