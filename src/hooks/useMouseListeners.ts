@@ -52,7 +52,7 @@ export const useMouseListeners = ({
   const setZoomAndGetNewZoom = useCallback(
     (evt: any) => {
       const { deltaY, offsetX: x, offsetY: y } = evt
-      const delta = deltaY * (evt.cancelable ? 10 : 1) // make touchBoard more smooth
+      const delta = deltaY * (evt.cancelable ? 4 : 1) // make touchBoard more smooth
       const zoom = getBetween(canvas.getZoom() * 0.999 ** delta, 0.01, 20)
       canvas.zoomToPoint({ x, y }, zoom)
       return zoom

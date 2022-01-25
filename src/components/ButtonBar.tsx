@@ -29,14 +29,7 @@ export const ButtonBar = ({
   nextImg: (event: any) => void
   prevImg: (event: any) => void
 }) => {
-  const {
-    nowState,
-    can,
-    push: pushState,
-    prev: undo,
-    next: redo,
-    reset
-  } = stateStack
+  const { can, prev: undo, next: redo, reset, deleteObject } = stateStack
 
   const { redo: canRedo, undo: canUndo, reset: canReset, save: canSave } = can
   const {
@@ -44,11 +37,6 @@ export const ButtonBar = ({
     setDrawing,
     setFocus
   } = focus
-
-  const deleteObj = () => {
-    const newState = nowState.filter((anno) => anno.id !== objectId)
-    pushState(newState)
-  }
 
   const draw = (labelType: string | null) => () => {
     setDrawing(isDrawing === labelType ? null : labelType)
@@ -77,7 +65,7 @@ export const ButtonBar = ({
 
       <div className={`flex justify-center space-x-2 absolute bottom-0`}>
         <div className='flex justify-center space-x-1'>
-          <Button canUse={focus.now.objectId !== null} onClick={deleteObj}>
+          <Button canUse={objectId !== null} onClick={deleteObject}>
             <TrashIcon className='h-4 w-4' />
           </Button>
 

@@ -13,16 +13,20 @@ export interface Can {
 
 export interface State extends Array<Label> {}
 
-export interface UseStateStackReturnProps {
-  can: Can
-  currentIndex: number
-  nowState: State
+interface Actions {
   set: (newStack: State[]) => void
   push: (newState: State) => void
   prev: () => void
   next: () => void
   reset: () => void
-  grouped: () => any
+  deleteObject: (objectId: number) => void
+  deleteCategory: (category: string) => void
+}
+export interface UseStateStackReturnProps extends Actions {
+  nowState: State
+  groupedState: [string, any][]
+  can: Can
+  currentIndex: number
 }
 
 export const useStateStack = (): UseStateStackReturnProps => {
@@ -34,7 +38,7 @@ export const useStateStack = (): UseStateStackReturnProps => {
     save: false
   })
   const index = useRef<number>(0)
-
+  const nowState = stack.current[index.current - 1] || []
   const update = useUpdate()
 
   useEffect(() => {
@@ -46,10 +50,8 @@ export const useStateStack = (): UseStateStackReturnProps => {
     })
   }, [stack.current.length, index.current])
 
-  const actions = useMemo(
+  const actions: Actions = useMemo(
     () => ({
-      nowState: stack.current[index.current - 1] || [],
-
       set: (newStack: State[]) => {
         stack.current = resolveHookState(newStack)
         index.current = stack.current[0].length ? stack.current.length : 0
@@ -78,13 +80,24 @@ export const useStateStack = (): UseStateStackReturnProps => {
         update()
       },
 
-      grouped: () =>
-        actions.nowState ? groupBy(actions.nowState, 'categoryName') : {}
+      deleteObject: (objectId: number) => {
+        const newState = nowState.filter(({ id }) => id !== objectId)
+        actions.push(newState)
+      },
+
+      deleteCategory: (category: string) => {
+        const newState = nowState.filter(
+          ({ categoryName }) => categoryName !== category
+        )
+        actions.push(newState)
+      }
     }),
     [stack.current, index.current, can]
   )
 
   return {
+    nowState,
+    groupedState: nowState ? groupBy(nowState, 'categoryName') : [],
     can: can,
     currentIndex: index.current,
     ...actions
