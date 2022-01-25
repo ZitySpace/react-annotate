@@ -28,26 +28,20 @@ export const isTouchEvent = (event: React.TouchEvent | React.MouseEvent) =>
   typeof TouchEvent !== 'undefined' && event instanceof TouchEvent
 
 /**
- * Intercept the string and use ... to replace
- * @param str target string
- * @param len target length of origin string
- * @returns abbreviation
- */
-export const getAbbreviation = (str: string, len: number = 7) =>
-  str.slice(0, len) + (str.length > len ? '...' : '')
-
-/**
  *  Group annotations by given property
  * @param annotations annotation list
  * @param property target property
  * @returns grouped annotations
  */
 export const groupBy = (annotations: Label[], property: string) => {
-  return annotations.reduce((groupedAnnos: any, theAnno: Label) => {
-    if (!groupedAnnos[theAnno[property]]) {
-      groupedAnnos[theAnno[property]] = []
-    }
-    groupedAnnos[theAnno[property]].push(theAnno)
-    return groupedAnnos
-  }, {})
+  const groupedAnnosObj = annotations.reduce(
+    (groupedAnnos: Object, theAnno: Label) => {
+      if (!groupedAnnos[theAnno[property]]) groupedAnnos[theAnno[property]] = []
+      groupedAnnos[theAnno[property]].push(theAnno)
+      return groupedAnnos
+    },
+    {}
+  )
+
+  return Object.entries(groupedAnnosObj)
 }
