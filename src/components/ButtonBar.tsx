@@ -77,7 +77,7 @@ export const ButtonBar = ({
 
       <div className={`flex justify-center space-x-2 absolute bottom-0`}>
         <div className='flex justify-center space-x-1'>
-          <Button canUse={!!focus.now.objectId} onClick={deleteObj}>
+          <Button canUse={focus.now.objectId !== null} onClick={deleteObj}>
             <TrashIcon className='h-4 w-4' />
           </Button>
 
