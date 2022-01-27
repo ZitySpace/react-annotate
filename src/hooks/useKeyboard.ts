@@ -13,21 +13,18 @@ export const useKeyboard = ({
   next: () => void
 }) => {
   const {
-    nowState,
     can,
     prev: prevState,
     next: nextState,
     reset,
-    push: pushState
+    deleteObject
   } = stateStack
   const { undo: canUndo, redo: canRedo, reset: canReset } = can
   const { setDrawing, setFocus } = focus
   const { isDrawing, objectId, categoryName } = focus.now
 
   const deleteObj = () => {
-    if (objectId === null) return
-    const newState = nowState.filter((anno) => anno.id !== objectId)
-    pushState(newState)
+    deleteObject(objectId!)
   }
 
   const draw = (labelType: string | null) => () => {
@@ -51,6 +48,8 @@ export const useKeyboard = ({
   }
 
   const keyboardEventRouter = (event: KeyboardEvent) => {
+    if (event['path'][0] instanceof HTMLInputElement) return // prevent interfere keyboard input
+
     const { code, ctrlKey, metaKey, shiftKey, altKey } = event
     const controlKey = ctrlKey || metaKey
     const auxiliaryKey = shiftKey || altKey
