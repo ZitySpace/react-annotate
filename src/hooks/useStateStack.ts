@@ -14,13 +14,13 @@ export interface Can {
 export interface State extends Array<Label> {}
 
 interface Actions {
-  set: (newStack: State[]) => void
-  push: (newState: State) => void
-  prev: () => void
-  next: () => void
-  reset: () => void
-  deleteObject: (objectId: number) => void
-  deleteCategory: (category: string) => void
+  set: (newStack: State[]) => boolean
+  push: (newState: State) => boolean
+  prev: () => boolean
+  next: () => boolean
+  reset: () => boolean
+  deleteObject: (objectId: number) => boolean
+  deleteCategory: (category: string) => boolean
 }
 export interface UseStateStackReturnProps extends Actions {
   nowState: State
@@ -56,40 +56,49 @@ export const useStateStack = (): UseStateStackReturnProps => {
         stack.current = resolveHookState(newStack)
         index.current = stack.current[0].length ? stack.current.length : 0
         update()
+        return true
       },
 
       push: (newState: State) => {
         const newStack = stack.current.slice(0, index.current)
         index.current = newStack.push(newState)
-        actions.set(newStack)
+        return actions.set(newStack)
       },
 
       prev: () => {
         index.current -= can.undo ? 1 : 0
         update()
+        return true
       },
 
       next: () => {
         index.current += can.redo ? 1 : 0
         update()
+        return true
       },
 
       reset: () => {
         if (can.reset)
           index.current = index.current !== 1 ? 1 : stack.current.length
         update()
+        return true
       },
 
       deleteObject: (objectId: number) => {
+        if (!nowState.map(({ id }) => id).includes(objectId)) return false
         const newState = nowState.filter(({ id }) => id !== objectId)
-        actions.push(newState)
+        return actions.push(newState)
       },
 
       deleteCategory: (category: string) => {
+        if (
+          !nowState.map(({ categoryName }) => categoryName).includes(category)
+        )
+          return false
         const newState = nowState.filter(
           ({ categoryName }) => categoryName !== category
         )
-        actions.push(newState)
+        return actions.push(newState)
       }
     }),
     [stack.current, index.current, can]
