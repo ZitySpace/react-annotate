@@ -10,9 +10,9 @@ export interface ImageObject {
 }
 
 export interface Focus {
-  isDrawing?: string | null
-  categoryName?: string | null
-  objectId?: number | null
+  isDrawing: string | null
+  categoryName: string | null
+  objectId: number | null
 }
 
 export interface Dimension {

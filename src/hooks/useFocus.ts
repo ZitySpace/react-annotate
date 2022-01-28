@@ -74,7 +74,7 @@ export const useFocus = () => {
       if (!object && !categoryName)
         // usage: setObject({}) not focus on any classes or objects
         focusRef.current = { ...focus, objectId: null, categoryName: null }
-      else if (typeof object === 'number')
+      else if (typeof object === 'number' && categoryName !== undefined)
         focusRef.current = { ...focus, categoryName, objectId: object }
       else if (categoryName)
         // usage: setObject({categoryName}) only focus category and not focus object

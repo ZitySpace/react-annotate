@@ -92,9 +92,18 @@ export const useCanvas = ({
     )
   }
 
-  // Sync state to canvas if state changed
+  // Sync state to canvas & focus if state changed
   useEffect(() => {
-    actions.syncStateToCanvas(nowState)
+    actions.syncStateToCanvas(nowState) // sync state
+    // sync focus
+    const nowCates: string[] = []
+    const nowIds: number[] = []
+    nowState.forEach((anno: Label) => {
+      nowCates.push(anno.categoryName!)
+      nowIds.push(anno.id)
+    })
+    if (!nowCates.includes(focusCate!)) setFocus({})
+    else if (!nowIds.includes(focusObj!)) setFocus({ categoryName: focusCate! })
   }, [nowState])
 
   // Sync Canvas to state when the number of Objects in Canvas changes(mostly incrase) and not equal to state's label's count.

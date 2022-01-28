@@ -38,6 +38,9 @@ export const ButtonBar = ({
     setFocus
   } = focus
 
+  const deleteObj = () => {
+    deleteObject(objectId!)
+  }
   const draw = (labelType: string | null) => () => {
     setDrawing(isDrawing === labelType ? null : labelType)
     setFocus({ categoryName })
@@ -65,7 +68,7 @@ export const ButtonBar = ({
 
       <div className={`flex justify-center space-x-2 absolute bottom-0`}>
         <div className='flex justify-center space-x-1'>
-          <Button canUse={objectId !== null} onClick={deleteObject}>
+          <Button canUse={objectId !== null} onClick={deleteObj}>
             <TrashIcon className='h-4 w-4' />
           </Button>
 
