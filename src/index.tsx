@@ -12,6 +12,7 @@ import { useMouseListeners } from './hooks/useMouseListeners'
 import { useStateStack } from './hooks/useStateStack'
 import { Label } from './label/Label'
 import { RectLabel } from './label/RectLabel'
+import './tailwind.css'
 
 export const NewImageAnnotater = ({
   imagesList,
@@ -46,19 +47,19 @@ export const NewImageAnnotater = ({
       'Params categoryColors can not be empty if categoryNames and colors not exists.'
     )
 
-  const annoColors = useColors({ categoryColors, categoryNames, colors })
-  const [isAnnosVisible] = useState(isAnnotationsVisible)
+  const [isAnnosVisible] = useState(isAnnotationsVisible) // TODO: remove this global state or add setter and bind to button
 
   const {
     state: imageObj,
     setStateAt: setImageObjAt,
     next,
     prev
-  } = useStateList<{ annotations: Label[] }>(imagesList)
+  } = useStateList<{ annotations: Label[] }>(imagesList) // refer: https://github.com/streamich/react-use/blob/master/docs/useStateList.md
 
   // Initialize the main variables
-  const focus = useFocus()
-  const stateStack = useStateStack()
+  const focus = useFocus() // variables shared between canvas and category panel to show user interest in the other one.
+  const stateStack = useStateStack() // handle canvas's state history stack and the buttons bar limits.
+  const annoColors = useColors({ categoryColors, categoryNames, colors }) // handle colors' stuff.
 
   const {
     ImageContainer,
@@ -68,7 +69,7 @@ export const NewImageAnnotater = ({
     boundary,
     offset,
     scale
-  } = useContainer({ imageObj })
+  } = useContainer({ imageObj }) // get tsx fragment and some variable which calculate after image loaded.
 
   const { loadListeners } = useCanvas({
     canvasRef,
@@ -81,7 +82,7 @@ export const NewImageAnnotater = ({
     offset,
     scale,
     stateStack
-  })
+  }) // canvas host canvas' status and responsible for synchronize canvas & focus & stateStack.
 
   const mouseListeners = useMouseListeners({
     canvasRef,
@@ -93,12 +94,13 @@ export const NewImageAnnotater = ({
     boundary,
     offset,
     scale
-  })
+  }) // hanlde mouse & touch board operations logic.
 
-  useKeyboard({ stateStack, focus, next, prev })
+  useKeyboard({ stateStack, focus, next, prev }) // listeners for keyboard for support shortcuts.
 
+  // re-render to set loading index images
   useEffectOnce(() => {
-    if (index) setImageObjAt(index)
+    index && setImageObjAt(index)
   })
 
   useLayoutEffect(() => {
@@ -110,6 +112,7 @@ export const NewImageAnnotater = ({
     stateStack.set([imageAnnos])
   }, [imageDims, canvasDims])
 
+  // remount mouse listeners when it changed.
   useEffect(() => {
     canvasRef.current && loadListeners(mouseListeners) // mount event listeners
   }, [mouseListeners])
@@ -118,7 +121,7 @@ export const NewImageAnnotater = ({
     <div className='w-full h-full flex flex-col justify-center items-center relative'>
       {ImageContainer}
       <CategoryPanel
-        groupedState={stateStack.grouped()}
+        stateStack={stateStack}
         focus={focus}
         annoColors={annoColors}
       />

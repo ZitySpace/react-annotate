@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "React component for computer vision dataset images annotate",
   "author": "ZitySpace",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "repository": "ZitySpace/react-annotate-image",
   "main": "dist/index.js",
   "module": "dist/index.modern.js",
@@ -71,7 +71,6 @@
     "@heroicons/react": "^1.0.5",
     "@use-gesture/react": "^10.2.4",
     "fabric": "^4.6.0",
-    "md5": "^2.3.0",
     "randomcolor": "^0.6.2",
     "react-draggable": "^4.4.4",
     "react-use": "^17.3.2"
