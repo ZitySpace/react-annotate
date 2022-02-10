@@ -22,5 +22,4 @@ yarn-debug.log*
 yarn-error.log*
 
 # temp
-**/hooks/useMouse.ts
-old-index.tsx
+index.back.tsx

@@ -10,7 +10,7 @@ import React, { FormEvent, useRef, useState } from 'react'
 import Draggable from 'react-draggable'
 import { UseFocusReturnProps } from '../hooks/useFocus'
 import { IS_TOUCH_SCREEN } from '../interface/config'
-import { Label } from '../label/Label'
+import { Label } from '../classes/Label'
 import { UseStateStackReturnProps } from '../hooks/useStateStack'
 import { UseColorsReturnProps } from '../hooks/useColor'
 

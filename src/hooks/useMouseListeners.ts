@@ -6,8 +6,8 @@ import {
   STROKE_WIDTH,
   TRANSPARENT
 } from '../interface/config'
-import { isLine, isPoint, isRect, newFabricObjects } from '../label/Label'
-import { Point } from '../label/PointLabel'
+import { isLine, isPoint, isRect, newFabricObjects } from '../classes/Label'
+import { Point } from '../classes/Label/PointLabel'
 import { getBetween } from '../utils/math'
 import { isInvalid, isTouchEvent } from '../utils/util'
 import { UseColorsReturnProps } from './useColor'

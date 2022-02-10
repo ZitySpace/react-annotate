@@ -1,4 +1,4 @@
-import { Label } from '../label/Label'
+import { Label } from '../classes/Label'
 
 export interface ImageObject {
   fileName: string

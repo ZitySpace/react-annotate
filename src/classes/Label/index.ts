@@ -1,6 +1,6 @@
-import { LineLabel } from '../label/LineLabel'
-import { Point, PointLabel } from '../label/PointLabel'
-import { RectLabel } from '../label/RectLabel'
+import { LineLabel } from './LineLabel'
+import { Point, PointLabel } from './PointLabel'
+import { RectLabel } from './RectLabel'
 
 export type Label = PointLabel | LineLabel | RectLabel
 export const LABEL = RectLabel || PointLabel || LineLabel

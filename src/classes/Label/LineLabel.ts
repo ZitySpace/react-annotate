@@ -7,7 +7,7 @@ import {
   STROKE_WIDTH,
   TEXTBOX_DEFAULT_CONFIG,
   TRANSPARENT
-} from '../interface/config'
+} from '../../interface/config'
 import { Point } from './PointLabel'
 
 interface Line extends Point {

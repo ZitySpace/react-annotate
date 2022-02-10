@@ -1,6 +1,8 @@
 // import { fabric } from 'fabric'
 import React, { useEffect, useLayoutEffect, useState } from 'react'
 import { useEffectOnce, useStateList } from 'react-use'
+import { Label } from './classes/Label'
+import { RectLabel } from './classes/Label/RectLabel'
 import { ButtonBar } from './components/ButtonBar'
 import { CategoryPanel } from './components/CategoryPanel'
 import { useCanvas } from './hooks/useCanvas'
@@ -10,8 +12,6 @@ import { useFocus } from './hooks/useFocus'
 import { useKeyboard } from './hooks/useKeyboard'
 import { useMouseListeners } from './hooks/useMouseListeners'
 import { useStateStack } from './hooks/useStateStack'
-import { Label } from './label/Label'
-import { RectLabel } from './label/RectLabel'
 import './tailwind.css'
 
 export const NewImageAnnotater = ({

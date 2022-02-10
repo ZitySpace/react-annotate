@@ -1,5 +1,5 @@
 import { RADIUS, STROKE_WIDTH } from '../interface/config'
-import { Label } from '../label/Label'
+import { Label } from '../classes/Label'
 
 /**
  * Judge that is the label invalid

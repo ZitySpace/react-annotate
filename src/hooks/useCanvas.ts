@@ -7,8 +7,8 @@ import {
   isRect,
   Label,
   newLabelFromFabricObj
-} from '../label/Label'
-import { Point } from '../label/PointLabel'
+} from '../classes/Label'
+import { Point } from '../classes/Label/PointLabel'
 import { getBetween } from '../utils/math'
 import { UseColorsReturnProps } from './useColor'
 import { UseFocusReturnProps } from './useFocus'
@@ -102,6 +102,7 @@ export const useCanvas = ({
       nowCates.push(anno.categoryName!)
       nowIds.push(anno.id)
     })
+    // reset focus if focused obj no exist anymore
     if (!nowCates.includes(focusCate!)) setFocus({})
     else if (!nowIds.includes(focusObj!)) setFocus({ categoryName: focusCate! })
   }, [nowState])

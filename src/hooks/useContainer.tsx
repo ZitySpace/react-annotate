@@ -1,7 +1,7 @@
 import { fabric } from 'fabric'
 import React, { useCallback, useRef, useState } from 'react'
 import { Dimension } from '../interface/basic'
-import { Point } from '../label/PointLabel'
+import { Point } from '../classes/Label/PointLabel'
 
 /**
  * Load image and re-initialize canvas, then calculate the dimensions ans so on.

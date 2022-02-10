@@ -4,7 +4,7 @@ import {
   STROKE_WIDTH,
   TEXTBOX_DEFAULT_CONFIG,
   TRANSPARENT
-} from '../interface/config'
+} from '../../interface/config'
 
 export interface Point {
   x: number
