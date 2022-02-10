@@ -1,17 +1,18 @@
 import {
-  CogIcon,
+  ChevronDownIcon,
   MenuAlt2Icon,
   MenuAlt3Icon,
   MenuAlt4Icon,
   MenuIcon
 } from '@heroicons/react/solid'
-import React, { useState } from 'react'
+import { TrashIcon } from '@heroicons/react/outline'
+import React, { FormEvent, useRef, useState } from 'react'
 import Draggable from 'react-draggable'
-import { UseColorsReturnProps } from '../hooks/useColor'
 import { UseFocusReturnProps } from '../hooks/useFocus'
 import { IS_TOUCH_SCREEN } from '../interface/config'
 import { Label } from '../label/Label'
-import { getAbbreviation } from '../utils/util'
+import { UseStateStackReturnProps } from '../hooks/useStateStack'
+import { UseColorsReturnProps } from '../hooks/useColor'
 
 const MENU_ICONS = {
   0: MenuAlt4Icon,
@@ -21,47 +22,70 @@ const MENU_ICONS = {
 }
 
 export const CategoryPanel = ({
-  groupedState,
+  stateStack,
   focus,
   annoColors
 }: {
-  groupedState: any
+  stateStack: UseStateStackReturnProps
   focus: UseFocusReturnProps
   annoColors: UseColorsReturnProps
 }) => {
   const [panelType, setPanelType] = useState<number>(1)
-  const togglePanelType = () => setPanelType((panelType + 1) % 4)
+  const togglePanelType = () => setPanelType((prevType) => (prevType + 1) % 4)
   const MenuIcon = MENU_ICONS[panelType]
 
-  const { setFocus, isFocused } = focus
-  const { isDrawing } = focus.now
+  const { setFocus, isFocused, now: nowFocus } = focus
+  const { groupedState, deleteObject, deleteCategory } = stateStack
+  const labels = groupedState
 
-  groupedState = Object.entries(groupedState)
+  const inputCache = useRef<string>()
+  const handleInput = (event: FormEvent) => {
+    inputCache.current = event.target['value']
+    console.log(inputCache.current)
+  }
 
-  const CategoryNameAndGearIcon = ({
-    categoryName
-  }: {
-    categoryName: string
-  }) => (
+  const handleDelete = () => {
+    nowFocus.objectId !== null && deleteObject(nowFocus.objectId!)
+    nowFocus.objectId === null &&
+      nowFocus.categoryName !== null &&
+      deleteCategory(nowFocus.categoryName!)
+  }
+
+  const OperationPanel = ({ categoryName }: { categoryName: string }) => (
+    <div
+      className={`w-6 h-max ${isFocused({ categoryName }) ? '' : 'invisible'}`}
+    >
+      <button
+        onClick={handleDelete}
+        className='w-full h-full text-white bg-red-400 flex rounded-l-md'
+      >
+        <TrashIcon className='w-4 h-4 m-auto' />
+      </button>
+      {/* <div className='h-1/2 text-white bg-indigo-400 flex rounded-l-md'>
+    <ColorSwatchIcon className='w-4 h-4 m-auto' />
+  </div> */}
+    </div>
+  )
+
+  const CategoryName = ({ categoryName }: { categoryName: string }) => (
     <div
       className={`pb-1 static w-full flex justify-end ${
         panelType === 3 && !isFocused({ categoryName }) ? 'hidden' : ''
       }`}
     >
-      <div
-        className={`absolute left-0 transform -translate-x-6 md:-translate-x-8 ${
-          !isDrawing && isFocused({ categoryName }) ? 'visible' : 'invisible'
-        }`}
-      >
-        <CogIcon
-          className={`w-6 h-6 md:w-8 md:h-8 ${
-            // showCateEditBar TODO
-            // category ? 'text-indigo-600' : 'text-gray-700'
-            'text-indigo-600'
-          } `}
+      <button type='button' className='inline-flex -mr-1'>
+        <input
+          className='w-24 truncate bg-transparent text-center px-0.5 focus:border-none'
+          defaultValue={categoryName}
+          onInput={handleInput}
+          onFocus={() => {
+            inputCache.current = ''
+          }}
+          disabled={!isFocused({ categoryName })}
+          type='text'
         />
-      </div>
-      <span>{getAbbreviation(categoryName)}</span>
+        <ChevronDownIcon className='h-4 w-4 text-gray-400 mr-0 hidden' />
+      </button>
     </div>
   )
 
@@ -73,83 +97,81 @@ export const CategoryPanel = ({
     annotations: Label[]
   }) => (
     <div
-      className={`grid grid-cols-3 gap-1 mr-0.5 flex-row-reverse ${
+      className={`grid grid-cols-4 gap-1 mr-0.5 flex-row-reverse ${
         panelType === 2 && !isFocused({ categoryName }) ? 'hidden' : ''
       } `}
     >
-      {annotations.map((anno) => {
-        return (
-          <div
-            key={anno.id}
-            className={`h-5 w-5 rounded-md flex justify-center items-center ${
-              isFocused({ id: anno.id, categoryName })
-                ? 'bg-indigo-600 text-gray-100'
-                : 'bg-gray-200'
-            } ${
-              IS_TOUCH_SCREEN ? '' : 'hover:bg-indigo-600 hover:text-gray-100'
-            }`}
-            onClick={(e) => {
-              e.stopPropagation()
-              setFocus({ categoryName, object: anno.id })
-            }}
-          >
-            <span>{anno.id}</span>
-          </div>
-        )
-      })}
+      {annotations.map((anno) => (
+        <div
+          key={anno.id}
+          className={`h-5 w-5 rounded-md flex justify-center items-center ${
+            isFocused({ id: anno.id, categoryName })
+              ? 'bg-indigo-600 text-gray-100'
+              : 'bg-gray-200'
+          } ${
+            IS_TOUCH_SCREEN ? '' : 'hover:bg-indigo-600 hover:text-gray-100'
+          }`}
+          onClick={(e) => {
+            e.stopPropagation()
+            setFocus({ categoryName, object: anno.id })
+          }}
+        >
+          <span>{anno.id}</span>
+        </div>
+      ))}
     </div>
   )
 
   return (
     <div className='absolute w-full h-full pb-7 md:pb-9 invisible'>
-      <div className={`relative h-full p-2 overflow-hidden`}>
+      <div className='relative h-full p-2 overflow-hidden'>
         <Draggable
           bounds='parent'
-          handle='#cate_handle'
+          handle='.cate_handle'
           cancel='.selbar-state-icon'
         >
-          <div className='bg-gray-100 bg-opacity-0 absolute top-2 right-2 visible rounded-md max-h-full w-24 flex flex-col items-end text-xs shadow-lg select-none'>
-            <div
-              id='cate_handle'
-              className='bg-indigo-400 py-2 px-2 w-full rounded-t-md flex justify-between'
-            >
-              <span
-                className='h-4 w-4 text-gray-700 selbar-state-icon'
+          <div className='bg-gray-100 bg-opacity-0 absolute bottom-2 right-2 visible max-h-full w-34 flex flex-col items-end text-xs select-none'>
+            <div className='bg-indigo-400 py-2 px-2 w-28 rounded-t-md flex justify-between cate_handle'>
+              <MenuIcon
                 onClick={togglePanelType}
-              >
-                <MenuIcon />
-              </span>
-              Category
+                className='h-4 w-4 text-gray-700 selbar-state-icon'
+              />
+              <span className='mx-auto'>Category</span>
             </div>
+
             <div
-              className={`h-full w-full overflow-y-auto rounded-b-md ${
+              className={`h-full w-full overflow-y-auto${
                 panelType ? '' : 'hidden'
               }`}
             >
-              {groupedState.map(
-                ([categoryName, annotations]: [string, Label[]]) => {
-                  return (
-                    <div
-                      key={categoryName}
-                      className={`px-2 flex flex-col items-end w-full py-1 border-indigo-600 ${
-                        isFocused({ categoryName }) ? 'border-l-8' : ''
-                      }`}
-                      style={{
-                        backgroundColor: annoColors.get(categoryName)
-                      }}
-                      onClick={() => {
-                        setFocus({ categoryName })
-                      }}
-                    >
-                      <CategoryNameAndGearIcon categoryName={categoryName} />
-                      <AnnotationIdGrid
-                        categoryName={categoryName}
-                        annotations={annotations}
-                      />
-                    </div>
-                  )
-                }
-              )}
+              {labels.map(([categoryName, annotations]: [string, Label[]]) => (
+                <div className='flex flex-row'>
+                  <OperationPanel categoryName={categoryName} />
+
+                  <div
+                    key={categoryName}
+                    className='w-28 p-2 flex flex-col items-end border-indigo-600'
+                    style={{
+                      backgroundColor: annoColors.get(categoryName)
+                    }}
+                    onClick={() => {
+                      !isFocused({ categoryName }) && setFocus({ categoryName })
+                    }}
+                  >
+                    <CategoryName categoryName={categoryName} />
+                    <AnnotationIdGrid
+                      categoryName={categoryName}
+                      annotations={annotations}
+                    />
+                  </div>
+                </div>
+              ))}
+              {/* <div 
+                onClick={addCategory}
+                className='text-gray-700 hover:bg-indigo-600 hover:text-white'
+              >
+                <PlusSmIcon className='w-5 h-5 m-auto' />
+              </div> */}
             </div>
           </div>
         </Draggable>
