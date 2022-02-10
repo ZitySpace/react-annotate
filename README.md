@@ -10,10 +10,9 @@ Still under development.
 
 ## Development this repo
 
-1. After clone this repo, check out to `jason` branch, which is the main dev branch now.
-2. run `yarn` to install dependencies in root path.
-3. run `yarn start` to start the process which watch the files changes and build in real time. The process wouldn't stop until you press `ctrl + c`.
-4. New a terminal and enter the _example_ dir, and run `yarn && yarn start` to start the development server.
+1. run `yarn` to install dependencies in root path.
+2. run `yarn start` to start the process which watch the files changes and build in real time. The process wouldn't stop until you press `ctrl + c`.
+3. New a terminal and enter the **example** dir, then run `yarn` to install dependencies and run `yarn start` to start the development server.
 
 ## License
 
