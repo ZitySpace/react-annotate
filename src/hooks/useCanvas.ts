@@ -1,5 +1,4 @@
 import { MutableRefObject, useEffect, useMemo, useRef } from 'react'
-import { STROKE_WIDTH } from '../interface/config'
 import {
   isLabel,
   isLineEndpoint,
@@ -12,6 +11,7 @@ import { UseColorsReturnProps } from './useColor'
 import { UseFocusReturnProps } from './useFocus'
 import { State, UseStateStackReturnProps } from './useStateStack'
 import { CanvasProps } from './useContainer'
+import { STROKE_WIDTH } from '../interfaces/config'
 
 export const useCanvas = ({
   canvasRef,

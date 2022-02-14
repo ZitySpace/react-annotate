@@ -3,7 +3,7 @@ import {
   RECT_DEFAULT_CONFIG,
   STROKE_WIDTH,
   TEXTBOX_DEFAULT_CONFIG
-} from '../../interface/config'
+} from '../../interfaces/config'
 import { Point } from './PointLabel'
 
 interface Rect extends Point {

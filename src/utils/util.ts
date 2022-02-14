@@ -1,4 +1,4 @@
-import { RADIUS, STROKE_WIDTH } from '../interface/config'
+import { RADIUS, STROKE_WIDTH } from '../interfaces/config'
 import { Label } from '../classes/Label'
 
 /**

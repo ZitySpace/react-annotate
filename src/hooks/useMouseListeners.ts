@@ -4,7 +4,7 @@ import {
   NEW_CATEGORY_NAME,
   STROKE_WIDTH,
   TRANSPARENT
-} from '../interface/config'
+} from '../interfaces/config'
 import { isLine, isPoint, isRect, newFabricObjects } from '../classes/Label'
 import { Point } from '../classes/Label/PointLabel'
 import { getBetween } from '../utils/math'

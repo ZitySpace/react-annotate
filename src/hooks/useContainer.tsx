@@ -1,6 +1,6 @@
 import { fabric } from 'fabric'
 import React, { useCallback, useRef, useState } from 'react'
-import { Dimension } from '../interface/basic'
+import { Dimension } from '../interfaces/basic'
 import { Point } from '../classes/Label/PointLabel'
 
 export interface CanvasProps {

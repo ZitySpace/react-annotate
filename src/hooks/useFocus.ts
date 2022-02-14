@@ -1,7 +1,7 @@
 import { fabric } from 'fabric'
 import { useRef } from 'react'
 import { useUpdate } from 'react-use'
-import { Focus } from '../interface/basic'
+import { Focus } from '../interfaces/basic'
 import { LABEL, Label } from '../classes/Label'
 
 export interface UseFocusReturnProps {
