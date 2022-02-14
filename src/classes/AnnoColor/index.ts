@@ -1,11 +1,11 @@
 import randomColor from 'randomcolor'
 
-export class AnnoColors {
+export class AnnoColor {
   private colors: Map<string, string>
 
   constructor({})
   constructor({ categoryColors }: { categoryColors: Map<string, string> })
-  constructor({ AnnoColors }: { AnnoColors: AnnoColors })
+  constructor({ annoColor }: { annoColor: AnnoColor })
   constructor({
     categoryNames,
     colors
@@ -14,19 +14,19 @@ export class AnnoColors {
     colors: string[]
   })
   constructor({
-    AnnoColors,
+    annoColor,
     categoryColors,
     categoryNames,
     colors
   }: {
-    AnnoColors?: AnnoColors
+    annoColor?: AnnoColor
     categoryColors?: Map<string, string>
     categoryNames?: string[]
     colors?: string[]
   }) {
     this.colors = new Map()
-    if (AnnoColors || categoryColors) {
-      this.colors = AnnoColors?.colors || categoryColors || new Map()
+    if (annoColor || categoryColors) {
+      this.colors = annoColor?.colors || categoryColors || new Map()
     } else if (categoryNames && colors) {
       for (let i = 0; i < categoryNames.length; i++) {
         this.colors.set(categoryNames[i], colors[i] || randomColor())
@@ -47,9 +47,9 @@ export class AnnoColors {
     return newColor
   }
 
-  private addRandom(categoryName: string) {
+  private addRandom(category: string) {
     const newColor = this.getRandomColor()
-    this.colors.set(categoryName, newColor)
+    this.colors.set(category, newColor)
     return newColor
   }
 
@@ -57,12 +57,12 @@ export class AnnoColors {
     return this.colors.size
   }
 
-  get(categoryName: string) {
-    return this.colors.get(categoryName) || this.addRandom(categoryName)
+  get(category: string) {
+    return this.colors.get(category) || this.addRandom(category)
   }
 
-  set(categoryName: string, newColor: string): void {
-    this.colors.set(categoryName, newColor)
+  set(category: string, color: string): void {
+    this.colors.set(category, color)
   }
 
   rename(oldCategoryName: string, newCategoryName: string) {
