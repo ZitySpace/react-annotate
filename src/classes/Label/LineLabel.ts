@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 import { fabric } from 'fabric'
 import {
   LINE_DEFAULT_CONFIG,
