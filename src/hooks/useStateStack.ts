@@ -21,6 +21,7 @@ interface Actions {
   reset: () => boolean
   deleteObject: (objectId: number) => boolean
   deleteCategory: (category: string) => boolean
+  renameCategory: (oldName: string, newName: string) => void
 }
 export interface UseStateStackReturnProps extends Actions {
   nowState: State
@@ -99,6 +100,15 @@ export const useStateStack = (): UseStateStackReturnProps => {
           ({ categoryName }) => categoryName !== category
         )
         return actions.push(newState)
+      },
+
+      renameCategory(oldCategory: string, newCategory: string) {
+        nowState.forEach((label) => {
+          label.categoryName =
+            label.categoryName === oldCategory
+              ? newCategory
+              : label.categoryName
+        })
       }
     }),
     [stack.current, index.current, can]
