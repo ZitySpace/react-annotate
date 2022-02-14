@@ -55,65 +55,63 @@ export const ButtonBar = ({
   const isDrawingRect = isDrawingMe('Rect')
 
   return (
-    <div className='flex justify-center items-center'>
-      <div className='flex justify-center space-x-1 absolute bottom-0 right-1 md:right-1/4'>
-        <Button canUse={true} onClick={prevImg}>
-          <ChevronLeftIcon className='h-4 w-4' />
-        </Button>
-
-        <Button canUse={true} onClick={nextImg}>
-          <ChevronRightIcon className='h-4 w-4' />
-        </Button>
-      </div>
-
-      <div className={`flex justify-center space-x-2 absolute bottom-0`}>
-        <div className='flex justify-center space-x-1'>
-          <Button canUse={objectId !== null} onClick={deleteObj}>
-            <TrashIcon className='h-4 w-4' />
-          </Button>
-
-          <Button isUsing={isDrawingRect} onClick={drawRect}>
-            <RectangleIcon />
-          </Button>
-
-          <Button isUsing={isDrawingPoint} onClick={drawPoint}>
-            <PointIcon />
-          </Button>
-
-          <Button isUsing={isDrawingLine} onClick={drawLine}>
-            <LineIcon />
-          </Button>
-
-          <Button canUse={canUndo} onClick={undo}>
-            <UndoIcon />
-          </Button>
-
-          <Button canUse={canRedo} onClick={redo}>
-            <RedoIcon />
-          </Button>
-
-          <Button canUse={canReset} onClick={reset}>
-            <ResetIcon />
-          </Button>
-
-          <Button
-            canUse={canSave}
-            onClick={() => {
-              console.log('sava clicked')
-            }}
-          >
-            <HeavyFloppyIcon />
-          </Button>
-        </div>
-      </div>
-
-      <div className='flex justify-center space-x-1 absolute bottom-0 left-1 md:left-1/4'>
+    <div className='h-9 flex justify-center space-x-8 items-center absolute bottom-0'>
+      <div className='flex justify-center space-x-1'>
         <Button
           onClick={() => {
             console.log('close clicked')
           }}
         >
           <XIcon className='w-4 h-4' />
+        </Button>
+      </div>
+
+      <div className='flex justify-center space-x-1'>
+        <Button canUse={objectId !== null} onClick={deleteObj}>
+          <TrashIcon className='h-4 w-4' />
+        </Button>
+
+        <Button isUsing={isDrawingRect} onClick={drawRect}>
+          <RectangleIcon />
+        </Button>
+
+        <Button isUsing={isDrawingPoint} onClick={drawPoint}>
+          <PointIcon />
+        </Button>
+
+        <Button isUsing={isDrawingLine} onClick={drawLine}>
+          <LineIcon />
+        </Button>
+
+        <Button canUse={canUndo} onClick={undo}>
+          <UndoIcon />
+        </Button>
+
+        <Button canUse={canRedo} onClick={redo}>
+          <RedoIcon />
+        </Button>
+
+        <Button canUse={canReset} onClick={reset}>
+          <ResetIcon />
+        </Button>
+
+        <Button
+          canUse={canSave}
+          onClick={() => {
+            console.log('sava clicked')
+          }}
+        >
+          <HeavyFloppyIcon />
+        </Button>
+      </div>
+
+      <div className='flex justify-center space-x-1'>
+        <Button canUse={true} onClick={prevImg}>
+          <ChevronLeftIcon className='h-4 w-4' />
+        </Button>
+
+        <Button canUse={true} onClick={nextImg}>
+          <ChevronRightIcon className='h-4 w-4' />
         </Button>
       </div>
     </div>
