@@ -166,6 +166,7 @@ export const useMouseListeners = ({
       canvas.renderAll()
     },
     'mouse:down': (e: fabric.IEvent<MouseEvent>) => {
+      ;(document.activeElement as HTMLElement).blur() // canvas would block blur event, need set it manually
       if (nowFocus.isDrawing) drawOnMouseDown(e)
       else {
         const evt = e.e as any
