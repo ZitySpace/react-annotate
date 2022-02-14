@@ -2,8 +2,6 @@ import React, { useEffect, useLayoutEffect, useState } from 'react'
 import { useEffectOnce, useStateList } from 'react-use'
 import { Label } from '../classes/Label'
 import { RectLabel } from '../classes/Label/RectLabel'
-import { ButtonBar } from '../components/ButtonBar'
-import { CategoryPanel } from '../components/CategoryPanel'
 import { useCanvas } from '../hooks/useCanvas'
 import { useColors } from '../hooks/useColor'
 import { useContainer } from '../hooks/useContainer'
@@ -12,6 +10,8 @@ import { useKeyboard } from '../hooks/useKeyboard'
 import { useMouseListeners } from '../hooks/useMouseListeners'
 import { useStateStack } from '../hooks/useStateStack'
 import '../tailwind.css'
+import { ButtonBar } from './ButtonBar'
+import { CategoryPanel } from './CategoryPanel'
 
 export const Annotater = ({
   imagesList,
@@ -58,7 +58,7 @@ export const Annotater = ({
   // Initialize the main variables
   const focus = useFocus() // variables shared between canvas and category panel to show user interest in the other one.
   const stateStack = useStateStack() // handle canvas's state history stack and the buttons bar limits.
-  const annoColors = useColors({ categoryColors, categoryNames, colors }) // handle colors' stuff.
+  const annoColors = useColors() // handle colors' stuff.
 
   const { ImageContainer, canvasRef, canvasProps } = useContainer({ imageObj }) // get tsx fragment and some variable which calculate after image loaded.
 
@@ -92,6 +92,7 @@ export const Annotater = ({
     const imageAnnos = imageObj.annotations.map((anno) =>
       anno.scaleTransform(canvasProps.scale, canvasProps.offset)
     )
+    annoColors.init({ categoryColors, categoryNames, colors }) // initialize colors
     stateStack.set([imageAnnos])
   }, [canvasProps.imageDims, canvasProps.canvasDims])
 
