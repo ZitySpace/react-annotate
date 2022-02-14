@@ -1,18 +1,18 @@
+import { TrashIcon } from '@heroicons/react/outline'
 import {
-  ChevronDownIcon,
   MenuAlt2Icon,
   MenuAlt3Icon,
   MenuAlt4Icon,
   MenuIcon
 } from '@heroicons/react/solid'
-import { TrashIcon } from '@heroicons/react/outline'
-import React, { FormEvent, useRef, useState } from 'react'
+import React, { useState } from 'react'
 import Draggable from 'react-draggable'
-import { UseFocusReturnProps } from '../hooks/useFocus'
-import { IS_TOUCH_SCREEN } from '../interface/config'
-import { Label } from '../classes/Label'
-import { UseStateStackReturnProps } from '../hooks/useStateStack'
-import { UseColorsReturnProps } from '../hooks/useColor'
+import { Label } from '../../classes/Label'
+import { UseColorsReturnProps } from '../../hooks/useColor'
+import { UseFocusReturnProps } from '../../hooks/useFocus'
+import { UseStateStackReturnProps } from '../../hooks/useStateStack'
+import { IS_TOUCH_SCREEN } from '../../interfaces/config'
+import { CategoryName } from './CategoryName'
 
 const MENU_ICONS = {
   0: MenuAlt4Icon,
@@ -35,14 +35,9 @@ export const CategoryPanel = ({
   const MenuIcon = MENU_ICONS[panelType]
 
   const { setFocus, isFocused, now: nowFocus } = focus
-  const { groupedState, deleteObject, deleteCategory } = stateStack
+  const { groupedState, deleteObject, deleteCategory, renameCategory } =
+    stateStack
   const labels = groupedState
-
-  const inputCache = useRef<string>()
-  const handleInput = (event: FormEvent) => {
-    inputCache.current = event.target['value']
-    console.log(inputCache.current)
-  }
 
   const handleDelete = () => {
     nowFocus.objectId !== null && deleteObject(nowFocus.objectId!)
@@ -64,28 +59,6 @@ export const CategoryPanel = ({
       {/* <div className='h-1/2 text-white bg-indigo-400 flex rounded-l-md'>
     <ColorSwatchIcon className='w-4 h-4 m-auto' />
   </div> */}
-    </div>
-  )
-
-  const CategoryName = ({ categoryName }: { categoryName: string }) => (
-    <div
-      className={`pb-1 static w-full flex justify-end ${
-        panelType === 3 && !isFocused({ categoryName }) ? 'hidden' : ''
-      }`}
-    >
-      <button type='button' className='inline-flex -mr-1'>
-        <input
-          className='w-24 truncate bg-transparent text-center px-0.5 focus:border-none'
-          defaultValue={categoryName}
-          onInput={handleInput}
-          onFocus={() => {
-            inputCache.current = ''
-          }}
-          disabled={!isFocused({ categoryName })}
-          type='text'
-        />
-        <ChevronDownIcon className='h-4 w-4 text-gray-400 mr-0 hidden' />
-      </button>
     </div>
   )
 
@@ -158,7 +131,12 @@ export const CategoryPanel = ({
                       !isFocused({ categoryName }) && setFocus({ categoryName })
                     }}
                   >
-                    <CategoryName categoryName={categoryName} />
+                    <CategoryName
+                      categoryName={categoryName}
+                      panelType={panelType}
+                      focus={isFocused({ categoryName })}
+                      renameCategory={renameCategory}
+                    />
                     <AnnotationIdGrid
                       categoryName={categoryName}
                       annotations={annotations}
