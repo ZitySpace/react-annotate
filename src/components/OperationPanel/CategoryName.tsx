@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { useKey } from 'react-use'
 
 export const CategoryName = ({
   categoryName,
@@ -18,10 +19,12 @@ export const CategoryName = ({
     setInputValue(event.target.value)
     console.log(inputValue)
   }
-  const handleBlur = () => {
+  const rename = () => {
     if (!inputValue || inputValue === categoryName) setInputValue(categoryName)
     else renameCategory(categoryName, inputValue)
   }
+
+  useKey('Enter', rename)
 
   return (
     <div
@@ -34,7 +37,7 @@ export const CategoryName = ({
           className='w-full truncate bg-transparent text-center px-0.5'
           value={inputValue}
           onInput={handleInput}
-          onBlur={handleBlur}
+          onBlur={rename}
           disabled={!focus}
           type='text'
         />

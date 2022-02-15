@@ -11,7 +11,7 @@ import { useMouseListeners } from '../hooks/useMouseListeners'
 import { useStateStack } from '../hooks/useStateStack'
 import '../tailwind.css'
 import { ButtonBar } from './ButtonBar'
-import { CategoryPanel } from './CategoryPanel'
+import { OperationPanel } from './OperationPanel'
 
 export const Annotater = ({
   imagesList,
@@ -103,8 +103,9 @@ export const Annotater = ({
 
   return isAnnosVisible ? (
     <div className='w-full h-full flex flex-col justify-center items-center relative'>
+      {/* canvas and loaded image */}
       {ImageContainer}
-      <CategoryPanel
+      <OperationPanel
         stateStack={stateStack}
         focus={focus}
         annoColors={annoColors}

@@ -1,4 +1,3 @@
-import { TrashIcon } from '@heroicons/react/outline'
 import {
   MenuAlt2Icon,
   MenuAlt3Icon,
@@ -21,7 +20,7 @@ const MENU_ICONS = {
   3: MenuAlt3Icon
 }
 
-export const CategoryPanel = ({
+export const OperationPanel = ({
   stateStack,
   focus,
   annoColors
@@ -34,33 +33,9 @@ export const CategoryPanel = ({
   const togglePanelType = () => setPanelType((prevType) => (prevType + 1) % 4)
   const MenuIcon = MENU_ICONS[panelType]
 
-  const { setFocus, isFocused, now: nowFocus } = focus
-  const { groupedState, deleteObject, deleteCategory, renameCategory } =
-    stateStack
+  const { setFocus, isFocused } = focus
+  const { groupedState, renameCategory } = stateStack
   const labels = groupedState
-
-  const handleDelete = () => {
-    nowFocus.objectId !== null && deleteObject(nowFocus.objectId!)
-    nowFocus.objectId === null &&
-      nowFocus.categoryName !== null &&
-      deleteCategory(nowFocus.categoryName!)
-  }
-
-  const OperationPanel = ({ categoryName }: { categoryName: string }) => (
-    <div
-      className={`w-6 h-max ${isFocused({ categoryName }) ? '' : 'invisible'}`}
-    >
-      <button
-        onClick={handleDelete}
-        className='w-full h-full text-white bg-red-400 flex rounded-l-md'
-      >
-        <TrashIcon className='w-4 h-4 m-auto' />
-      </button>
-      {/* <div className='h-1/2 text-white bg-indigo-400 flex rounded-l-md'>
-    <ColorSwatchIcon className='w-4 h-4 m-auto' />
-  </div> */}
-    </div>
-  )
 
   const AnnotationIdGrid = ({
     categoryName,
@@ -118,11 +93,8 @@ export const CategoryPanel = ({
               }`}
             >
               {labels.map(([categoryName, annotations]: [string, Label[]]) => (
-                <div className='flex flex-row'>
-                  <OperationPanel categoryName={categoryName} />
-
+                <div className='flex flex-row' key={categoryName}>
                   <div
-                    key={categoryName}
                     className='w-28 p-2 flex flex-col items-end border-indigo-600'
                     style={{
                       backgroundColor: annoColors.get(categoryName)
