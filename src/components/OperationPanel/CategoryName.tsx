@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { useKey } from 'react-use'
+import { UseFocusReturnProps } from '../../hooks/useFocus'
 
 export const CategoryName = ({
   categoryName,
@@ -9,10 +10,10 @@ export const CategoryName = ({
 }: {
   categoryName: string
   panelType: number
-  focus: boolean
+  focus: UseFocusReturnProps
   renameCategory: Function
 }) => {
-  console.log(categoryName)
+  const { isFocused } = focus
 
   const [inputValue, setInputValue] = useState<string>(categoryName)
   const handleInput = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -29,7 +30,7 @@ export const CategoryName = ({
   return (
     <div
       className={`pb-1 static w-full flex justify-end ${
-        panelType === 3 && !focus ? 'hidden' : ''
+        panelType === 3 && !isFocused({ categoryName }) ? 'hidden' : ''
       }`}
     >
       <button type='button' className='inline-flex -mr-1'>
@@ -38,7 +39,7 @@ export const CategoryName = ({
           value={inputValue}
           onInput={handleInput}
           onBlur={rename}
-          disabled={!focus}
+          disabled={!isFocused({ categoryName })}
           type='text'
         />
       </button>

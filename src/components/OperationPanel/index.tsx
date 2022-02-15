@@ -10,7 +10,7 @@ import { Label } from '../../classes/Label'
 import { UseColorsReturnProps } from '../../hooks/useColor'
 import { UseFocusReturnProps } from '../../hooks/useFocus'
 import { UseStateStackReturnProps } from '../../hooks/useStateStack'
-import { IS_TOUCH_SCREEN } from '../../interfaces/config'
+import { AnnotationsGrid } from './AnnotationsGrid'
 import { CategoryName } from './CategoryName'
 
 const MENU_ICONS = {
@@ -36,39 +36,6 @@ export const OperationPanel = ({
   const { setFocus, isFocused } = focus
   const { groupedState, renameCategory } = stateStack
   const labels = groupedState
-
-  const AnnotationIdGrid = ({
-    categoryName,
-    annotations
-  }: {
-    categoryName: string
-    annotations: Label[]
-  }) => (
-    <div
-      className={`grid grid-cols-4 gap-1 mr-0.5 flex-row-reverse ${
-        panelType === 2 && !isFocused({ categoryName }) ? 'hidden' : ''
-      } `}
-    >
-      {annotations.map((anno) => (
-        <div
-          key={anno.id}
-          className={`h-5 w-5 rounded-md flex justify-center items-center ${
-            isFocused({ id: anno.id, categoryName })
-              ? 'bg-indigo-600 text-gray-100'
-              : 'bg-gray-200'
-          } ${
-            IS_TOUCH_SCREEN ? '' : 'hover:bg-indigo-600 hover:text-gray-100'
-          }`}
-          onClick={(e) => {
-            e.stopPropagation()
-            setFocus({ categoryName, object: anno.id })
-          }}
-        >
-          <span>{anno.id}</span>
-        </div>
-      ))}
-    </div>
-  )
 
   return (
     <div className='absolute w-full h-full pb-7 md:pb-9 invisible'>
@@ -106,12 +73,14 @@ export const OperationPanel = ({
                     <CategoryName
                       categoryName={categoryName}
                       panelType={panelType}
-                      focus={isFocused({ categoryName })}
+                      focus={focus}
                       renameCategory={renameCategory}
                     />
-                    <AnnotationIdGrid
+                    <AnnotationsGrid
                       categoryName={categoryName}
                       annotations={annotations}
+                      panelType={panelType}
+                      focus={focus}
                     />
                   </div>
                 </div>
