@@ -1,5 +1,4 @@
 import { fabric } from 'fabric'
-import { MutableRefObject, useCallback, useEffect, useRef } from 'react'
 import {
   NEW_CATEGORY_NAME,
   STROKE_WIDTH,
@@ -14,6 +13,7 @@ import { UseFocusReturnProps } from './useFocus'
 import { UseStateStackReturnProps } from './useStateStack'
 import { usePinch } from '@use-gesture/react'
 import { CanvasProps } from './useContainer'
+import { MutableRefObject, useCallback, useRef } from 'react'
 
 export const useMouseListeners = ({
   canvasRef,
@@ -135,11 +135,10 @@ export const useMouseListeners = ({
 
   // mount gestures event listener
   const pinchListener = usePinch(() => {})()
-  useEffect(() => {
-    if (!canvas) return
+  if (canvas) {
     const canvasExtendEle = canvas.getElement().parentElement
     canvasExtendEle!.onwheel = pinchListener['onWheel']
-  }, [canvas])
+  }
 
   const listeners = {
     // Reference: http://fabricjs.com/fabric-intro-part-5
