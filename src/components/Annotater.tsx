@@ -60,39 +60,23 @@ export const Annotater = ({
   const stateStack = useStateStack() // handle canvas's state history stack and the buttons bar limits.
   const annoColors = useColors({ categoryColors, categoryNames, colors }) // handle colors' stuff.
 
-  const {
-    ImageContainer,
-    canvasRef,
-    imageDims,
-    canvasDims,
-    boundary,
-    offset,
-    scale
-  } = useContainer({ imageObj }) // get tsx fragment and some variable which calculate after image loaded.
+  const { ImageContainer, canvasRef, canvasProps } = useContainer({ imageObj }) // get tsx fragment and some variable which calculate after image loaded.
 
   const { loadListeners } = useCanvas({
     canvasRef,
+    canvasProps,
     focus,
     isAnnosVisible,
     annoColors,
-    imageDims,
-    canvasDims,
-    boundary,
-    offset,
-    scale,
     stateStack
   }) // canvas host canvas' status and responsible for synchronize canvas & focus & stateStack.
 
   const mouseListeners = useMouseListeners({
     canvasRef,
+    canvasProps,
     stateStack,
     focus,
-    annoColors,
-    imageDims,
-    canvasDims,
-    boundary,
-    offset,
-    scale
+    annoColors
   }) // hanlde mouse & touch board operations logic.
 
   useKeyboard({ stateStack, focus, next, prev }) // listeners for keyboard for support shortcuts.
@@ -106,10 +90,10 @@ export const Annotater = ({
     console.log('imageDims or canvasDims changed')
     // Initialize state stack
     const imageAnnos = imageObj.annotations.map((anno) =>
-      anno.scaleTransform(scale, offset)
+      anno.scaleTransform(canvasProps.scale, canvasProps.offset)
     )
     stateStack.set([imageAnnos])
-  }, [imageDims, canvasDims])
+  }, [canvasProps.imageDims, canvasProps.canvasDims])
 
   // remount mouse listeners when it changed.
   useEffect(() => {

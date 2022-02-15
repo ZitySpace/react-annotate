@@ -3,12 +3,30 @@ import React, { useCallback, useRef, useState } from 'react'
 import { Dimension } from '../interface/basic'
 import { Point } from '../classes/Label/PointLabel'
 
+export interface CanvasProps {
+  imageDims: Dimension // image dimensions in container
+  canvasDims: Dimension // canvas dimensions
+  boundary: { x: number[]; y: number[] } // boundary of image in canvas
+  offset: Point // offset of image in canvas
+  scale: number // scale of image for its original size in canvas
+}
+
+export interface UseContainerReturnProps {
+  ImageContainer: JSX.Element // canvas dom
+  canvasRef: React.RefObject<fabric.Canvas> // fabric.Canvas instance reference
+  canvasProps: CanvasProps // canvas properties
+}
+
 /**
  * Load image and re-initialize canvas, then calculate the dimensions ans so on.
  * @param imageObj: an image object with basic info
  * @returns node of image&canvas container, and some calculated variables
  */
-export const useContainer = ({ imageObj }: { imageObj: any }) => {
+export const useContainer = ({
+  imageObj
+}: {
+  imageObj: any
+}): UseContainerReturnProps => {
   const [imageDims, setImageDims] = useState<Dimension>({ w: 0, h: 0 })
   const [canvasDims, setCanvasDims] = useState<Dimension>({ w: 0, h: 0 })
   const [boundary, setBoundary] = useState<{ x: number[]; y: number[] }>({
@@ -118,10 +136,6 @@ export const useContainer = ({ imageObj }: { imageObj: any }) => {
       </div>
     ),
     canvasRef,
-    imageDims,
-    canvasDims,
-    boundary,
-    offset,
-    scale
+    canvasProps: { imageDims, canvasDims, boundary, offset, scale }
   }
 }

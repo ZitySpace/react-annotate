@@ -1,5 +1,4 @@
 import { MutableRefObject, useEffect, useMemo, useRef } from 'react'
-import { Dimension } from '../interface/basic'
 import { STROKE_WIDTH } from '../interface/config'
 import {
   isLabel,
@@ -8,33 +7,25 @@ import {
   Label,
   newLabelFromFabricObj
 } from '../classes/Label'
-import { Point } from '../classes/Label/PointLabel'
 import { getBetween } from '../utils/math'
 import { UseColorsReturnProps } from './useColor'
 import { UseFocusReturnProps } from './useFocus'
 import { State, UseStateStackReturnProps } from './useStateStack'
+import { CanvasProps } from './useContainer'
 
 export const useCanvas = ({
   canvasRef,
+  canvasProps,
   focus,
   isAnnosVisible,
   annoColors,
-  imageDims,
-  canvasDims,
-  boundary,
-  offset,
-  scale,
   stateStack
 }: {
   canvasRef: MutableRefObject<fabric.Canvas | null>
+  canvasProps: CanvasProps
   focus: UseFocusReturnProps
   isAnnosVisible: boolean
   annoColors: UseColorsReturnProps
-  imageDims: Dimension
-  canvasDims: Dimension
-  boundary: { x: number[]; y: number[] }
-  offset: Point
-  scale: number
   stateStack: UseStateStackReturnProps
 }) => {
   const canvas = canvasRef.current!
@@ -47,9 +38,10 @@ export const useCanvas = ({
   const { setFocus, canObjectShow } = focus
   const { isDrawing, objectId: focusObj, categoryName: focusCate } = focus.now
 
+  const { offset, scale, boundary } = canvasProps
   // TODO: remove
-  let nothing: any = { imageDims, canvasDims, boundary, setObject: setFocus }
-  nothing = !nothing
+  // let nothing: any = { imageDims, canvasDims, boundary, setObject: setFocus }
+  // nothing = !nothing
 
   // render lock used to avoid whole cycle callback caused by canvas changed which will ruin the canvas
   const renderLock = useRef<boolean>(false)

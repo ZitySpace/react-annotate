@@ -1,6 +1,5 @@
 import { fabric } from 'fabric'
 import { MutableRefObject, useCallback, useEffect, useRef } from 'react'
-import { Dimension } from '../interface/basic'
 import {
   NEW_CATEGORY_NAME,
   STROKE_WIDTH,
@@ -14,27 +13,20 @@ import { UseColorsReturnProps } from './useColor'
 import { UseFocusReturnProps } from './useFocus'
 import { UseStateStackReturnProps } from './useStateStack'
 import { usePinch } from '@use-gesture/react'
+import { CanvasProps } from './useContainer'
 
 export const useMouseListeners = ({
   canvasRef,
+  canvasProps,
   stateStack,
   focus,
-  annoColors,
-  imageDims,
-  canvasDims,
-  boundary,
-  offset,
-  scale
+  annoColors
 }: {
   canvasRef: MutableRefObject<fabric.Canvas | null>
+  canvasProps: CanvasProps
   stateStack: UseStateStackReturnProps
   focus: UseFocusReturnProps
   annoColors: UseColorsReturnProps
-  imageDims: Dimension
-  canvasDims: Dimension
-  boundary: { x: number[]; y: number[] }
-  offset: Point
-  scale: number
 }) => {
   const onDrawObj = useRef<fabric.Object | null>()
   const lastPosition = useRef<Point>({ x: 0, y: 0 })
@@ -45,9 +37,10 @@ export const useMouseListeners = ({
   const { nowState } = stateStack
   const { now: nowFocus, setFocus, setDrawing } = focus
 
+  const { canvasDims, boundary } = canvasProps
   // TODO: remove this
-  let nothing: any = { imageDims, offset, scale }
-  nothing = !nothing
+  // let nothing: any = { imageDims, offset, scale }
+  // nothing = !nothing
 
   const setZoomAndGetNewZoom = useCallback(
     (evt: any) => {
