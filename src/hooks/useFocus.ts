@@ -1,8 +1,8 @@
 import { useRef } from 'react'
 import { useUpdate } from 'react-use'
-import { Focus } from '../interfaces/basic'
 import { Label, LabelType } from '../classes/Label'
-import { mostRepeatedValue } from '../utils/util'
+import { Focus } from '../interfaces/basic'
+import { mostRepeatedValue } from '../utils'
 
 export interface UseFocusReturnProps {
   nowFocus: Focus

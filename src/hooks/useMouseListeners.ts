@@ -1,9 +1,6 @@
+import { usePinch } from '@use-gesture/react'
 import { fabric } from 'fabric'
-import {
-  NEW_CATEGORY_NAME,
-  STROKE_WIDTH,
-  TRANSPARENT
-} from '../interfaces/config'
+import { MutableRefObject, useCallback, useRef } from 'react'
 import {
   isLine,
   isPoint,
@@ -12,14 +9,16 @@ import {
   newLabelFromFabricObj
 } from '../classes/Label'
 import { Point } from '../classes/Label/PointLabel'
-import { getBetween } from '../utils/math'
-import { isInvalid, isTouchEvent } from '../utils/util'
+import {
+  NEW_CATEGORY_NAME,
+  STROKE_WIDTH,
+  TRANSPARENT
+} from '../interfaces/config'
+import { getBetween, isInvalid, isTouchEvent } from '../utils'
 import { UseColorsReturnProps } from './useColor'
+import { CanvasProps } from './useContainer'
 import { UseFocusReturnProps } from './useFocus'
 import { UseStateStackReturnProps } from './useStateStack'
-import { usePinch } from '@use-gesture/react'
-import { CanvasProps } from './useContainer'
-import { MutableRefObject, useCallback, useRef } from 'react'
 
 export const useMouseListeners = ({
   canvasRef,

@@ -6,12 +6,12 @@ import {
   Label,
   newLabelFromFabricObj
 } from '../classes/Label'
-import { getBetween } from '../utils/math'
+import { STROKE_WIDTH } from '../interfaces/config'
+import { getBetween } from '../utils'
 import { UseColorsReturnProps } from './useColor'
+import { CanvasProps } from './useContainer'
 import { UseFocusReturnProps } from './useFocus'
 import { State, UseStateStackReturnProps } from './useStateStack'
-import { CanvasProps } from './useContainer'
-import { STROKE_WIDTH } from '../interfaces/config'
 
 export const useCanvas = ({
   canvasRef,
