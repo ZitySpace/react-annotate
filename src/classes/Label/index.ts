@@ -4,6 +4,11 @@ import { RectLabel } from './RectLabel'
 
 export type Label = PointLabel | LineLabel | RectLabel
 export const LABEL = RectLabel || PointLabel || LineLabel
+export enum LabelType {
+  Point = 'Point',
+  Line = 'Line',
+  Rect = 'Rect'
+}
 
 export const newFabricObjects = ({
   type,

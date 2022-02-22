@@ -4,7 +4,13 @@ import {
   STROKE_WIDTH,
   TRANSPARENT
 } from '../interfaces/config'
-import { isLine, isPoint, isRect, newFabricObjects } from '../classes/Label'
+import {
+  isLine,
+  isPoint,
+  isRect,
+  newFabricObjects,
+  newLabelFromFabricObj
+} from '../classes/Label'
 import { Point } from '../classes/Label/PointLabel'
 import { getBetween } from '../utils/math'
 import { isInvalid, isTouchEvent } from '../utils/util'
@@ -35,12 +41,9 @@ export const useMouseListeners = ({
   const canvas = canvasRef.current!
 
   const { nowState } = stateStack
-  const { now: nowFocus, setFocus, setDrawing } = focus
+  const { nowFocus, setDrawingType, setObjects } = focus
 
-  const { canvasDims, boundary } = canvasProps
-  // TODO: remove this
-  // let nothing: any = { imageDims, offset, scale }
-  // nothing = !nothing
+  const { canvasDims, boundary, offset, scale } = canvasProps
 
   const setZoomAndGetNewZoom = useCallback(
     (evt: any) => {
@@ -73,14 +76,14 @@ export const useMouseListeners = ({
     const y = getBetween(nowY, ...boundary.y)
     lastPosition.current = { x, y }
 
-    const categoryName = nowFocus.categoryName || NEW_CATEGORY_NAME
+    const category = nowFocus.category || NEW_CATEGORY_NAME
     const id = Math.max(-1, ...nowState.map((anno) => anno.id)) + 1
-    const color = annoColors.get(categoryName)
+    const color = annoColors.get(category)
 
     const fabricObjects = newFabricObjects({
       position: { x, y },
-      type: nowFocus.isDrawing!,
-      categoryName,
+      type: nowFocus.drawingType!,
+      categoryName: category,
       id,
       color
     })
@@ -120,16 +123,16 @@ export const useMouseListeners = ({
   const drawStopOnMouseUp = () => {
     const obj = onDrawObj.current as any
 
-    if (isInvalid(obj, nowFocus.isDrawing!)) {
+    if (isInvalid(obj, nowFocus.drawingType!)) {
       canvas.remove(...canvas.getObjects().filter((o: any) => o.id === obj.id))
     } else {
-      setFocus(obj)
+      setObjects([newLabelFromFabricObj({ obj, offset, scale })])
       canvas.setActiveObject(obj.labelType !== 'Line' ? obj : obj.endpoints[1])
     }
 
     isDrawingStarted.current = false
     onDrawObj.current = null
-    setDrawing(null)
+    setDrawingType()
     canvas.renderAll()
   }
 
@@ -166,7 +169,7 @@ export const useMouseListeners = ({
     },
     'mouse:down': (e: fabric.IEvent<MouseEvent>) => {
       ;(document.activeElement as HTMLElement).blur() // canvas would block blur event, need set it manually
-      if (nowFocus.isDrawing) drawOnMouseDown(e)
+      if (nowFocus.drawingType) drawOnMouseDown(e)
       else {
         const evt = e.e as any
         const { clientX, clientY } = isTouchEvent(evt) ? evt.touches[0] : evt
@@ -174,7 +177,7 @@ export const useMouseListeners = ({
 
         const selectedObj = canvas.getActiveObject()
         isPanning.current = !selectedObj
-        isPanning.current && setFocus({})
+        isPanning.current && setObjects()
       }
     },
     'mouse:move': (e: fabric.IEvent<MouseEvent>) => {

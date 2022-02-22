@@ -1,4 +1,4 @@
-import { Label } from '../classes/Label'
+import { Label, LabelType } from '../classes/Label'
 
 export interface ImageObject {
   fileName: string
@@ -10,9 +10,10 @@ export interface ImageObject {
 }
 
 export interface Focus {
-  isDrawing: string | null
-  categoryName: string | null
-  objectId: number | null
+  drawingType: LabelType | null
+  visibleType: LabelType[]
+  category: string | null
+  objects: Label[]
 }
 
 export interface Dimension {

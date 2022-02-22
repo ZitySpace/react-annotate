@@ -1,5 +1,5 @@
 import { RADIUS, STROKE_WIDTH } from '../interfaces/config'
-import { Label } from '../classes/Label'
+import { Label, LabelType } from '../classes/Label'
 
 /**
  * Judge that is the label invalid
@@ -7,10 +7,10 @@ import { Label } from '../classes/Label'
  * @param labelType 'Rect' | 'Line'
  * @returns is the obj invalid
  */
-export const isInvalid = (obj: any, labelType: string | null) => {
-  return labelType === 'Rect'
+export const isInvalid = (obj: any, labelType: LabelType | null) => {
+  return labelType === LabelType.Rect
     ? obj.width <= STROKE_WIDTH || obj.height <= STROKE_WIDTH
-    : labelType === 'Line'
+    : labelType === LabelType.Line
     ? obj.endpoints[0]
         .getPointByOrigin()
         .distanceFrom(obj.endpoints[1].getPointByOrigin()) <
@@ -45,3 +45,14 @@ export const groupBy = (annotations: Label[], property: string) => {
 
   return Object.entries(groupedAnnosObj)
 }
+
+/**
+ * Get the value which repeat the most
+ * @param array target array
+ * @returns value which repeat the most
+ */
+export const mostRepeatedValue = (array: any[]) =>
+  array.sort(
+    (a, b) =>
+      array.filter((v) => v === a).length - array.filter((v) => v === b).length
+  )[0]

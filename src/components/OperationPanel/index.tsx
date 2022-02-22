@@ -33,7 +33,7 @@ export const OperationPanel = ({
   const togglePanelType = () => setPanelType((prevType) => (prevType + 1) % 4)
   const MenuIcon = MENU_ICONS[panelType]
 
-  const { setFocus, isFocused } = focus
+  const { setObjects } = focus
   const { groupedState, renameCategory } = stateStack
   const labels = groupedState
 
@@ -66,9 +66,7 @@ export const OperationPanel = ({
                     style={{
                       backgroundColor: annoColors.get(categoryName)
                     }}
-                    onClick={() => {
-                      !isFocused({ categoryName }) && setFocus({ categoryName })
-                    }}
+                    onClick={() => setObjects(annotations)}
                   >
                     <CategoryName
                       categoryName={categoryName}

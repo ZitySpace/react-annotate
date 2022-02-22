@@ -35,13 +35,14 @@ export const useCanvas = ({
   const listeners = listenersRef.current
 
   const { nowState, push: pushState } = stateStack
-  const { setFocus, canObjectShow } = focus
-  const { isDrawing, objectId: focusObj, categoryName: focusCate } = focus.now
+  const {
+    nowFocus: { drawingType, objects: focusObjs, category: focusCate },
+    canObjectShow,
+    isFocused,
+    setObjects
+  } = focus
 
   const { offset, scale, boundary } = canvasProps
-  // TODO: remove
-  // let nothing: any = { imageDims, canvasDims, boundary, setObject: setFocus }
-  // nothing = !nothing
 
   // render lock used to avoid whole cycle callback caused by canvas changed which will ruin the canvas
   const renderLock = useRef<boolean>(false)
@@ -95,8 +96,8 @@ export const useCanvas = ({
       nowIds.push(anno.id)
     })
     // reset focus if focused obj no exist anymore
-    if (!nowCates.includes(focusCate!)) setFocus({})
-    else if (!nowIds.includes(focusObj!)) setFocus({ categoryName: focusCate! })
+    // if (!nowCates.includes(focusCate as string)) setObjects()
+    // else if (!nowIds.includes(focusObj!)) setFocus({ categoryName: focusCate! })
   }, [nowState])
 
   // Sync Canvas to state when the number of Objects in Canvas changes(mostly incrase) and not equal to state's label's count.
@@ -104,24 +105,26 @@ export const useCanvas = ({
     canvasLabelsCount !== nowState.length && actions.syncCanvasToState()
   }, [canvasLabelsCount])
 
-  // Set objects' visibale attribute in canvas when isDrawing or focus changed
+  // Set objects' visibale attribute in canvas when drawingType or focus changed
   useEffect(() => {
     if (!canvas) return
 
-    !(isDrawing || focusObj || focusCate) && updateAllTextboxPosition()
-    isDrawing && canvas.discardActiveObject()
-    canvas.forEachObject((obj: fabric.Object) => {
-      const { categoryName, id, type } = obj as any
-      obj.visible = canObjectShow({
-        categoryName,
-        id,
-        isText: type === 'textbox'
-      })
-      if (isDrawing && focusObj === id && !['textbox', 'line'].includes(type))
+    !(drawingType || focusObjs.length || focusCate) &&
+      updateAllTextboxPosition()
+    drawingType && canvas.discardActiveObject()
+    canvas.forEachObject((obj: any) => {
+      obj.visible = canObjectShow(obj, false)
+      if (
+        drawingType &&
+        isFocused(obj) &&
+        !['textbox', 'line'].includes(obj.type)
+      )
         canvas.setActiveObject(obj)
     })
+    console.log('canvas.renderAll()')
     canvas.renderAll()
-  }, [isDrawing, focusObj, focusCate])
+  }, [drawingType, focusObjs, focusCate])
+  // }, [focusObjs, focusObjs, focusCate])
 
   const actions = useMemo(
     () => ({
@@ -191,12 +194,11 @@ export const useCanvas = ({
 
     // Sync canvas's selection to focus
     'selection:created': (e: any) => {
-      const object = e.target
-      setFocus({ object })
+      const obj = e.target
+      const anno = newLabelFromFabricObj({ obj, offset, scale })
+      setObjects([anno])
     },
-    'selection:cleared': (e: any) => {
-      e.e && setFocus({})
-    }
+    'selection:cleared': (e: any) => e.e && setObjects()
   })
 
   canvas && actions.loadListeners(listeners) // If canvas no null, mount listeners

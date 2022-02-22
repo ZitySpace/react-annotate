@@ -1,3 +1,4 @@
+import { LabelType } from '../classes/Label'
 import { UseFocusReturnProps } from './useFocus'
 import { UseStateStackReturnProps } from './useStateStack'
 
@@ -20,20 +21,17 @@ export const useKeyboard = ({
     deleteObject
   } = stateStack
   const { undo: canUndo, redo: canRedo, reset: canReset } = can
-  const { setDrawing, setFocus } = focus
-  const { isDrawing, objectId, categoryName } = focus.now
+  const { setDrawingType } = focus
+  const { drawingType, objects } = focus.nowFocus
 
-  const deleteObj = () => {
-    deleteObject(objectId!)
-  }
+  const deleteObj = () => objects.forEach(({ id }) => deleteObject(id))
 
-  const draw = (labelType: string | null) => () => {
-    setDrawing(isDrawing === labelType ? null : labelType)
-    setFocus({ categoryName })
-  }
-  const drawPoint = draw('Point')
-  const drawLine = draw('Line')
-  const drawRect = draw('Rect')
+  const draw = (labelType: LabelType | null) => () =>
+    setDrawingType(drawingType === labelType ? null : labelType)
+
+  const drawPoint = draw(LabelType.Point)
+  const drawLine = draw(LabelType.Line)
+  const drawRect = draw(LabelType.Rect)
 
   const plainShortcutMap = {
     Backspace: deleteObj,

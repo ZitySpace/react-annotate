@@ -5,6 +5,7 @@ import {
   XIcon
 } from '@heroicons/react/solid'
 import React from 'react'
+import { LabelType } from '../classes/Label'
 import { UseFocusReturnProps } from '../hooks/useFocus'
 import { UseStateStackReturnProps } from '../hooks/useStateStack'
 import { Button } from './Button'
@@ -33,26 +34,23 @@ export const ButtonBar = ({
 
   const { redo: canRedo, undo: canUndo, reset: canReset, save: canSave } = can
   const {
-    now: { categoryName, isDrawing, objectId },
-    setDrawing,
-    setFocus
+    nowFocus: { drawingType, objects },
+    setDrawingType
   } = focus
 
-  const deleteObj = () => {
-    deleteObject(objectId!)
-  }
-  const draw = (labelType: string | null) => () => {
-    setDrawing(isDrawing === labelType ? null : labelType)
-    setFocus({ categoryName })
-  }
-  const drawPoint = draw('Point')
-  const drawLine = draw('Line')
-  const drawRect = draw('Rect')
+  const deleteObj = () => objects.forEach(({ id }) => deleteObject(id))
 
-  const isDrawingMe = (labelType: string | null) => isDrawing === labelType
-  const isDrawingPoint = isDrawingMe('Point')
-  const isDrawingLine = isDrawingMe('Line')
-  const isDrawingRect = isDrawingMe('Rect')
+  const draw = (labelType: LabelType | null) => () =>
+    setDrawingType(drawingType === labelType ? null : labelType)
+
+  const drawPoint = draw(LabelType.Point)
+  const drawLine = draw(LabelType.Line)
+  const drawRect = draw(LabelType.Rect)
+
+  const isDrawingMe = (labelType: LabelType | null) => drawingType === labelType
+  const isDrawingPoint = isDrawingMe(LabelType.Point)
+  const isDrawingLine = isDrawingMe(LabelType.Line)
+  const isDrawingRect = isDrawingMe(LabelType.Rect)
 
   return (
     <div className='h-9 flex justify-center space-x-8 items-center absolute bottom-0'>
@@ -67,7 +65,7 @@ export const ButtonBar = ({
       </div>
 
       <div className='flex justify-center space-x-1'>
-        <Button canUse={objectId !== null} onClick={deleteObj}>
+        <Button canUse={!!objects.length} onClick={deleteObj}>
           <TrashIcon className='h-4 w-4' />
         </Button>
 
