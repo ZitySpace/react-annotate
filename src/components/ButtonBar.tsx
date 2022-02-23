@@ -1,21 +1,19 @@
-import {
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  TrashIcon,
-  XIcon
-} from '@heroicons/react/solid'
 import React from 'react'
 import { LabelType } from '../classes/Label'
 import { UseFocusReturnProps } from '../hooks/useFocus'
 import { UseStateStackReturnProps } from '../hooks/useStateStack'
 import { Button } from './Button'
 import {
-  HeavyFloppyIcon,
+  CloseIcon,
   LineIcon,
+  NextIcon,
+  PervIcon,
   PointIcon,
   RectangleIcon,
   RedoIcon,
   ResetIcon,
+  SaveIcon,
+  TrashIcon,
   UndoIcon
 } from './Icons'
 
@@ -60,13 +58,13 @@ export const ButtonBar = ({
             console.log('close clicked')
           }}
         >
-          <XIcon className='w-4 h-4' />
+          <CloseIcon />
         </Button>
       </div>
 
       <div className='flex justify-center space-x-1'>
         <Button canUse={!!objects.length} onClick={deleteObj}>
-          <TrashIcon className='h-4 w-4' />
+          <TrashIcon />
         </Button>
 
         <Button isUsing={isDrawingRect} onClick={drawRect}>
@@ -99,17 +97,17 @@ export const ButtonBar = ({
             console.log('sava clicked')
           }}
         >
-          <HeavyFloppyIcon />
+          <SaveIcon />
         </Button>
       </div>
 
       <div className='flex justify-center space-x-1'>
         <Button canUse={true} onClick={prevImg}>
-          <ChevronLeftIcon className='h-4 w-4' />
+          <PervIcon />
         </Button>
 
         <Button canUse={true} onClick={nextImg}>
-          <ChevronRightIcon className='h-4 w-4' />
+          <NextIcon />
         </Button>
       </div>
     </div>

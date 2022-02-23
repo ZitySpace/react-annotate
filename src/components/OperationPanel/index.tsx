@@ -1,23 +1,18 @@
-import {
-  MenuAlt2Icon,
-  MenuAlt3Icon,
-  MenuAlt4Icon,
-  MenuIcon
-} from '@heroicons/react/solid'
 import React, { useState } from 'react'
 import Draggable from 'react-draggable'
 import { Label } from '../../classes/Label'
 import { UseColorsReturnProps } from '../../hooks/useColor'
 import { UseFocusReturnProps } from '../../hooks/useFocus'
 import { UseStateStackReturnProps } from '../../hooks/useStateStack'
+import { MenuIcon, MultipleSelectIcon } from '../Icons'
 import { AnnotationsGrid } from './AnnotationsGrid'
 import { CategoryName } from './CategoryName'
 
 const MENU_ICONS = {
-  0: MenuAlt4Icon,
-  1: MenuIcon,
-  2: MenuAlt2Icon,
-  3: MenuAlt3Icon
+  // 0: MenuAlt4Icon
+  1: MenuIcon
+  // 2: MenuAlt2Icon,
+  // 3: MenuAlt3Icon
 }
 
 export const OperationPanel = ({
@@ -52,6 +47,7 @@ export const OperationPanel = ({
                 className='h-4 w-4 text-gray-700 selbar-state-icon'
               />
               <span className='mx-auto'>Category</span>
+              <MultipleSelectIcon />
             </div>
 
             <div

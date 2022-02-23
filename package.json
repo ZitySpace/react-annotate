@@ -68,7 +68,6 @@
     "dist"
   ],
   "dependencies": {
-    "@heroicons/react": "^1.0.5",
     "@use-gesture/react": "^10.2.4",
     "fabric": "^4.6.0",
     "randomcolor": "^0.6.2",
