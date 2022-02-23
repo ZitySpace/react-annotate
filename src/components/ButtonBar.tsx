@@ -30,7 +30,7 @@ export const ButtonBar = ({
   nextImg: (event: any) => void
   prevImg: (event: any) => void
 }) => {
-  const { can, prev: undo, next: redo, reset, deleteObject } = stateStack
+  const { can, prev: undo, next: redo, reset, deleteObjects } = stateStack
 
   const { redo: canRedo, undo: canUndo, reset: canReset, save: canSave } = can
   const {
@@ -38,7 +38,7 @@ export const ButtonBar = ({
     setDrawingType
   } = focus
 
-  const deleteObj = () => objects.forEach(({ id }) => deleteObject(id))
+  const deleteObj = () => deleteObjects(objects.map(({ id }) => id))
 
   const draw = (labelType: LabelType | null) => () =>
     setDrawingType(drawingType === labelType ? null : labelType)

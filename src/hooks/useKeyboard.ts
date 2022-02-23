@@ -18,13 +18,13 @@ export const useKeyboard = ({
     prev: prevState,
     next: nextState,
     reset,
-    deleteObject
+    deleteObjects
   } = stateStack
   const { undo: canUndo, redo: canRedo, reset: canReset } = can
   const { setDrawingType } = focus
   const { drawingType, objects } = focus.nowFocus
 
-  const deleteObj = () => objects.forEach(({ id }) => deleteObject(id))
+  const deleteObj = () => deleteObjects(objects.map(({ id }) => id))
 
   const draw = (labelType: LabelType | null) => () =>
     setDrawingType(drawingType === labelType ? null : labelType)

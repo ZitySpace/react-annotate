@@ -122,7 +122,6 @@ export const useCanvas = ({
       )
         canvas.setActiveObject(obj)
     })
-    console.log('canvas.renderAll()')
     canvas.renderAll()
   }, [drawingType, focusObjs, focusCate])
 
