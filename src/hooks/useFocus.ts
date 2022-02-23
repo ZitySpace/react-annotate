@@ -16,6 +16,7 @@ export interface UseFocusReturnProps {
 }
 
 const initialFocus: Focus = {
+  isMultipleSelectionMode: false,
   drawingType: LabelType.None,
   visibleType: Object.keys(LabelType).map((key) => LabelType[key]),
   category: null,

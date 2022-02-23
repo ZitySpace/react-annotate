@@ -10,6 +10,7 @@ export interface ImageObject {
 }
 
 export interface Focus {
+  isMultipleSelectionMode: boolean
   drawingType: LabelType
   visibleType: LabelType[]
   category: string | null
