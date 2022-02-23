@@ -2,6 +2,7 @@ import { fabric } from 'fabric'
 import { LabelType } from '.'
 import {
   POINT_DEFAULT_CONFIG,
+  RADIUS,
   STROKE_WIDTH,
   TEXTBOX_DEFAULT_CONFIG,
   TRANSPARENT
@@ -10,16 +11,13 @@ import { Point } from '../Geometry'
 
 export class PointLabel implements Point {
   readonly type = LabelType.Point
-  x: number
-  y: number
   categoryName: string | null
-  categoryId: number | null
   id: number
   scale: number
   offset: Point
-  radius: number
-  strokeWidth: number
   color: string
+  x: number
+  y: number
 
   static fromFabricPoint({
     obj,
@@ -35,8 +33,6 @@ export class PointLabel implements Point {
       y: obj.top!,
       id: (obj as any).id,
       categoryName: (obj as any).categoryName,
-      strokeWidth: obj.strokeWidth,
-      radius: obj.radius,
       color: (obj as any).color,
       scale,
       offset
@@ -47,34 +43,25 @@ export class PointLabel implements Point {
     x,
     y,
     id,
-    categoryId,
     categoryName,
     scale,
     offset,
-    radius,
-    strokeWidth,
     color
   }: {
     x: number
     y: number
     id: number
-    categoryId?: number
     categoryName?: string
     scale?: number
     offset?: Point
-    radius?: number
-    strokeWidth?: number
     color: string
   }) {
     this.x = x
     this.y = y
     this.id = id
-    this.categoryId = categoryId || null
     this.categoryName = categoryName || null
     this.scale = scale || 1
     this.offset = offset || { x: 0, y: 0 }
-    this.radius = radius || 5
-    this.strokeWidth = strokeWidth || 1.5
     this.color = color
   }
 
@@ -82,16 +69,14 @@ export class PointLabel implements Point {
     if (this.scale !== 1 || this.offset.x || this.offset.y) this.origin()
     this.scale = scale
     this.offset = offset
-    this.x = this.x * scale + offset.x - this.radius - this.strokeWidth / 2
-    this.y = this.y * scale + offset.y - this.radius - this.strokeWidth / 2
+    this.x = this.x * scale + offset.x - RADIUS - STROKE_WIDTH / 2
+    this.y = this.y * scale + offset.y - RADIUS - STROKE_WIDTH / 2
     return this
   }
 
   origin() {
-    this.x =
-      (this.x + this.radius + this.strokeWidth / 2 - this.offset.x) / this.scale
-    this.y =
-      (this.y + this.radius + this.strokeWidth / 2 - this.offset.y) / this.scale
+    this.x = (this.x + RADIUS + STROKE_WIDTH / 2 - this.offset.x) / this.scale
+    this.y = (this.y + RADIUS + STROKE_WIDTH / 2 - this.offset.y) / this.scale
     this.scale = 1
     this.offset = { x: 0, y: 0 }
     return this
@@ -100,12 +85,8 @@ export class PointLabel implements Point {
   getOrigin() {
     return {
       ...this,
-      x:
-        (this.x + this.radius + this.strokeWidth / 2 - this.offset.x) /
-        this.scale,
-      y:
-        (this.y + this.radius + this.strokeWidth / 2 - this.offset.y) /
-        this.scale
+      x: (this.x + RADIUS + STROKE_WIDTH / 2 - this.offset.x) / this.scale,
+      y: (this.y + RADIUS + STROKE_WIDTH / 2 - this.offset.y) / this.scale
     }
   }
 
@@ -116,13 +97,13 @@ export class PointLabel implements Point {
     currentColor?: string
     visible?: boolean
   }) {
-    const { x, y, radius, color: oriColor, id, categoryName } = this
+    const { x, y, color: oriColor, id, categoryName } = this
     const color = currentColor || oriColor
     const point = new fabric.Circle({
       ...POINT_DEFAULT_CONFIG,
       left: x,
       top: y,
-      radius: radius,
+      radius: RADIUS,
       fill: color,
       stroke: TRANSPARENT,
       visible
@@ -131,8 +112,8 @@ export class PointLabel implements Point {
 
     const textbox = new fabric.Textbox(id.toString(), {
       ...TEXTBOX_DEFAULT_CONFIG,
-      left: x + radius - STROKE_WIDTH / 2,
-      top: y - radius + STROKE_WIDTH / 2,
+      left: x + RADIUS - STROKE_WIDTH / 2,
+      top: y - RADIUS + STROKE_WIDTH / 2,
       originY: 'bottom',
       backgroundColor: currentColor || color,
       visible

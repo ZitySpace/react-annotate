@@ -9,19 +9,17 @@ import { Point, Rect } from '../Geometry'
 
 export class RectLabel implements Rect {
   readonly type = LabelType.Rect
+  scale: number
+  offset: Point
+  id: number
+  categoryName: string | null
+  color: string
+  x: number
+  y: number
   w: number
   h: number
   x1: number
   y1: number
-  x: number
-  y: number
-  scale: number
-  offset: Point
-  strokeWidth: number
-  id: number
-  categoryId: number | null
-  categoryName: string | null
-  color: string
 
   static fromFabricRect({
     obj,
@@ -39,7 +37,6 @@ export class RectLabel implements Rect {
       h: obj.getScaledHeight() - STROKE_WIDTH,
       id: (obj as any).id,
       categoryName: (obj as any).categoryName,
-      strokeWidth: obj.strokeWidth,
       color: (obj as any).color,
       scale,
       offset
@@ -52,11 +49,9 @@ export class RectLabel implements Rect {
     w,
     h,
     id,
-    categoryId,
     categoryName,
     offset,
     scale,
-    strokeWidth,
     color
   }: {
     x: number
@@ -64,11 +59,9 @@ export class RectLabel implements Rect {
     w: number
     h: number
     id: number
-    categoryId?: number
     categoryName?: string
     offset?: Point
     scale?: number
-    strokeWidth?: number
     color?: string
   }) {
     this.x = x
@@ -78,11 +71,9 @@ export class RectLabel implements Rect {
     this.x1 = x + w
     this.y1 = y + h
     this.id = id
-    this.categoryId = categoryId || null
     this.categoryName = categoryName || null
     this.offset = offset || { x: 0, y: 0 }
     this.scale = scale || 1
-    this.strokeWidth = strokeWidth || 1.5
     this.color = color!
   }
 
@@ -90,22 +81,22 @@ export class RectLabel implements Rect {
     if (this.scale !== 1 || this.offset.x || this.offset.y) this.origin()
     this.scale = scale
     this.offset = offset
-    this.x = this.x * scale + offset.x - this.strokeWidth
-    this.y = this.y * scale + offset.y - this.strokeWidth
-    this.w = this.w * scale + this.strokeWidth
-    this.h = this.h * scale + this.strokeWidth
-    this.x1 = this.x1 * scale + offset.x - this.strokeWidth
-    this.y1 = this.y1 * scale + offset.y - this.strokeWidth
+    this.x = this.x * scale + offset.x - STROKE_WIDTH
+    this.y = this.y * scale + offset.y - STROKE_WIDTH
+    this.w = this.w * scale + STROKE_WIDTH
+    this.h = this.h * scale + STROKE_WIDTH
+    this.x1 = this.x1 * scale + offset.x - STROKE_WIDTH
+    this.y1 = this.y1 * scale + offset.y - STROKE_WIDTH
     return this
   }
 
   origin() {
-    this.x = (this.x + this.strokeWidth - this.offset.x) / this.scale
-    this.y = (this.y + this.strokeWidth - this.offset.y) / this.scale
-    this.w = (this.w - this.strokeWidth) / this.scale
-    this.h = (this.h - this.strokeWidth) / this.scale
-    this.x1 = (this.x1 + this.strokeWidth - this.offset.x) / this.scale
-    this.y1 = (this.y1 + this.strokeWidth - this.offset.y) / this.scale
+    this.x = (this.x + STROKE_WIDTH - this.offset.x) / this.scale
+    this.y = (this.y + STROKE_WIDTH - this.offset.y) / this.scale
+    this.w = (this.w - STROKE_WIDTH) / this.scale
+    this.h = (this.h - STROKE_WIDTH) / this.scale
+    this.x1 = (this.x1 + STROKE_WIDTH - this.offset.x) / this.scale
+    this.y1 = (this.y1 + STROKE_WIDTH - this.offset.y) / this.scale
     this.scale = 1
     this.offset = { x: 0, y: 0 }
     return this
@@ -114,12 +105,12 @@ export class RectLabel implements Rect {
   getOrigin() {
     return {
       ...this,
-      x: (this.x + this.strokeWidth - this.offset.x) / this.scale,
-      y: (this.y + this.strokeWidth - this.offset.y) / this.scale,
-      w: (this.w - this.strokeWidth) / this.scale,
-      h: (this.h - this.strokeWidth) / this.scale,
-      x1: (this.x1 + this.strokeWidth - this.offset.x) / this.scale,
-      y1: (this.y1 + this.strokeWidth - this.offset.y) / this.scale
+      x: (this.x + STROKE_WIDTH - this.offset.x) / this.scale,
+      y: (this.y + STROKE_WIDTH - this.offset.y) / this.scale,
+      w: (this.w - STROKE_WIDTH) / this.scale,
+      h: (this.h - STROKE_WIDTH) / this.scale,
+      x1: (this.x1 + STROKE_WIDTH - this.offset.x) / this.scale,
+      y1: (this.y1 + STROKE_WIDTH - this.offset.y) / this.scale
     }
   }
 
