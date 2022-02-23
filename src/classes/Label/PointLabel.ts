@@ -5,11 +5,7 @@ import {
   TEXTBOX_DEFAULT_CONFIG,
   TRANSPARENT
 } from '../../interfaces/config'
-
-export interface Point {
-  x: number
-  y: number
-}
+import { Point } from '../Geometry'
 
 export class PointLabel implements Point {
   readonly type = 'Point'

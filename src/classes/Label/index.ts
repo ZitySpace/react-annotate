@@ -1,5 +1,6 @@
+import { Point } from '../Geometry'
 import { LineLabel } from './LineLabel'
-import { Point, PointLabel } from './PointLabel'
+import { PointLabel } from './PointLabel'
 import { RectLabel } from './RectLabel'
 
 export type Label = PointLabel | LineLabel | RectLabel

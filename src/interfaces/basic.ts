@@ -15,8 +15,3 @@ export interface Focus {
   category: string | null
   objects: Label[]
 }
-
-export interface Dimension {
-  w: number
-  h: number
-}

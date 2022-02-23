@@ -7,13 +7,7 @@ import {
   TEXTBOX_DEFAULT_CONFIG,
   TRANSPARENT
 } from '../../interfaces/config'
-import { Point } from './PointLabel'
-
-interface Line extends Point {
-  _x: number
-  _y: number
-  distance: number
-}
+import { Line, Point } from '../Geometry'
 
 export class LineLabel implements Line {
   readonly type = 'Line'

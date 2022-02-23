@@ -1,6 +1,7 @@
 import { usePinch } from '@use-gesture/react'
 import { fabric } from 'fabric'
 import { MutableRefObject, useCallback, useRef } from 'react'
+import { Point } from '../classes/Geometry'
 import {
   isLine,
   isPoint,
@@ -8,7 +9,7 @@ import {
   newFabricObjects,
   newLabelFromFabricObj
 } from '../classes/Label'
-import { Point } from '../classes/Label/PointLabel'
+
 import {
   NEW_CATEGORY_NAME,
   STROKE_WIDTH,

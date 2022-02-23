@@ -13,7 +13,10 @@ export const CategoryName = ({
   focus: UseFocusReturnProps
   renameCategory: Function
 }) => {
-  const { isFocused } = focus
+  // const { isFocused } = focus
+  // TODOL remove this
+  const nothing = { panelType, focus }
+  !nothing
 
   const [inputValue, setInputValue] = useState<string>(categoryName)
   const handleInput = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -30,7 +33,8 @@ export const CategoryName = ({
   return (
     <div
       className={`pb-1 static w-full flex justify-end ${
-        panelType === 3 && !isFocused({ categoryName }) ? 'hidden' : ''
+        // panelType === 3 && !isFocused({ categoryName }) ? 'hidden' : ''
+        ''
       }`}
     >
       <button type='button' className='inline-flex -mr-1'>
@@ -39,7 +43,7 @@ export const CategoryName = ({
           value={inputValue}
           onInput={handleInput}
           onBlur={rename}
-          disabled={!isFocused({ categoryName })}
+          // disabled={!isFocused({ categoryName })}
           type='text'
         />
       </button>

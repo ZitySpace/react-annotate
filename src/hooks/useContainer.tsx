@@ -1,7 +1,6 @@
 import { fabric } from 'fabric'
 import React, { useCallback, useRef, useState } from 'react'
-import { Dimension } from '../interfaces/basic'
-import { Point } from '../classes/Label/PointLabel'
+import { Dimension, Point } from '../classes/Geometry'
 
 export interface CanvasProps {
   imageDims: Dimension // image dimensions in container

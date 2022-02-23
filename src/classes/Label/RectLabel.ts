@@ -4,14 +4,7 @@ import {
   STROKE_WIDTH,
   TEXTBOX_DEFAULT_CONFIG
 } from '../../interfaces/config'
-import { Point } from './PointLabel'
-
-interface Rect extends Point {
-  w: number
-  h: number
-  x1: number
-  y1: number
-}
+import { Point, Rect } from '../Geometry'
 
 export class RectLabel implements Rect {
   readonly type = 'Rect'
