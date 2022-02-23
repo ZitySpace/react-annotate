@@ -1,4 +1,5 @@
 import { fabric } from 'fabric'
+import { LabelType } from '.'
 import {
   LINE_DEFAULT_CONFIG,
   POINT_DEFAULT_CONFIG,
@@ -10,7 +11,7 @@ import {
 import { Line, Point } from '../Geometry'
 
 export class LineLabel implements Line {
-  readonly type = 'Line'
+  readonly type = LabelType.Line
   _x: number
   _y: number
   distance: number
@@ -155,7 +156,7 @@ export class LineLabel implements Line {
         categoryName,
         color,
         line,
-        labelType: 'Line'
+        labelType: LabelType.Line
       })
       return endpoint
     })
@@ -170,8 +171,14 @@ export class LineLabel implements Line {
       backgroundColor: currentColor || color,
       visible
     })
-    textbox.setOptions({ id, categoryName, labelType: 'Line' })
-    line.setOptions({ id, categoryName, color, endpoints, labelType: 'Line' })
+    textbox.setOptions({ id, categoryName, labelType: LabelType.Line })
+    line.setOptions({
+      id,
+      categoryName,
+      color,
+      endpoints,
+      labelType: LabelType.Line
+    })
     return { line, textbox, point1: endpoints[0], point2: endpoints[1] }
   }
 
@@ -207,12 +214,18 @@ export class LineLabel implements Line {
         _id: _id + 1,
         categoryName,
         color,
-        labelType: 'Line',
+        labelType: LabelType.Line,
         line
       })
       return endpoint
     })
-    line.setOptions({ id, categoryName, color, labelType: 'Line', endpoints })
+    line.setOptions({
+      id,
+      categoryName,
+      color,
+      labelType: LabelType.Line,
+      endpoints
+    })
 
     const textbox = new fabric.Textbox(id.toString(), {
       ...TEXTBOX_DEFAULT_CONFIG,
@@ -221,7 +234,7 @@ export class LineLabel implements Line {
       backgroundColor: color,
       visible: false
     })
-    textbox.setOptions({ id, categoryName, labelType: 'Line' })
+    textbox.setOptions({ id, categoryName, labelType: LabelType.Line })
     return [line, ...endpoints, textbox]
   }
 }

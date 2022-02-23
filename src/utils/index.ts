@@ -4,10 +4,10 @@ import { Label, LabelType } from '../classes/Label'
 /**
  * Judge that is the label invalid
  * @param obj target object
- * @param labelType 'Rect' | 'Line'
+ * @param labelType label type of the object
  * @returns is the obj invalid
  */
-export const isInvalid = (obj: any, labelType: LabelType | null) => {
+export const isInvalid = (obj: any, labelType: LabelType) => {
   return labelType === LabelType.Rect
     ? obj.width <= STROKE_WIDTH || obj.height <= STROKE_WIDTH
     : labelType === LabelType.Line

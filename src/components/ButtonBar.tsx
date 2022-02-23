@@ -38,8 +38,8 @@ export const ButtonBar = ({
 
   const deleteObj = () => deleteObjects(objects.map(({ id }) => id))
 
-  const draw = (labelType: LabelType | null) => () =>
-    setDrawingType(drawingType === labelType ? null : labelType)
+  const draw = (labelType: LabelType) => () =>
+    setDrawingType(drawingType === labelType ? LabelType.None : labelType)
 
   const drawPoint = draw(LabelType.Point)
   const drawLine = draw(LabelType.Line)

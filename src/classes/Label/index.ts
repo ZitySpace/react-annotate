@@ -6,9 +6,10 @@ import { RectLabel } from './RectLabel'
 export type Label = PointLabel | LineLabel | RectLabel
 export const LABEL = RectLabel || PointLabel || LineLabel
 export enum LabelType {
-  Point = 'Point',
-  Line = 'Line',
-  Rect = 'Rect'
+  None,
+  Point,
+  Line,
+  Rect
 }
 
 export const newFabricObjects = ({
@@ -18,18 +19,18 @@ export const newFabricObjects = ({
   categoryName,
   color
 }: {
-  type: string // | null | undefined
+  type: LabelType
   position: Point
   id: number
   categoryName: string
   color: string
 }) => {
   switch (type) {
-    case 'Point':
+    case LabelType.Point:
       return PointLabel.newFabricObjects({ position, id, categoryName, color })
-    case 'Line':
+    case LabelType.Line:
       return LineLabel.newFabricObjects({ position, id, categoryName, color })
-    case 'Rect':
+    case LabelType.Rect:
       return RectLabel.newFabricObjects({ position, id, categoryName, color })
     default:
       return []
@@ -46,11 +47,11 @@ export const newLabelFromFabricObj = ({
   scale: number
 }) => {
   switch ((obj as any).labelType) {
-    case 'Point':
+    case LabelType.Point:
       return PointLabel.fromFabricPoint({ obj, offset, scale })
-    case 'Line':
+    case LabelType.Line:
       return LineLabel.fromFabricLine({ obj, offset, scale })
-    case 'Rect':
+    case LabelType.Rect:
       return RectLabel.fromFabricRect({ obj, offset, scale })
     default:
       throw new Error('obj types error')
@@ -58,16 +59,16 @@ export const newLabelFromFabricObj = ({
 }
 
 export const isRect = ({ type, labelType }: any) =>
-  type === 'rect' && labelType === 'Rect'
+  type === 'rect' && labelType === LabelType.Rect
 
 export const isPoint = ({ type, labelType }: any) =>
-  type === 'circle' && labelType === 'Point'
+  type === 'circle' && labelType === LabelType.Point
 
 export const isLine = ({ type, labelType }: any) =>
-  type === 'line' && labelType === 'Line'
+  type === 'line' && labelType === LabelType.Line
 
 export const isLineEndpoint = ({ type, labelType }: any) =>
-  type === 'circle' && labelType === 'Line'
+  type === 'circle' && labelType === LabelType.Line
 
 export const isLabel = ({ type, labelType }: any) =>
   isRect({ type, labelType }) ||

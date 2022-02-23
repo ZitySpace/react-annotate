@@ -6,6 +6,7 @@ import {
   isLine,
   isPoint,
   isRect,
+  LabelType,
   newFabricObjects,
   newLabelFromFabricObj
 } from '../classes/Label'
@@ -127,7 +128,9 @@ export const useMouseListeners = ({
       canvas.remove(...canvas.getObjects().filter((o: any) => o.id === obj.id))
     } else {
       setObjects([newLabelFromFabricObj({ obj, offset, scale })])
-      canvas.setActiveObject(obj.labelType !== 'Line' ? obj : obj.endpoints[1])
+      canvas.setActiveObject(
+        obj.labelType !== LabelType.Line ? obj : obj.endpoints[1]
+      )
     }
 
     isDrawingStarted.current = false

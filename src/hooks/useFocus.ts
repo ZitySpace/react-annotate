@@ -6,7 +6,7 @@ import { mostRepeatedValue } from '../utils'
 
 export interface UseFocusReturnProps {
   nowFocus: Focus
-  setDrawingType(drawingType?: LabelType | null): void
+  setDrawingType(drawingType?: LabelType): void
   setObjects(objects?: Label[]): void
   canObjectShow(
     { type, id }: { type: string; id: number },
@@ -16,7 +16,7 @@ export interface UseFocusReturnProps {
 }
 
 const initialFocus: Focus = {
-  drawingType: null,
+  drawingType: LabelType.None,
   visibleType: Object.keys(LabelType).map((key) => LabelType[key]),
   category: null,
   objects: []
@@ -29,7 +29,7 @@ export const useFocus = () => {
   console.log(nowFocus) // TODO: remove
 
   const methods = {
-    setDrawingType: (drawingType: LabelType | null = null) => {
+    setDrawingType: (drawingType: LabelType = LabelType.None) => {
       focusRef.current.drawingType = drawingType
       if (drawingType) focusRef.current.objects = []
       update()

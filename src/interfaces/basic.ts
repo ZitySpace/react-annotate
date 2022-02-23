@@ -10,7 +10,7 @@ export interface ImageObject {
 }
 
 export interface Focus {
-  drawingType: LabelType | null
+  drawingType: LabelType
   visibleType: LabelType[]
   category: string | null
   objects: Label[]

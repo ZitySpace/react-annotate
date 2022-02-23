@@ -1,4 +1,5 @@
 import { fabric } from 'fabric'
+import { LabelType } from '.'
 import {
   RECT_DEFAULT_CONFIG,
   STROKE_WIDTH,
@@ -7,7 +8,7 @@ import {
 import { Point, Rect } from '../Geometry'
 
 export class RectLabel implements Rect {
-  readonly type = 'Rect'
+  readonly type = LabelType.Rect
   w: number
   h: number
   x1: number
@@ -140,7 +141,7 @@ export class RectLabel implements Rect {
       stroke: color,
       visible
     })
-    rect.setOptions({ id, categoryName, color, labelType: 'Rect' })
+    rect.setOptions({ id, categoryName, color, labelType: LabelType.Rect })
 
     const textbox = new fabric.Textbox(id.toString(), {
       ...TEXTBOX_DEFAULT_CONFIG,
@@ -150,7 +151,7 @@ export class RectLabel implements Rect {
       fontSize: Math.min(14, w / 2, h / 2),
       visible
     })
-    textbox.setOptions({ id, categoryName, labelType: 'Rect' })
+    textbox.setOptions({ id, categoryName, labelType: LabelType.Rect })
 
     return { rect, textbox }
   }
@@ -173,14 +174,14 @@ export class RectLabel implements Rect {
       top: y - STROKE_WIDTH,
       stroke: color
     })
-    rect.setOptions({ id, categoryName, color, labelType: 'Rect' })
+    rect.setOptions({ id, categoryName, color, labelType: LabelType.Rect })
 
     const textbox = new fabric.Textbox(id.toString(), {
       ...TEXTBOX_DEFAULT_CONFIG,
       backgroundColor: color,
       visible: false
     })
-    textbox.setOptions({ id, categoryName, labelType: 'Rect' })
+    textbox.setOptions({ id, categoryName, labelType: LabelType.Rect })
     return [rect, textbox]
   }
 }

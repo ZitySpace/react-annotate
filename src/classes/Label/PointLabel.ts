@@ -1,4 +1,5 @@
 import { fabric } from 'fabric'
+import { LabelType } from '.'
 import {
   POINT_DEFAULT_CONFIG,
   STROKE_WIDTH,
@@ -8,7 +9,7 @@ import {
 import { Point } from '../Geometry'
 
 export class PointLabel implements Point {
-  readonly type = 'Point'
+  readonly type = LabelType.Point
   x: number
   y: number
   categoryName: string | null
@@ -126,7 +127,7 @@ export class PointLabel implements Point {
       stroke: TRANSPARENT,
       visible
     })
-    point.setOptions({ id, categoryName, color, labelType: 'Point' })
+    point.setOptions({ id, categoryName, color, labelType: LabelType.Point })
 
     const textbox = new fabric.Textbox(id.toString(), {
       ...TEXTBOX_DEFAULT_CONFIG,
@@ -136,7 +137,7 @@ export class PointLabel implements Point {
       backgroundColor: currentColor || color,
       visible
     })
-    textbox.setOptions({ id, categoryName, labelType: 'Point' })
+    textbox.setOptions({ id, categoryName, labelType: LabelType.Point })
 
     return { point, textbox }
   }
@@ -159,7 +160,7 @@ export class PointLabel implements Point {
       top: y,
       stroke: color
     })
-    point.setOptions({ id, categoryName, color, labelType: 'Point' })
+    point.setOptions({ id, categoryName, color, labelType: LabelType.Point })
 
     const textbox = new fabric.Textbox(id.toString(), {
       ...TEXTBOX_DEFAULT_CONFIG,
@@ -167,7 +168,7 @@ export class PointLabel implements Point {
       backgroundColor: color,
       visible: false
     })
-    textbox.setOptions({ id, categoryName, labelType: 'Point' })
+    textbox.setOptions({ id, categoryName, labelType: LabelType.Point })
     return [point, textbox]
   }
 }
