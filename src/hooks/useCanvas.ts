@@ -108,14 +108,15 @@ export const useCanvas = ({
   // Set objects' visibale attribute in canvas when drawingType or focus changed
   useEffect(() => {
     if (!canvas) return
+    const adjustMode = focusObjs.length === 1
 
     !(drawingType || focusObjs.length || focusCate) &&
       updateAllTextboxPosition()
-    drawingType && canvas.discardActiveObject()
+    if (drawingType || !adjustMode) canvas.discardActiveObject()
     canvas.forEachObject((obj: any) => {
-      obj.visible = canObjectShow(obj, false)
+      obj.visible = canObjectShow(obj, !(drawingType || adjustMode))
       if (
-        drawingType &&
+        (drawingType || adjustMode) &&
         isFocused(obj) &&
         !['textbox', 'line'].includes(obj.type)
       )
@@ -124,7 +125,6 @@ export const useCanvas = ({
     console.log('canvas.renderAll()')
     canvas.renderAll()
   }, [drawingType, focusObjs, focusCate])
-  // }, [focusObjs, focusObjs, focusCate])
 
   const actions = useMemo(
     () => ({
