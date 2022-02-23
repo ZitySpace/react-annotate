@@ -7,9 +7,9 @@ export const SaveIcon = () => (
       viewBox='0 0 24 24'
       fill='none'
       stroke='currentColor'
-      stroke-width='2'
-      stroke-linecap='round'
-      stroke-linejoin='round'
+      strokeWidth='2'
+      strokeLinecap='round'
+      strokeLinejoin='round'
     >
       <path d='M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z' />
       <polyline points='17 21 17 13 7 13 7 21' />
@@ -131,11 +131,11 @@ export const MultipleSelectIcon = () => (
     <svg
       className='h-4 w-4'
       viewBox='0 0 24 24'
-      stroke-width='2'
+      strokeWidth='2'
       stroke='currentColor'
       fill='none'
-      stroke-linecap='round'
-      stroke-linejoin='round'
+      strokeLinecap='round'
+      strokeLinejoin='round'
     >
       <path stroke='none' d='M0 0h24v24H0z' />
       <polyline points='9 11 12 14 20 6' />
@@ -149,11 +149,11 @@ export const NextIcon = () => (
     <svg
       className='h-5 w-5'
       viewBox='0 0 24 24'
-      stroke-width='2'
+      strokeWidth='2'
       stroke='currentColor'
       fill='none'
-      stroke-linecap='round'
-      stroke-linejoin='round'
+      strokeLinecap='round'
+      strokeLinejoin='round'
     >
       <path stroke='none' d='M0 0h24v24H0z' />
       <polyline points='9 6 15 12 9 18' />
@@ -166,11 +166,11 @@ export const PervIcon = () => (
     <svg
       className='h-5 w-5'
       viewBox='0 0 24 24'
-      stroke-width='2'
+      strokeWidth='2'
       stroke='currentColor'
       fill='none'
-      stroke-linecap='round'
-      stroke-linejoin='round'
+      strokeLinecap='round'
+      strokeLinejoin='round'
     >
       <path stroke='none' d='M0 0h24v24H0z' />
       <polyline points='15 6 9 12 15 18' />
@@ -183,11 +183,11 @@ export const TrashIcon = () => (
     <svg
       className='h-5 w-5'
       viewBox='0 0 24 24'
-      stroke-width='2'
+      strokeWidth='2'
       stroke='currentColor'
       fill='none'
-      stroke-linecap='round'
-      stroke-linejoin='round'
+      strokeLinecap='round'
+      strokeLinejoin='round'
     >
       <path stroke='none' d='M0 0h24v24H0z' />
       <line x1='4' y1='7' x2='20' y2='7' />
@@ -204,11 +204,11 @@ export const CloseIcon = () => (
     <svg
       className='h-5 w-5'
       viewBox='0 0 24 24'
-      stroke-width='2'
+      strokeWidth='2'
       stroke='currentColor'
-      stroke-linecap='round'
+      strokeLinecap='round'
       fill='none'
-      stroke-linejoin='round'
+      strokeLinejoin='round'
     >
       <path stroke='none' d='M0 0h24v24H0z' />
       <line x1='18' y1='6' x2='6' y2='18' />
@@ -226,9 +226,9 @@ export const MenuIcon = () => (
       stroke='currentColor'
     >
       <path
-        stroke-linecap='round'
-        stroke-linejoin='round'
-        stroke-width='2'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+        strokeWidth='2'
         d='M4 6h16M4 12h16M4 18h16'
       />
     </svg>
