@@ -6,13 +6,14 @@ import { mostRepeatedValue } from '../utils'
 
 export interface UseFocusReturnProps {
   nowFocus: Focus
-  setDrawingType(drawingType?: LabelType): void
-  setObjects(objects?: Label[]): void
-  canObjectShow(
+  setDrawingType: (drawingType?: LabelType) => void
+  setObjects: (objects?: Label[]) => void
+  canObjectShow: (
     { type, id }: { type: string; id: number },
     showText?: boolean
-  ): boolean
-  isFocused({ id }: { id: number }): boolean
+  ) => boolean
+  isFocused: ({ id }: { id: number }) => boolean
+  toggleSelectionMode: () => void
 }
 
 const initialFocus: Focus = {
@@ -53,7 +54,13 @@ export const useFocus = () => {
         (showText || type !== 'textbox')),
 
     isFocused: ({ id }: { id: number }) =>
-      nowFocus.objects.map(({ id }) => id).includes(id)
+      nowFocus.objects.map(({ id }) => id).includes(id),
+
+    toggleSelectionMode: () => {
+      focusRef.current.isMultipleSelectionMode =
+        !nowFocus.isMultipleSelectionMode
+      update()
+    }
   }
   return { nowFocus, ...methods }
 }
