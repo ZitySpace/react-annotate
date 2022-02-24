@@ -4,18 +4,18 @@ import { UseFocusReturnProps } from '../../hooks/useFocus'
 
 export const CategoryName = ({
   categoryName,
-  panelType,
+  // panelType,
   focus,
   renameCategory
 }: {
   categoryName: string
-  panelType: number
+  // panelType: number
   focus: UseFocusReturnProps
   renameCategory: Function
 }) => {
   // const { isFocused } = focus
   // TODOL remove this
-  const nothing = { panelType, focus }
+  const nothing = { focus }
   !nothing
 
   const [inputValue, setInputValue] = useState<string>(categoryName)

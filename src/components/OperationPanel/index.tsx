@@ -1,19 +1,12 @@
-import React, { useState } from 'react'
+import React, { MouseEvent } from 'react'
 import Draggable from 'react-draggable'
 import { Label } from '../../classes/Label'
 import { UseColorsReturnProps } from '../../hooks/useColor'
 import { UseFocusReturnProps } from '../../hooks/useFocus'
 import { UseStateStackReturnProps } from '../../hooks/useStateStack'
-import { MenuIcon, MultipleSelectIcon } from '../Icons'
+import { MultipleSelectIcon } from '../Icons'
 import { AnnotationsGrid } from './AnnotationsGrid'
 import { CategoryName } from './CategoryName'
-
-const MENU_ICONS = {
-  // 0: MenuAlt4Icon
-  1: MenuIcon
-  // 2: MenuAlt2Icon,
-  // 3: MenuAlt3Icon
-}
 
 export const OperationPanel = ({
   stateStack,
@@ -24,13 +17,29 @@ export const OperationPanel = ({
   focus: UseFocusReturnProps
   annoColors: UseColorsReturnProps
 }) => {
-  const [panelType, setPanelType] = useState<number>(1)
-  const togglePanelType = () => setPanelType((prevType) => (prevType + 1) % 4)
-  const MenuIcon = MENU_ICONS[panelType]
+  const {
+    nowFocus: { isMultipleSelectionMode, objects },
+    isFocused,
+    setObjects,
+    toggleSelectionMode
+  } = focus
 
-  const { setObjects } = focus
   const { groupedState, renameCategory } = stateStack
   const labels = groupedState
+
+  const handleClick = (e: MouseEvent) => {
+    const annotations: Label[] = JSON.parse(
+      e.currentTarget['dataset']['annotations']
+    )
+
+    const isAllFocused = annotations.every(isFocused)
+    const newObjects = isMultipleSelectionMode
+      ? objects.filter(
+          ({ id }) => !annotations.map(({ id }) => id).includes(id)
+        )
+      : []
+    setObjects(newObjects.concat(isAllFocused ? [] : annotations))
+  }
 
   return (
     <div className='absolute w-full h-full pb-7 md:pb-9 invisible'>
@@ -42,19 +51,16 @@ export const OperationPanel = ({
         >
           <div className='bg-gray-100 bg-opacity-0 absolute bottom-2 right-2 visible max-h-full w-34 flex flex-col items-end text-xs select-none'>
             <div className='bg-indigo-400 py-2 px-2 w-28 rounded-t-md flex justify-between cate_handle'>
-              <MenuIcon
-                onClick={togglePanelType}
-                className='h-4 w-4 text-gray-700 selbar-state-icon'
+              <span className='mx-auto'> Category </span>
+              <MultipleSelectIcon
+                className={`text-indigo-200 ${
+                  isMultipleSelectionMode ? 'text-indigo-600' : ''
+                }`}
+                onClick={toggleSelectionMode}
               />
-              <span className='mx-auto'>Category</span>
-              <MultipleSelectIcon />
             </div>
 
-            <div
-              className={`h-full w-full overflow-y-auto${
-                panelType ? '' : 'hidden'
-              }`}
-            >
+            <div className='h-full w-full overflow-y-auto'>
               {labels.map(([categoryName, annotations]: [string, Label[]]) => (
                 <div className='flex flex-row' key={categoryName}>
                   <div
@@ -62,20 +68,15 @@ export const OperationPanel = ({
                     style={{
                       backgroundColor: annoColors.get(categoryName)
                     }}
-                    onClick={() => setObjects(annotations)}
+                    data-annotations={JSON.stringify(annotations)}
+                    onClick={handleClick}
                   >
                     <CategoryName
                       categoryName={categoryName}
-                      panelType={panelType}
                       focus={focus}
                       renameCategory={renameCategory}
                     />
-                    <AnnotationsGrid
-                      categoryName={categoryName}
-                      annotations={annotations}
-                      panelType={panelType}
-                      focus={focus}
-                    />
+                    <AnnotationsGrid annotations={annotations} focus={focus} />
                   </div>
                 </div>
               ))}
