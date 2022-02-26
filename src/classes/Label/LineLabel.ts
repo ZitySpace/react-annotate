@@ -11,11 +11,11 @@ import {
 import { Line, Point } from '../Geometry'
 
 export class LineLabel implements Line {
-  readonly type = LabelType.Line
+  readonly labelType = LabelType.Line
+  category: string | null
+  id: number
   scale: number
   offset: Point
-  id: number
-  categoryName: string | null
   color: string
   x: number
   y: number
@@ -38,7 +38,7 @@ export class LineLabel implements Line {
       _x: obj.x2! + STROKE_WIDTH / 2,
       _y: obj.y2! + STROKE_WIDTH / 2,
       id: (obj as any).id,
-      categoryName: (obj as any).categoryName,
+      category: (obj as any).category,
       color: (obj as any).color,
       offset,
       scale
@@ -51,7 +51,7 @@ export class LineLabel implements Line {
     _x,
     _y,
     id,
-    categoryName,
+    category,
     offset,
     scale,
     color
@@ -61,7 +61,7 @@ export class LineLabel implements Line {
     _x: number
     _y: number
     id: number
-    categoryName?: string
+    category?: string
     offset?: Point
     scale?: number
     color: string
@@ -74,7 +74,7 @@ export class LineLabel implements Line {
       Math.pow(Math.abs(x - _x), 2) + Math.pow(Math.abs(y - _y), 2)
     )
     this.id = id
-    this.categoryName = categoryName || null
+    this.category = category || null
     this.offset = offset || { x: 0, y: 0 }
     this.scale = scale || 1
     this.color = color
@@ -118,7 +118,7 @@ export class LineLabel implements Line {
     currentColor?: string
     visible?: boolean
   }) {
-    const { x, y, _x, _y, color: oriColor, id, categoryName } = this
+    const { x, y, _x, _y, color: oriColor, id, category, labelType } = this
     const color = currentColor || oriColor
     const line = new fabric.Line(
       [x, y, _x, _y].map((coord) => coord - STROKE_WIDTH / 2),
@@ -144,10 +144,10 @@ export class LineLabel implements Line {
       endpoint.setOptions({
         id,
         _id: _id + 1,
-        categoryName,
+        category,
         color,
         line,
-        labelType: LabelType.Line
+        labelType
       })
       return endpoint
     })
@@ -162,13 +162,13 @@ export class LineLabel implements Line {
       backgroundColor: currentColor || color,
       visible
     })
-    textbox.setOptions({ id, categoryName, labelType: LabelType.Line })
+    textbox.setOptions({ id, category, labelType: LabelType.Line })
     line.setOptions({
       id,
-      categoryName,
+      category,
       color,
       endpoints,
-      labelType: LabelType.Line
+      labelType
     })
     return { line, textbox, point1: endpoints[0], point2: endpoints[1] }
   }
@@ -176,12 +176,12 @@ export class LineLabel implements Line {
   static newFabricObjects({
     position,
     id,
-    categoryName,
+    category,
     color
   }: {
     position: Point
     id: number
-    categoryName: string
+    category: string
     color: string
   }) {
     const { x, y } = position
@@ -203,7 +203,7 @@ export class LineLabel implements Line {
       endpoint.setOptions({
         id,
         _id: _id + 1,
-        categoryName,
+        category,
         color,
         labelType: LabelType.Line,
         line
@@ -212,7 +212,7 @@ export class LineLabel implements Line {
     })
     line.setOptions({
       id,
-      categoryName,
+      category,
       color,
       labelType: LabelType.Line,
       endpoints
@@ -225,7 +225,7 @@ export class LineLabel implements Line {
       backgroundColor: color,
       visible: false
     })
-    textbox.setOptions({ id, categoryName, labelType: LabelType.Line })
+    textbox.setOptions({ id, category, labelType: LabelType.Line })
     return [line, ...endpoints, textbox]
   }
 }

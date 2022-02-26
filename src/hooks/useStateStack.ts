@@ -92,23 +92,17 @@ export const useStateStack = (): UseStateStackReturnProps => {
           : actions.push(newState)
       },
 
-      deleteCategory: (category: string) => {
-        if (
-          !nowState.map(({ categoryName }) => categoryName).includes(category)
-        )
+      deleteCategory: (target: string) => {
+        if (!nowState.map(({ category }) => category).includes(target))
           return false
-        const newState = nowState.filter(
-          ({ categoryName }) => categoryName !== category
-        )
+        const newState = nowState.filter(({ category }) => category !== target)
         return actions.push(newState)
       },
 
       renameCategory(oldCategory: string, newCategory: string) {
         nowState.forEach((label) => {
-          label.categoryName =
-            label.categoryName === oldCategory
-              ? newCategory
-              : label.categoryName
+          label.category =
+            label.category === oldCategory ? newCategory : label.category
         })
       }
     }),
@@ -117,7 +111,7 @@ export const useStateStack = (): UseStateStackReturnProps => {
 
   return {
     nowState,
-    groupedState: nowState ? groupBy(nowState, 'categoryName') : [],
+    groupedState: nowState ? groupBy(nowState, 'category') : [],
     can: can,
     currentIndex: index.current,
     ...actions

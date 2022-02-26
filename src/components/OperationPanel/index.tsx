@@ -26,6 +26,7 @@ export const OperationPanel = ({
 
   const { groupedState, renameCategory } = stateStack
   const labels = groupedState
+  console.log(labels)
 
   const handleClick = (e: MouseEvent) => {
     const annotations: Label[] = JSON.parse(

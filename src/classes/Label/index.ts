@@ -13,25 +13,25 @@ export enum LabelType {
 }
 
 export const newFabricObjects = ({
-  type,
+  labelType,
   position,
   id,
-  categoryName,
+  category,
   color
 }: {
-  type: LabelType
+  labelType: LabelType
   position: Point
   id: number
-  categoryName: string
+  category: string
   color: string
 }) => {
-  switch (type) {
+  switch (labelType) {
     case LabelType.Point:
-      return PointLabel.newFabricObjects({ position, id, categoryName, color })
+      return PointLabel.newFabricObjects({ position, id, category, color })
     case LabelType.Line:
-      return LineLabel.newFabricObjects({ position, id, categoryName, color })
+      return LineLabel.newFabricObjects({ position, id, category, color })
     case LabelType.Rect:
-      return RectLabel.newFabricObjects({ position, id, categoryName, color })
+      return RectLabel.newFabricObjects({ position, id, category, color })
     default:
       return []
   }

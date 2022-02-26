@@ -135,8 +135,8 @@ export const useCanvas = ({
 
         canvas.remove(...canvas.getObjects())
         nowState.forEach((anno: Label) => {
-          const { categoryName } = anno
-          const currentColor = annoColors.get(categoryName!)
+          const { category } = anno
+          const currentColor = annoColors.get(category!)
           // TODO: ensure visible
           const visible = forceVisable || isAnnosVisible // && isFocused(categoryName, id))
           const fabricObjects = anno.getFabricObjects({ currentColor, visible })

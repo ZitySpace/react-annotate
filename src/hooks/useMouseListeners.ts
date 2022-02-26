@@ -83,8 +83,8 @@ export const useMouseListeners = ({
 
     const fabricObjects = newFabricObjects({
       position: { x, y },
-      type: nowFocus.drawingType!,
-      categoryName: category,
+      labelType: nowFocus.drawingType!,
+      category,
       id,
       color
     })

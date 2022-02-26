@@ -40,8 +40,7 @@ export const useFocus = () => {
     setObjects: (objects: Label[] = []) => {
       focusRef.current.objects = objects
       focusRef.current.category =
-        mostRepeatedValue(objects.map(({ categoryName }) => categoryName)) ||
-        null
+        mostRepeatedValue(objects.map(({ category }) => category)) || null
       update()
     },
 

@@ -3,6 +3,13 @@ export interface Point {
   y: number
 }
 
+export class Point implements Point {
+  constructor(x: number = 0, y: number = 0) {
+    this.x = x
+    this.y = y
+  }
+}
+
 export interface Dimension {
   w: number
   h: number

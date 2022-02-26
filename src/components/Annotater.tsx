@@ -36,7 +36,7 @@ export const Annotater = ({
       ...img,
       annotations: img.annotations.map((anno: any, id: number) => {
         const { x, y, w, h, category } = anno
-        return new RectLabel({ x, y, w, h, id, categoryName: category })
+        return new RectLabel({ x, y, w, h, id, category })
       })
     }
   })
