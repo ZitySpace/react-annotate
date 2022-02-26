@@ -48,11 +48,11 @@ export const newLabelFromFabricObj = ({
 }) => {
   switch ((obj as any).labelType) {
     case LabelType.Point:
-      return PointLabel.fromFabricPoint({ obj, offset, scale })
+      return new PointLabel({ obj, offset, scale })
     case LabelType.Line:
-      return LineLabel.fromFabricLine({ obj, offset, scale })
+      return new LineLabel({ obj, offset, scale })
     case LabelType.Rect:
-      return RectLabel.fromFabricRect({ obj, offset, scale })
+      return new RectLabel({ obj, offset, scale })
     default:
       throw new Error('obj types error')
   }

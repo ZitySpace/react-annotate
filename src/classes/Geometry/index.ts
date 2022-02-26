@@ -4,6 +4,11 @@ export interface Point {
 }
 
 export class Point implements Point {
+  /**
+   *
+   * @param x x_coordinate default 0
+   * @param y y_coordinate default 0
+   */
   constructor(x: number = 0, y: number = 0) {
     this.x = x
     this.y = y

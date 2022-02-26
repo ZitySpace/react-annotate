@@ -11,6 +11,8 @@ export const NEW_CATEGORY_NAME = 'new_category'
 
 export const TRANSPARENT = 'rgba(255,0,0,0)'
 
+export const DEFAULT_COLOR = 'rgba(0,0,0,1)'
+
 export const POINT_DEFAULT_CONFIG: fabric.ICircleOptions = {
   strokeWidth: STROKE_WIDTH,
   fill: TRANSPARENT,

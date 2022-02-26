@@ -1,18 +1,32 @@
 import { fabric } from 'fabric'
 import { LabelType } from '.'
 import {
+  DEFAULT_COLOR,
   RECT_DEFAULT_CONFIG,
   STROKE_WIDTH,
   TEXTBOX_DEFAULT_CONFIG
 } from '../../interfaces/config'
 import { Point, Rect } from '../Geometry'
 
+interface RectLabelArgs {
+  category?: string
+  id?: number
+  scale?: number
+  offset?: Point
+  color?: string
+  x?: number
+  y?: number
+  w?: number
+  h?: number
+  obj?: fabric.Rect
+}
+
 export class RectLabel implements Rect {
   readonly labelType = LabelType.Rect
+  category: string | null
+  id: number
   scale: number
   offset: Point
-  id: number
-  category: string | null
   color: string
   x: number
   y: number
@@ -21,60 +35,51 @@ export class RectLabel implements Rect {
   x1: number
   y1: number
 
-  static fromFabricRect({
-    obj,
-    offset,
-    scale
-  }: {
-    obj: fabric.Rect
-    offset: Point
-    scale: number
-  }): RectLabel {
-    return new this({
-      x: obj.left!,
-      y: obj.top!,
-      w: obj.getScaledWidth() - STROKE_WIDTH,
-      h: obj.getScaledHeight() - STROKE_WIDTH,
-      id: (obj as any).id,
-      category: (obj as any).category,
-      color: (obj as any).color,
-      scale,
-      offset
-    })
+  private xywh(...args: number[]): void {
+    this.x = args[0]
+    this.y = args[1]
+    this.w = args[2]
+    this.h = args[3]
+    this.x1 = args[0] + args[2]
+    this.y1 = args[1] + args[3]
   }
 
+  constructor({ obj, offset, scale }: RectLabelArgs)
+  constructor({ x, y, category, id, scale, offset, color }: RectLabelArgs)
+  constructor({ x, y, w, h, category, id, scale, offset, color }: RectLabelArgs)
   constructor({
-    x,
-    y,
-    w,
-    h,
-    id,
-    category,
-    offset,
-    scale,
-    color
-  }: {
-    x: number
-    y: number
-    w: number
-    h: number
-    id: number
-    category?: string
-    offset?: Point
-    scale?: number
-    color?: string
-  }) {
-    this.x = x
-    this.y = y
-    this.w = w
-    this.h = h
-    this.x1 = x + w
-    this.y1 = y + h
-    this.id = id
-    this.category = category || null
-    this.offset = offset || { x: 0, y: 0 }
-    this.scale = scale || 1
-    this.color = color!
+    x = 0,
+    y = 0,
+    w = 0,
+    h = 0,
+    category = '',
+    id = 0,
+    scale = 1,
+    offset = new Point(),
+    color = DEFAULT_COLOR,
+    obj
+  }: RectLabelArgs) {
+    if (obj) {
+      const { left: x, top: y, category, id, color } = obj as any
+      const w = obj.getScaledWidth() + STROKE_WIDTH
+      const h = obj.getScaledHeight() + STROKE_WIDTH
+
+      this.category = category
+      this.id = id
+      this.scale = scale
+      this.offset = offset
+      this.color = color
+
+      this.xywh(x, y, w, h)
+    } else {
+      this.category = category
+      this.id = id
+      this.scale = scale
+      this.offset = offset
+      this.color = color
+
+      this.xywh(x, y, w, h)
+    }
   }
 
   scaleTransform(scale: number, offset: Point = { x: 0, y: 0 }) {

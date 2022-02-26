@@ -1,6 +1,7 @@
 import { fabric } from 'fabric'
 import { LabelType } from '.'
 import {
+  DEFAULT_COLOR,
   LINE_DEFAULT_CONFIG,
   POINT_DEFAULT_CONFIG,
   RADIUS,
@@ -9,6 +10,19 @@ import {
   TRANSPARENT
 } from '../../interfaces/config'
 import { Line, Point } from '../Geometry'
+
+interface LineLabelArgs {
+  category?: string
+  id?: number
+  scale?: number
+  offset: Point
+  color?: string
+  x?: number
+  y?: number
+  _x?: number
+  _y?: number
+  obj?: fabric.Line
+}
 
 export class LineLabel implements Line {
   readonly labelType = LabelType.Line
@@ -23,61 +37,59 @@ export class LineLabel implements Line {
   _y: number
   distance: number
 
-  static fromFabricLine({
-    obj,
-    offset,
-    scale
-  }: {
-    obj: fabric.Line
-    offset: Point
-    scale: number
-  }): LineLabel {
-    return new this({
-      x: obj.x1! + STROKE_WIDTH / 2,
-      y: obj.y1! + STROKE_WIDTH / 2,
-      _x: obj.x2! + STROKE_WIDTH / 2,
-      _y: obj.y2! + STROKE_WIDTH / 2,
-      id: (obj as any).id,
-      category: (obj as any).category,
-      color: (obj as any).color,
-      offset,
-      scale
-    })
+  private xy_xy(...args: number[]): void {
+    this.x = args[0]
+    this.y = args[1]
+    this._x = args[2]
+    this._y = args[3]
+    this.distance = Math.sqrt(
+      Math.pow(this._x - this.x, 2) + Math.pow(this._y - this.y, 2)
+    )
   }
 
+  constructor({ obj, scale, offset }: LineLabelArgs)
+  constructor({ x, y, category, id, scale, offset, color }: LineLabelArgs)
   constructor({
     x,
     y,
     _x,
     _y,
-    id,
     category,
-    offset,
+    id,
     scale,
+    offset,
     color
-  }: {
-    x: number
-    y: number
-    _x: number
-    _y: number
-    id: number
-    category?: string
-    offset?: Point
-    scale?: number
-    color: string
-  }) {
-    this.x = x
-    this.y = y
-    this._x = _x
-    this._y = _y
-    this.distance = Math.sqrt(
-      Math.pow(Math.abs(x - _x), 2) + Math.pow(Math.abs(y - _y), 2)
-    )
-    this.id = id
-    this.category = category || null
-    this.offset = offset || { x: 0, y: 0 }
-    this.scale = scale || 1
-    this.color = color
+  }: LineLabelArgs)
+  constructor({
+    x = 0,
+    y = 0,
+    _x,
+    _y,
+    category = '',
+    id = 0,
+    scale = 1,
+    offset = new Point(),
+    color = DEFAULT_COLOR,
+    obj
+  }: LineLabelArgs) {
+    if (obj) {
+      const { x1: x, y1: y, x2: _x, y2: _y, category, id, color } = obj as any
+      this.category = category
+      this.id = id
+      this.scale = scale
+      this.offset = offset
+      this.color = color
+
+      this.xy_xy(x, y, _x, _y)
+    } else {
+      this.category = category
+      this.id = id
+      this.scale = scale
+      this.offset = offset
+      this.color = color
+
+      this.xy_xy(x, y, _x || x, _y || y)
+    }
   }
 
   scaleTransform(scale: number, offset: Point) {

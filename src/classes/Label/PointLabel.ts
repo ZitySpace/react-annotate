@@ -1,6 +1,7 @@
 import { fabric } from 'fabric'
 import { LabelType } from '.'
 import {
+  DEFAULT_COLOR,
   POINT_DEFAULT_CONFIG,
   RADIUS,
   STROKE_WIDTH,
@@ -9,6 +10,16 @@ import {
 } from '../../interfaces/config'
 import { Point } from '../Geometry'
 
+interface PointLabelArgs {
+  category?: string
+  id?: number
+  scale?: number
+  offset?: Point
+  color?: string
+  x?: number
+  y?: number
+  obj?: fabric.Circle
+}
 export class PointLabel implements Point {
   readonly labelType = LabelType.Point
   category: string | null
@@ -19,50 +30,38 @@ export class PointLabel implements Point {
   x: number
   y: number
 
-  static fromFabricPoint({
-    obj,
-    offset,
-    scale
-  }: {
-    obj: fabric.Circle
-    offset: Point
-    scale: number
-  }): PointLabel {
-    return new this({
-      x: obj.left!,
-      y: obj.top!,
-      id: (obj as any).id,
-      category: (obj as any).category,
-      color: (obj as any).color,
-      scale,
-      offset
-    })
-  }
-
+  constructor({ obj, scale, offset }: PointLabelArgs)
+  constructor({ x, y, category, id, scale, offset, color }: PointLabelArgs)
   constructor({
-    x,
-    y,
-    id,
-    category,
-    scale,
-    offset,
-    color
-  }: {
-    x: number
-    y: number
-    id: number
-    category?: string
-    scale?: number
-    offset?: Point
-    color: string
-  }) {
-    this.x = x
-    this.y = y
-    this.id = id
-    this.category = category || null
-    this.scale = scale || 1
-    this.offset = offset || { x: 0, y: 0 }
-    this.color = color
+    x = 0,
+    y = 0,
+    category = '',
+    id = 0,
+    scale = 1,
+    offset = new Point(),
+    color = DEFAULT_COLOR,
+    obj
+  }: PointLabelArgs) {
+    if (obj) {
+      const { left: x, top: y, category, id, color } = obj as any
+      this.category = category
+      this.id = id
+      this.scale = scale
+      this.offset = offset
+      this.color = color
+
+      this.x = x
+      this.y = y
+    } else {
+      this.category = category
+      this.id = id
+      this.scale = scale
+      this.offset = offset
+      this.color = color
+
+      this.x = x
+      this.y = y
+    }
   }
 
   scaleTransform(scale: number, offset: Point = { x: 0, y: 0 }) {
