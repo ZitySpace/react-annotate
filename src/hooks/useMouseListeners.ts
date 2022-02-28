@@ -2,21 +2,14 @@ import { usePinch } from '@use-gesture/react'
 import { fabric } from 'fabric'
 import { MutableRefObject, useCallback, useRef } from 'react'
 import { Point } from '../classes/Geometry'
-import {
-  isLine,
-  isPoint,
-  isRect,
-  LabelType,
-  newFabricObjects,
-  newLabelFromFabricObj
-} from '../classes/Label'
-
+import { LabelType } from '../classes/Label'
 import {
   NEW_CATEGORY_NAME,
   STROKE_WIDTH,
   TRANSPARENT
 } from '../interfaces/config'
 import { getBetween, isInvalid, isTouchEvent } from '../utils'
+import { isLine, isPoint, isRect, newLabel } from '../utils/label'
 import { UseColorsReturnProps } from './useColor'
 import { CanvasProps } from './useContainer'
 import { UseFocusReturnProps } from './useFocus'
@@ -81,13 +74,15 @@ export const useMouseListeners = ({
     const id = Math.max(-1, ...nowState.map((anno) => anno.id)) + 1
     const color = annoColors.get(category)
 
-    const fabricObjects = newFabricObjects({
+    const fabricObjects = newLabel({
+      labelType: nowFocus.drawingType,
       position: { x, y },
-      labelType: nowFocus.drawingType!,
       category,
       id,
+      scale,
+      offset,
       color
-    })
+    }).getFabricObjects({})
 
     canvas.add(...fabricObjects)
     onDrawObj.current = fabricObjects[0]
@@ -127,7 +122,7 @@ export const useMouseListeners = ({
     if (isInvalid(obj, nowFocus.drawingType!)) {
       canvas.remove(...canvas.getObjects().filter((o: any) => o.id === obj.id))
     } else {
-      setObjects([newLabelFromFabricObj({ obj, offset, scale })])
+      setObjects([newLabel({ obj, offset, scale })])
       canvas.setActiveObject(
         obj.labelType !== LabelType.Line ? obj : obj.endpoints[1]
       )

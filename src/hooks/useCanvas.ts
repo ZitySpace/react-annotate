@@ -1,13 +1,8 @@
 import { MutableRefObject, useEffect, useMemo, useRef } from 'react'
-import {
-  isLabel,
-  isLineEndpoint,
-  isRect,
-  Label,
-  newLabelFromFabricObj
-} from '../classes/Label'
+import { Label } from '../classes/Label'
 import { STROKE_WIDTH } from '../interfaces/config'
 import { getBetween } from '../utils'
+import { isLabel, isLineEndpoint, isRect, newLabel } from '../utils/label'
 import { UseColorsReturnProps } from './useColor'
 import { CanvasProps } from './useContainer'
 import { UseFocusReturnProps } from './useFocus'
@@ -76,7 +71,7 @@ export const useCanvas = ({
   const updateAllTextboxPosition = () => {
     const allCanvasObjects = canvas.getObjects().filter(isLabel)
     const allLabels = allCanvasObjects.map((obj) =>
-      newLabelFromFabricObj({ obj, offset, scale })
+      newLabel({ obj, offset, scale })
     )
 
     canvas.remove(...canvas.getObjects())
@@ -123,7 +118,7 @@ export const useCanvas = ({
 
         const allCanvasObjects = canvas.getObjects().filter(isLabel)
         const newState: Label[] = allCanvasObjects.map((obj) =>
-          newLabelFromFabricObj({ obj, offset, scale })
+          newLabel({ obj, offset, scale })
         )
         pushState && pushState(newState)
         setRenderLock() // avoid useEffect hook invoke syncStateToCanvas method
@@ -185,7 +180,7 @@ export const useCanvas = ({
     // Sync canvas's selection to focus
     'selection:created': (e: any) => {
       const obj = e.target
-      const anno = newLabelFromFabricObj({ obj, offset, scale })
+      const anno = newLabel({ obj, offset, scale })
       setObjects([anno])
     },
     'selection:cleared': (e: any) => e.e && setObjects()

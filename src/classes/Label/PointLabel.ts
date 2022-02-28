@@ -30,8 +30,9 @@ export class PointLabel implements Point {
   x: number
   y: number
 
-  constructor({ obj, scale, offset }: PointLabelArgs)
-  constructor({ x, y, category, id, scale, offset, color }: PointLabelArgs)
+  constructor({ obj, scale, offset }: PointLabelArgs) // construct from fabric object
+  constructor({ x, y, category, id, scale, offset, color }: PointLabelArgs) // construct from cursor position
+  constructor({ x, y, category, id, color }: PointLabelArgs) // construct from existing data
   constructor({
     x = 0,
     y = 0,
@@ -116,33 +117,33 @@ export class PointLabel implements Point {
     return products
   }
 
-  static newFabricObjects({
-    position,
-    id,
-    category,
-    color
-  }: {
-    position: Point
-    id: number
-    category: string
-    color: string
-  }) {
-    const { x, y } = position
-    const point = new fabric.Circle({
-      ...POINT_DEFAULT_CONFIG,
-      left: x,
-      top: y,
-      stroke: color
-    })
-    point.setOptions({ id, category, color, labelType: LabelType.Point })
+  // static newFabricObjects({
+  //   position,
+  //   category,
+  //   id,
+  //   color
+  // }: {
+  //   position: Point
+  //   category: string
+  //   id: number
+  //   color: string
+  // }) {
+  //   const { x, y } = position
+  //   const point = new fabric.Circle({
+  //     ...POINT_DEFAULT_CONFIG,
+  //     left: x,
+  //     top: y,
+  //     stroke: color
+  //   })
+  //   point.setOptions({ id, category, color, labelType: LabelType.Point })
 
-    const textbox = new fabric.Textbox(id.toString(), {
-      ...TEXTBOX_DEFAULT_CONFIG,
-      originY: 'bottom',
-      backgroundColor: color,
-      visible: false
-    })
-    textbox.setOptions({ id, category, labelType: LabelType.Point })
-    return [point, textbox]
-  }
+  //   const textbox = new fabric.Textbox(id.toString(), {
+  //     ...TEXTBOX_DEFAULT_CONFIG,
+  //     originY: 'bottom',
+  //     backgroundColor: color,
+  //     visible: false
+  //   })
+  //   textbox.setOptions({ id, category, labelType: LabelType.Point })
+  //   return [point, textbox]
+  // }
 }

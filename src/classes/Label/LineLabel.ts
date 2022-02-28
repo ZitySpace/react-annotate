@@ -5,7 +5,6 @@ import {
   LINE_DEFAULT_CONFIG,
   POINT_DEFAULT_CONFIG,
   RADIUS,
-  STROKE_WIDTH,
   TEXTBOX_DEFAULT_CONFIG,
   TRANSPARENT
 } from '../../interfaces/config'
@@ -47,19 +46,9 @@ export class LineLabel implements Line {
     )
   }
 
-  constructor({ obj, scale, offset }: LineLabelArgs)
-  constructor({ x, y, category, id, scale, offset, color }: LineLabelArgs)
-  constructor({
-    x,
-    y,
-    _x,
-    _y,
-    category,
-    id,
-    scale,
-    offset,
-    color
-  }: LineLabelArgs)
+  constructor({ obj, scale, offset }: LineLabelArgs) // construct from fabric object
+  constructor({ x, y, category, id, scale, offset, color }: LineLabelArgs) // construct from cursor position
+  constructor({ x, y, _x, _y, category, id, color }: LineLabelArgs) // construct from existing data
   constructor({
     x = 0,
     y = 0,
@@ -165,59 +154,59 @@ export class LineLabel implements Line {
     return products
   }
 
-  static newFabricObjects({
-    position,
-    id,
-    category,
-    color
-  }: {
-    position: Point
-    id: number
-    category: string
-    color: string
-  }) {
-    const { x, y } = position
-    const line = new fabric.Line(
-      [x, y, x, y].map((coord) => coord - STROKE_WIDTH / 2),
-      {
-        ...LINE_DEFAULT_CONFIG,
-        stroke: color
-      }
-    )
-    const endpoints = [...Array(2).keys()].map((_id) => {
-      const endpoint = new fabric.Circle({
-        ...POINT_DEFAULT_CONFIG,
-        left: x,
-        top: y,
-        fill: color,
-        stroke: TRANSPARENT
-      })
-      endpoint.setOptions({
-        id,
-        _id: _id + 1,
-        category,
-        color,
-        labelType: LabelType.Line,
-        line
-      })
-      return endpoint
-    })
-    line.setOptions({
-      id,
-      category,
-      color,
-      labelType: LabelType.Line,
-      endpoints
-    })
+  // static newFabricObjects({
+  //   position,
+  //   id,
+  //   category,
+  //   color
+  // }: {
+  //   position: Point
+  //   id: number
+  //   category: string
+  //   color: string
+  // }) {
+  //   const { x, y } = position
+  //   const line = new fabric.Line(
+  //     [x, y, x, y].map((coord) => coord - STROKE_WIDTH / 2),
+  //     {
+  //       ...LINE_DEFAULT_CONFIG,
+  //       stroke: color
+  //     }
+  //   )
+  //   const endpoints = [...Array(2).keys()].map((_id) => {
+  //     const endpoint = new fabric.Circle({
+  //       ...POINT_DEFAULT_CONFIG,
+  //       left: x,
+  //       top: y,
+  //       fill: color,
+  //       stroke: TRANSPARENT
+  //     })
+  //     endpoint.setOptions({
+  //       id,
+  //       _id: _id + 1,
+  //       category,
+  //       color,
+  //       labelType: LabelType.Line,
+  //       line
+  //     })
+  //     return endpoint
+  //   })
+  //   line.setOptions({
+  //     id,
+  //     category,
+  //     color,
+  //     labelType: LabelType.Line,
+  //     endpoints
+  //   })
 
-    const textbox = new fabric.Textbox(id.toString(), {
-      ...TEXTBOX_DEFAULT_CONFIG,
-      originX: 'center',
-      originY: 'bottom',
-      backgroundColor: color,
-      visible: false
-    })
-    textbox.setOptions({ id, category, labelType: LabelType.Line })
-    return [line, ...endpoints, textbox]
-  }
+  //   const textbox = new fabric.Textbox(id.toString(), {
+  //     ...TEXTBOX_DEFAULT_CONFIG,
+  //     originX: 'center',
+  //     originY: 'bottom',
+  //     backgroundColor: color,
+  //     visible: false
+  //   })
+  //   textbox.setOptions({ id, category, labelType: LabelType.Line })
+  //   return [line, ...endpoints, textbox]
+  // }
 }

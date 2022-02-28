@@ -45,9 +45,9 @@ export class RectLabel implements Rect {
     this.y1 = args[1] + args[3]
   }
 
-  constructor({ obj, offset, scale }: RectLabelArgs)
-  constructor({ x, y, category, id, scale, offset, color }: RectLabelArgs)
-  constructor({ x, y, w, h, category, id, scale, offset, color }: RectLabelArgs)
+  constructor({ obj, offset, scale }: RectLabelArgs) // construct from fabric object
+  constructor({ x, y, category, id, scale, offset, color }: RectLabelArgs) // construct from cursor position
+  constructor({ x, y, w, h, category, id, color }: RectLabelArgs) // construct from existing data
   constructor({
     x = 0,
     y = 0,
@@ -110,7 +110,7 @@ export class RectLabel implements Rect {
     currentColor?: string
     visible?: boolean
   }) {
-    const { x, y, w, h, color: oriColor, id, category, labelType } = this
+    const { x, y, w, h, labelType, category, id, color: oriColor } = this
     const color = currentColor || oriColor
     const rect = new fabric.Rect({
       ...RECT_DEFAULT_CONFIG,
@@ -138,32 +138,32 @@ export class RectLabel implements Rect {
     return products
   }
 
-  static newFabricObjects({
-    position,
-    id,
-    category,
-    color
-  }: {
-    position: Point
-    id: number
-    category: string
-    color: string
-  }) {
-    const { x, y } = position
-    const rect = new fabric.Rect({
-      ...RECT_DEFAULT_CONFIG,
-      left: x - STROKE_WIDTH,
-      top: y - STROKE_WIDTH,
-      stroke: color
-    })
-    rect.setOptions({ id, category, color, labelType: LabelType.Rect })
+  // static newFabricObjects({
+  //   position,
+  //   category,
+  //   id,
+  //   color
+  // }: {
+  //   position: Point
+  //   category: string
+  //   id: number
+  //   color: string
+  // }) {
+  //   const { x, y } = position
+  //   const rect = new fabric.Rect({
+  //     ...RECT_DEFAULT_CONFIG,
+  //     left: x - STROKE_WIDTH,
+  //     top: y - STROKE_WIDTH,
+  //     stroke: color
+  //   })
+  //   rect.setOptions({ id, category, color, labelType: LabelType.Rect })
 
-    const textbox = new fabric.Textbox(id.toString(), {
-      ...TEXTBOX_DEFAULT_CONFIG,
-      backgroundColor: color,
-      visible: false
-    })
-    textbox.setOptions({ id, category, labelType: LabelType.Rect })
-    return [rect, textbox]
-  }
+  //   const textbox = new fabric.Textbox(id.toString(), {
+  //     ...TEXTBOX_DEFAULT_CONFIG,
+  //     backgroundColor: color,
+  //     visible: false
+  //   })
+  //   textbox.setOptions({ id, category, labelType: LabelType.Rect })
+  //   return [rect, textbox]
+  // }
 }
