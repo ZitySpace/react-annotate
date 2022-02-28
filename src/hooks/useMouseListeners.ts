@@ -98,10 +98,10 @@ export const useMouseListeners = ({
     if (!obj) return
 
     if (isRect(obj)) {
-      const left = Math.min(lastX, nowX) - STROKE_WIDTH
-      const right = Math.max(lastX, nowX)
-      const top = Math.min(lastY, nowY) - STROKE_WIDTH
-      const bottom = Math.max(lastY, nowY)
+      const left = Math.min(lastX, nowX)
+      const top = Math.min(lastY, nowY)
+      const right = Math.max(lastX, nowX) - STROKE_WIDTH // width and height will add stroke width automatically so we need to subtract it
+      const bottom = Math.max(lastY, nowY) - STROKE_WIDTH
       obj.set({ left, top, width: right - left, height: bottom - top })
     } else if (isPoint(obj)) {
       const left = nowX
@@ -111,7 +111,7 @@ export const useMouseListeners = ({
       const left = nowX
       const top = nowY
       obj.endpoints[1].set({ left, top })
-      obj.set({ x2: left - STROKE_WIDTH / 2, y2: top - STROKE_WIDTH / 2 })
+      obj.set({ x2: left, y2: top })
     }
     canvas.renderAll()
   }

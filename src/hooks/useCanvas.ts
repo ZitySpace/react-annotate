@@ -1,6 +1,5 @@
 import { MutableRefObject, useEffect, useMemo, useRef } from 'react'
 import { Label } from '../classes/Label'
-import { STROKE_WIDTH } from '../interfaces/config'
 import { getBetween } from '../utils'
 import { isLabel, isLineEndpoint, isRect, newLabel } from '../utils/label'
 import { UseColorsReturnProps } from './useColor'
@@ -61,11 +60,7 @@ export const useCanvas = ({
   const setLinePositionIfMoveEndpoint = (object?: fabric.Object) => {
     if (object && isLineEndpoint(object)) {
       const { left, top, line, _id } = object as any // try to get attributes
-      // judge if it is line
-      line.set({
-        [`x${_id}`]: left - STROKE_WIDTH / 2,
-        [`y${_id}`]: top - STROKE_WIDTH / 2
-      })
+      line.set({ [`x${_id}`]: left, [`y${_id}`]: top })
     }
   }
 
