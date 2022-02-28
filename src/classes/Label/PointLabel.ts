@@ -68,25 +68,17 @@ export class PointLabel implements Point {
     if (this.scale !== 1 || this.offset.x || this.offset.y) this.origin()
     this.scale = scale
     this.offset = offset
-    this.x = this.x * scale + offset.x - RADIUS - STROKE_WIDTH / 2
-    this.y = this.y * scale + offset.y - RADIUS - STROKE_WIDTH / 2
+    this.x = this.x * scale + offset.x
+    this.y = this.y * scale + offset.y
     return this
   }
 
   origin() {
-    this.x = (this.x + RADIUS + STROKE_WIDTH / 2 - this.offset.x) / this.scale
-    this.y = (this.y + RADIUS + STROKE_WIDTH / 2 - this.offset.y) / this.scale
+    this.x = (this.x - this.offset.x) / this.scale
+    this.y = (this.y - this.offset.y) / this.scale
     this.scale = 1
-    this.offset = { x: 0, y: 0 }
+    this.offset = new Point()
     return this
-  }
-
-  getOrigin() {
-    return {
-      ...this,
-      x: (this.x + RADIUS + STROKE_WIDTH / 2 - this.offset.x) / this.scale,
-      y: (this.y + RADIUS + STROKE_WIDTH / 2 - this.offset.y) / this.scale
-    }
   }
 
   getFabricObjects({
@@ -102,12 +94,10 @@ export class PointLabel implements Point {
       ...POINT_DEFAULT_CONFIG,
       left: x,
       top: y,
-      radius: RADIUS,
       fill: color,
       stroke: TRANSPARENT,
       visible
     })
-    point.setOptions({ id, category, color, labelType })
 
     const textbox = new fabric.Textbox(id.toString(), {
       ...TEXTBOX_DEFAULT_CONFIG,
@@ -117,9 +107,13 @@ export class PointLabel implements Point {
       backgroundColor: currentColor || color,
       visible
     })
-    textbox.setOptions({ id, category, labelType })
 
-    return { point, textbox }
+    const products = [point, textbox]
+    products.forEach((obj) =>
+      obj.setOptions({ labelType, category, id, color })
+    )
+
+    return products
   }
 
   static newFabricObjects({

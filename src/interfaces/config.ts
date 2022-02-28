@@ -3,9 +3,9 @@ export const IS_TOUCH_SCREEN =
   (navigator as any).maxTouchPoints > 0 ||
   (navigator as any).msMaxTouchPoints > 0
 
-export const STROKE_WIDTH = 1.5
+export const STROKE_WIDTH = 2
 
-export const RADIUS = 3
+export const RADIUS = 5
 
 export const NEW_CATEGORY_NAME = 'new_category'
 
@@ -13,39 +13,45 @@ export const TRANSPARENT = 'rgba(255,0,0,0)'
 
 export const DEFAULT_COLOR = 'rgba(0,0,0,1)'
 
+export const MAX_FONT_SIZE = 14
+
 export const POINT_DEFAULT_CONFIG: fabric.ICircleOptions = {
-  strokeWidth: STROKE_WIDTH,
-  fill: TRANSPARENT,
-  hasControls: false,
-  hasBorders: false,
-  selectable: !IS_TOUCH_SCREEN,
   originX: 'center',
   originY: 'center',
+  hasControls: false,
+  hasBorders: false,
+  strokeWidth: STROKE_WIDTH,
+  selectable: !IS_TOUCH_SCREEN,
+  fill: TRANSPARENT,
   radius: RADIUS
 }
 
 export const LINE_DEFAULT_CONFIG: fabric.ILineOptions = {
-  strokeWidth: STROKE_WIDTH,
-  hasBorders: false,
+  originX: 'center',
+  originY: 'center',
   hasControls: false,
+  hasBorders: false,
+  hoverCursor: 'default',
+  strokeWidth: STROKE_WIDTH,
   strokeUniform: true,
   selectable: false,
-  hoverCursor: 'default',
   visible: true
 }
 
 export const RECT_DEFAULT_CONFIG: fabric.IRectOptions | any = {
+  originX: 'left',
+  originY: 'top',
+  hasBorders: false,
+  _controlsVisibility: { mtr: false },
+  selectable: !IS_TOUCH_SCREEN,
   lockRotation: true,
   fill: TRANSPARENT,
   strokeWidth: STROKE_WIDTH,
-  noScaleCache: false,
   strokeUniform: true,
-  hasBorders: false,
+  noScaleCache: false,
   cornerSize: 8,
   transparentCorners: false,
-  perPixelTargetFind: true,
-  selectable: !IS_TOUCH_SCREEN,
-  _controlsVisibility: { mtr: false }
+  perPixelTargetFind: true
 }
 
 export const TEXTBOX_DEFAULT_CONFIG: fabric.ITextboxOptions = {

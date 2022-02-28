@@ -1,4 +1,4 @@
-import { RADIUS, STROKE_WIDTH } from '../interfaces/config'
+import { MAX_FONT_SIZE, RADIUS, STROKE_WIDTH } from '../interfaces/config'
 import { Label, LabelType } from '../classes/Label'
 
 /**
@@ -74,4 +74,14 @@ export function getBetween(value: number, ...args: number[]): number {
  */
 export function getDistance(...points: fabric.Point[]): number {
   return points[0].distanceFrom(points[1])
+}
+
+/**
+ * Calculate the font size of the label's text
+ * @param width label's width
+ * @param height label's height
+ * @returns label's text's font size
+ */
+export const getFontSize = (width: number, height: number) => {
+  return Math.min(MAX_FONT_SIZE, width / 2, height / 2)
 }

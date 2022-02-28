@@ -96,31 +96,21 @@ export class LineLabel implements Line {
     if (this.scale !== 1 || this.offset.x || this.offset.y) this.origin()
     this.scale = scale
     this.offset = offset
-    this.x = this.x * scale + offset.x - STROKE_WIDTH
-    this.y = this.y * scale + offset.y - STROKE_WIDTH
-    this._x = this._x * scale + offset.x - STROKE_WIDTH
-    this._y = this._y * scale + offset.y - STROKE_WIDTH
+    const { x: X, y: Y } = offset
+    const { x, y, _x, _y } = this
+    const scaled = [x, y, _x, _y].map((v) => v * scale)
+    this.xy_xy(...scaled.map((v, i) => v + (i % 2 ? Y : X)))
     return this
   }
 
   origin() {
-    this.x = (this.x - this.offset.x + STROKE_WIDTH) / this.scale
-    this.y = (this.y - this.offset.y + STROKE_WIDTH) / this.scale
-    this._x = (this._x - this.offset.x + STROKE_WIDTH) / this.scale
-    this._y = (this._y - this.offset.y + STROKE_WIDTH) / this.scale
+    const { x, y, _x, _y } = this
+    const { x: X, y: Y } = this.offset
+    const translated = [x, y, _x, _y].map((v, i) => v - (i % 2 ? Y : X))
+    this.xy_xy(...translated.map((v) => v / this.scale))
     this.scale = 1
-    this.offset = { x: 0, y: 0 }
+    this.offset = new Point()
     return this
-  }
-
-  getOrigin() {
-    return {
-      ...this,
-      x: (this.x - this.offset.x + STROKE_WIDTH) / this.scale,
-      y: (this.y - this.offset.y + STROKE_WIDTH) / this.scale,
-      _x: (this._x - this.offset.x + STROKE_WIDTH) / this.scale,
-      _y: (this._y - this.offset.y + STROKE_WIDTH) / this.scale
-    }
   }
 
   getFabricObjects({
@@ -132,37 +122,29 @@ export class LineLabel implements Line {
   }) {
     const { x, y, _x, _y, color: oriColor, id, category, labelType } = this
     const color = currentColor || oriColor
-    const line = new fabric.Line(
-      [x, y, _x, _y].map((coord) => coord - STROKE_WIDTH / 2),
-      {
-        ...LINE_DEFAULT_CONFIG,
-        stroke: color,
-        visible
-      }
-    )
+    const line = new fabric.Line([x, y, _x, _y], {
+      ...LINE_DEFAULT_CONFIG,
+      stroke: color,
+      visible
+    })
 
     const endpoints = [
       [x, y],
       [_x, _y]
-    ].map((coord, _id) => {
+    ].map(([x, y], _id) => {
       const endpoint = new fabric.Circle({
         ...POINT_DEFAULT_CONFIG,
-        left: coord[0],
-        top: coord[1],
+        left: x,
+        top: y,
         fill: color,
         stroke: TRANSPARENT,
         visible
       })
-      endpoint.setOptions({
-        id,
-        _id: _id + 1,
-        category,
-        color,
-        line,
-        labelType
-      })
+      endpoint.setOptions({ _id: _id + 1, line })
       return endpoint
     })
+
+    line.setOptions({ endpoints })
 
     const topPoint = endpoints.sort((a, b) => a.top! - b.top!)[0]
     const textbox = new fabric.Textbox(id.toString(), {
@@ -174,15 +156,13 @@ export class LineLabel implements Line {
       backgroundColor: currentColor || color,
       visible
     })
-    textbox.setOptions({ id, category, labelType: LabelType.Line })
-    line.setOptions({
-      id,
-      category,
-      color,
-      endpoints,
-      labelType
-    })
-    return { line, textbox, point1: endpoints[0], point2: endpoints[1] }
+
+    const products = [line, textbox, ...endpoints]
+    products.forEach((obj) =>
+      obj.setOptions({ labelType, category, id, color })
+    )
+
+    return products
   }
 
   static newFabricObjects({
