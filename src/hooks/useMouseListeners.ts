@@ -181,6 +181,7 @@ export const useMouseListeners = ({
         const selectedObj = canvas.getActiveObject()
         isPanning.current = !selectedObj
         isPanning.current && setObjects()
+        isPanning.current && canvas.setCursor('grabbing')
       }
     },
     'mouse:move': (e: fabric.IEvent<MouseEvent>) => {
@@ -196,6 +197,8 @@ export const useMouseListeners = ({
 
         const zoom = canvas.getZoom()
         setViewport({ zoom, offset })
+
+        canvas.setCursor('grabbing')
       }
     },
     'mouse:up': () => {
