@@ -23,6 +23,10 @@ export const useCanvas = ({
   annoColors: UseColorsReturnProps
   stateStack: UseStateStackReturnProps
 }) => {
+  // TODO: remove
+  const nothing = { annoColors }
+  !nothing
+
   const canvas = canvasRef.current!
   const canvasLabelsCount =
     canvas && canvas.getObjects ? canvas.getObjects().filter(isLabel).length : 0
@@ -75,9 +79,7 @@ export const useCanvas = ({
     )
 
     canvas.remove(...canvas.getObjects())
-    allLabels.forEach((anno) =>
-      canvas.add(...Object.values(anno.getFabricObjects({})))
-    )
+    allLabels.forEach((anno) => canvas.add(...anno.getFabricObjects({})))
   }
 
   // Sync state to canvas & focus if state changed
@@ -135,7 +137,7 @@ export const useCanvas = ({
           // TODO: ensure visible
           const visible = forceVisable || isAnnosVisible // && isFocused(categoryName, id))
           const fabricObjects = anno.getFabricObjects({ currentColor, visible })
-          canvas.add(...Object.values(fabricObjects))
+          canvas.add(...fabricObjects)
         })
         canvas.renderAll()
       },

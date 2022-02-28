@@ -1,5 +1,5 @@
 import { fabric } from 'fabric'
-import { LabelType } from '.'
+import { Label, LabelType } from '.'
 import {
   DEFAULT_COLOR,
   RECT_DEFAULT_CONFIG,
@@ -22,13 +22,7 @@ interface RectLabelArgs {
   obj?: fabric.Rect
 }
 
-export class RectLabel implements Rect {
-  readonly labelType = LabelType.Rect
-  category: string | null
-  id: number
-  scale: number
-  offset: Point
-  color: string
+export class RectLabel extends Label implements Rect {
   x: number
   y: number
   w: number
@@ -60,25 +54,16 @@ export class RectLabel implements Rect {
     color = DEFAULT_COLOR,
     obj
   }: RectLabelArgs) {
+    const labelType = LabelType.Rect
     if (obj) {
       const { left: x, top: y, category, id, color } = obj as any
       const w = obj.getScaledWidth() // stroke width had been added
       const h = obj.getScaledHeight() // stroke width had been added
 
-      this.category = category
-      this.id = id
-      this.scale = scale
-      this.offset = offset
-      this.color = color
-
+      super({ labelType, category, id, scale, offset, color })
       this.xywh(x, y, w, h)
     } else {
-      this.category = category
-      this.id = id
-      this.scale = scale
-      this.offset = offset
-      this.color = color
-
+      super({ labelType, category, id, scale, offset, color })
       this.xywh(x, y, w, h)
     }
   }
@@ -137,33 +122,4 @@ export class RectLabel implements Rect {
     )
     return products
   }
-
-  // static newFabricObjects({
-  //   position,
-  //   category,
-  //   id,
-  //   color
-  // }: {
-  //   position: Point
-  //   category: string
-  //   id: number
-  //   color: string
-  // }) {
-  //   const { x, y } = position
-  //   const rect = new fabric.Rect({
-  //     ...RECT_DEFAULT_CONFIG,
-  //     left: x - STROKE_WIDTH,
-  //     top: y - STROKE_WIDTH,
-  //     stroke: color
-  //   })
-  //   rect.setOptions({ id, category, color, labelType: LabelType.Rect })
-
-  //   const textbox = new fabric.Textbox(id.toString(), {
-  //     ...TEXTBOX_DEFAULT_CONFIG,
-  //     backgroundColor: color,
-  //     visible: false
-  //   })
-  //   textbox.setOptions({ id, category, labelType: LabelType.Rect })
-  //   return [rect, textbox]
-  // }
 }

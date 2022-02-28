@@ -1,5 +1,5 @@
 import { fabric } from 'fabric'
-import { LabelType } from '.'
+import { Label, LabelType } from '.'
 import {
   DEFAULT_COLOR,
   POINT_DEFAULT_CONFIG,
@@ -20,13 +20,7 @@ interface PointLabelArgs {
   y?: number
   obj?: fabric.Circle
 }
-export class PointLabel implements Point {
-  readonly labelType = LabelType.Point
-  category: string | null
-  id: number
-  scale: number
-  offset: Point
-  color: string
+export class PointLabel extends Label implements Point {
   x: number
   y: number
 
@@ -43,23 +37,14 @@ export class PointLabel implements Point {
     color = DEFAULT_COLOR,
     obj
   }: PointLabelArgs) {
+    const labelType = LabelType.Point
     if (obj) {
       const { left: x, top: y, category, id, color } = obj as any
-      this.category = category
-      this.id = id
-      this.scale = scale
-      this.offset = offset
-      this.color = color
-
+      super({ labelType, category, id, scale, offset, color })
       this.x = x
       this.y = y
     } else {
-      this.category = category
-      this.id = id
-      this.scale = scale
-      this.offset = offset
-      this.color = color
-
+      super({ labelType, category, id, scale, offset, color })
       this.x = x
       this.y = y
     }
@@ -105,7 +90,7 @@ export class PointLabel implements Point {
       left: x + RADIUS - STROKE_WIDTH / 2,
       top: y - RADIUS + STROKE_WIDTH / 2,
       originY: 'bottom',
-      backgroundColor: currentColor || color,
+      backgroundColor: color,
       visible
     })
 
@@ -113,37 +98,6 @@ export class PointLabel implements Point {
     products.forEach((obj) =>
       obj.setOptions({ labelType, category, id, color })
     )
-
     return products
   }
-
-  // static newFabricObjects({
-  //   position,
-  //   category,
-  //   id,
-  //   color
-  // }: {
-  //   position: Point
-  //   category: string
-  //   id: number
-  //   color: string
-  // }) {
-  //   const { x, y } = position
-  //   const point = new fabric.Circle({
-  //     ...POINT_DEFAULT_CONFIG,
-  //     left: x,
-  //     top: y,
-  //     stroke: color
-  //   })
-  //   point.setOptions({ id, category, color, labelType: LabelType.Point })
-
-  //   const textbox = new fabric.Textbox(id.toString(), {
-  //     ...TEXTBOX_DEFAULT_CONFIG,
-  //     originY: 'bottom',
-  //     backgroundColor: color,
-  //     visible: false
-  //   })
-  //   textbox.setOptions({ id, category, labelType: LabelType.Point })
-  //   return [point, textbox]
-  // }
 }
