@@ -1,6 +1,7 @@
 import { fabric } from 'fabric'
 import React, { useCallback, useRef, useState } from 'react'
-import { Dimension, Point } from '../classes/Geometry'
+import { Dimension } from '../classes/Geometry/Dimension'
+import { Point } from '../classes/Geometry/Point'
 
 export interface CanvasProps {
   imageDims: Dimension // image dimensions in container
@@ -26,13 +27,13 @@ export const useContainer = ({
 }: {
   imageObj: any
 }): UseContainerReturnProps => {
-  const [imageDims, setImageDims] = useState<Dimension>({ w: 0, h: 0 })
-  const [canvasDims, setCanvasDims] = useState<Dimension>({ w: 0, h: 0 })
+  const [imageDims, setImageDims] = useState<Dimension>(new Dimension())
+  const [canvasDims, setCanvasDims] = useState<Dimension>(new Dimension())
   const [boundary, setBoundary] = useState<{ x: number[]; y: number[] }>({
     x: [0, 0],
     y: [0, 0]
   })
-  const [offset, setOffset] = useState<Point>({ x: 0, y: 0 })
+  const [offset, setOffset] = useState<Point>(new Point())
   const [scale, setScale] = useState<number>(1)
 
   const imgElRef = useRef<HTMLImageElement>(null)
@@ -61,14 +62,11 @@ export const useContainer = ({
       const ceh = _ceh - 36 // minus the buttons bar's height
 
       // necessary for using in below step because setState in async
-      const _offset = {
-        x: (cew - iw) / 2,
-        y: (ceh - ih) / 2
-      } // offset of scaled image to the canvas
+      const _offset = new Point((cew - iw) / 2, (ceh - ih) / 2) // offset of scaled image to the canvas
       const _scale = (iw / imgElm.naturalWidth + ih / imgElm.naturalHeight) / 2
 
-      setImageDims({ w: iw, h: ih })
-      setCanvasDims({ w: cew, h: ceh }) // canvas dimensions will be set as same as extend element
+      setImageDims(new Dimension(iw, ih))
+      setCanvasDims(new Dimension(cew, ceh)) // canvas dimensions will be set as same as extend element
       setBoundary({
         x: [(cew - iw) / 2, (cew + iw) / 2],
         y: [(ceh - ih) / 2, (ceh + ih) / 2]

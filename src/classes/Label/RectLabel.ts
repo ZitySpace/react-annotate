@@ -7,7 +7,8 @@ import {
   TEXTBOX_DEFAULT_CONFIG
 } from '../../interfaces/config'
 import { getFontSize } from '../../utils'
-import { Point, Rect } from '../Geometry'
+import { Point } from '../Geometry/Point'
+import { Rect } from '../Geometry/Rect'
 
 interface RectLabelArgs {
   category?: string
@@ -22,22 +23,8 @@ interface RectLabelArgs {
   obj?: fabric.Rect
 }
 
-export class RectLabel extends Label implements Rect {
-  x: number
-  y: number
-  w: number
-  h: number
-  x1: number
-  y1: number
-
-  private xywh(...args: number[]): void {
-    this.x = args[0]
-    this.y = args[1]
-    this.w = args[2]
-    this.h = args[3]
-    this.x1 = args[0] + args[2]
-    this.y1 = args[1] + args[3]
-  }
+export class RectLabel extends Label {
+  rect: Rect
 
   constructor({ obj, offset, scale }: RectLabelArgs) // construct from fabric object
   constructor({ x, y, category, id, scale, offset, color }: RectLabelArgs) // construct from cursor position
@@ -61,28 +48,23 @@ export class RectLabel extends Label implements Rect {
       const h = obj.getScaledHeight() // stroke width had been added
 
       super({ labelType, category, id, scale, offset, color })
-      this.xywh(x, y, w, h)
+      this.rect = new Rect(x, y, w, h)
     } else {
       super({ labelType, category, id, scale, offset, color })
-      this.xywh(x, y, w, h)
+      this.rect = new Rect(x, y, w, h)
     }
   }
 
-  scaleTransform(scale: number, offset: Point = { x: 0, y: 0 }) {
+  scaleTransform(scale: number, offset: Point = new Point()) {
     if (this.scale !== 1 || this.offset.x || this.offset.y) this.origin()
     this.scale = scale
     this.offset = offset
-    const scaled = [this.x, this.y, this.w, this.h].map((v) => v * scale)
-    scaled[0] += offset.x
-    scaled[1] += offset.y
-    this.xywh(...scaled)
+    this.rect.zoom(scale).translate(offset)
     return this
   }
 
   origin() {
-    const { x, y, w, h } = this
-    const translated = [x - this.offset.x, y - this.offset.y, w, h]
-    this.xywh(...translated.map((v) => v / this.scale))
+    this.rect.translate(this.offset.inverse()).zoom(1 / this.scale)
     this.scale = 1
     this.offset = new Point()
     return this
@@ -95,7 +77,13 @@ export class RectLabel extends Label implements Rect {
     currentColor?: string
     visible?: boolean
   }) {
-    const { x, y, w, h, labelType, category, id, color: oriColor } = this
+    const {
+      rect: { x, y, w, h },
+      labelType,
+      category,
+      id,
+      color: oriColor
+    } = this
     const color = currentColor || oriColor
     const rect = new fabric.Rect({
       ...RECT_DEFAULT_CONFIG,

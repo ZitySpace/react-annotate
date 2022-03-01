@@ -155,9 +155,8 @@ export const useCanvas = ({
 
   // set default listeners and must after declare actions otherwise it will not work
   Object.assign(listeners, {
-    'object:moving': (e: fabric.IEvent) => {
-      setLinePositionIfMoveEndpoint(e.target)
-    },
+    'object:moving': (e: fabric.IEvent) =>
+      setLinePositionIfMoveEndpoint(e.target),
     'object:modified': () => {
       const obj: any = canvas.getActiveObject()
       const _boundary = JSON.parse(JSON.stringify(boundary)) // deep clone to avoid rect-type calculate influences

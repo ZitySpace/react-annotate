@@ -1,4 +1,4 @@
-import { Point } from '../classes/Geometry'
+import { Point } from '../classes/Geometry/Point'
 import { Label, LabelType } from '../classes/Label'
 import { LineLabel } from '../classes/Label/LineLabel'
 import { PointLabel } from '../classes/Label/PointLabel'

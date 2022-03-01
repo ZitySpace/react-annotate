@@ -8,7 +8,8 @@ import {
   TEXTBOX_DEFAULT_CONFIG,
   TRANSPARENT
 } from '../../interfaces/config'
-import { Line, Point } from '../Geometry'
+import { Line } from '../Geometry/Line'
+import { Point } from '../Geometry/Point'
 
 interface LineLabelArgs {
   category?: string
@@ -23,22 +24,8 @@ interface LineLabelArgs {
   obj?: fabric.Line
 }
 
-export class LineLabel extends Label implements Line {
-  x: number
-  y: number
-  _x: number
-  _y: number
-  distance: number
-
-  private xy_xy(...args: number[]): void {
-    this.x = args[0]
-    this.y = args[1]
-    this._x = args[2]
-    this._y = args[3]
-    this.distance = Math.sqrt(
-      Math.pow(this._x - this.x, 2) + Math.pow(this._y - this.y, 2)
-    )
-  }
+export class LineLabel extends Label {
+  line: Line
 
   constructor({ obj, scale, offset }: LineLabelArgs) // construct from fabric object
   constructor({ x, y, category, id, scale, offset, color }: LineLabelArgs) // construct from cursor position
@@ -59,10 +46,10 @@ export class LineLabel extends Label implements Line {
     if (obj) {
       const { x1: x, y1: y, x2: _x, y2: _y, category, id, color } = obj as any
       super({ labelType, category, id, scale, offset, color })
-      this.xy_xy(x, y, _x, _y)
+      this.line = new Line(x, y, _x, _y)
     } else {
       super({ labelType, category, id, scale, offset, color })
-      this.xy_xy(x, y, _x || x, _y || y)
+      this.line = new Line(x, y, _x!, _y!)
     }
   }
 
@@ -70,18 +57,12 @@ export class LineLabel extends Label implements Line {
     if (this.scale !== 1 || this.offset.x || this.offset.y) this.origin()
     this.scale = scale
     this.offset = offset
-    const { x: X, y: Y } = offset
-    const { x, y, _x, _y } = this
-    const scaled = [x, y, _x, _y].map((v) => v * scale)
-    this.xy_xy(...scaled.map((v, i) => v + (i % 2 ? Y : X)))
+    this.line.zoom(scale).translate(offset)
     return this
   }
 
   origin() {
-    const { x, y, _x, _y } = this
-    const { x: X, y: Y } = this.offset
-    const translated = [x, y, _x, _y].map((v, i) => v - (i % 2 ? Y : X))
-    this.xy_xy(...translated.map((v) => v / this.scale))
+    this.line.translate(this.offset.inverse()).zoom(1 / this.scale)
     this.scale = 1
     this.offset = new Point()
     return this
@@ -94,7 +75,13 @@ export class LineLabel extends Label implements Line {
     currentColor?: string
     visible?: boolean
   }) {
-    const { x, y, _x, _y, color: oriColor, id, category, labelType } = this
+    const {
+      line: { x, y, _x, _y },
+      color: oriColor,
+      id,
+      category,
+      labelType
+    } = this
     const color = currentColor || oriColor
     const line = new fabric.Line([x, y, _x, _y], {
       ...LINE_DEFAULT_CONFIG,
@@ -135,7 +122,6 @@ export class LineLabel extends Label implements Line {
     products.forEach((obj) =>
       obj.setOptions({ labelType, category, id, color })
     )
-
     return products
   }
 }

@@ -8,7 +8,7 @@ import {
   TEXTBOX_DEFAULT_CONFIG,
   TRANSPARENT
 } from '../../interfaces/config'
-import { Point } from '../Geometry'
+import { Point } from '../Geometry/Point'
 
 interface PointLabelArgs {
   category?: string
@@ -20,9 +20,8 @@ interface PointLabelArgs {
   y?: number
   obj?: fabric.Circle
 }
-export class PointLabel extends Label implements Point {
-  x: number
-  y: number
+export class PointLabel extends Label {
+  point: Point
 
   constructor({ obj, scale, offset }: PointLabelArgs) // construct from fabric object
   constructor({ x, y, category, id, scale, offset, color }: PointLabelArgs) // construct from cursor position
@@ -41,27 +40,23 @@ export class PointLabel extends Label implements Point {
     if (obj) {
       const { left: x, top: y, category, id, color } = obj as any
       super({ labelType, category, id, scale, offset, color })
-      this.x = x
-      this.y = y
+      this.point = new Point(x, y)
     } else {
       super({ labelType, category, id, scale, offset, color })
-      this.x = x
-      this.y = y
+      this.point = new Point(x, y)
     }
   }
 
-  scaleTransform(scale: number, offset: Point = { x: 0, y: 0 }) {
+  scaleTransform(scale: number, offset: Point = new Point()) {
     if (this.scale !== 1 || this.offset.x || this.offset.y) this.origin()
     this.scale = scale
     this.offset = offset
-    this.x = this.x * scale + offset.x
-    this.y = this.y * scale + offset.y
+    this.point.zoom(scale).translate(offset)
     return this
   }
 
   origin() {
-    this.x = (this.x - this.offset.x) / this.scale
-    this.y = (this.y - this.offset.y) / this.scale
+    this.point.translate(this.offset.inverse()).zoom(1 / this.scale)
     this.scale = 1
     this.offset = new Point()
     return this
@@ -74,7 +69,13 @@ export class PointLabel extends Label implements Point {
     currentColor?: string
     visible?: boolean
   }) {
-    const { x, y, color: oriColor, id, category, labelType } = this
+    const {
+      point: { x, y },
+      color: oriColor,
+      id,
+      category,
+      labelType
+    } = this
     const color = currentColor || oriColor
     const point = new fabric.Circle({
       ...POINT_DEFAULT_CONFIG,

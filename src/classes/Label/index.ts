@@ -1,4 +1,4 @@
-import { Point } from '../Geometry'
+import { Point } from '../Geometry/Point'
 
 export enum LabelType {
   None,

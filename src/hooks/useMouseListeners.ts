@@ -1,7 +1,8 @@
 import { usePinch } from '@use-gesture/react'
 import { fabric } from 'fabric'
 import { MutableRefObject, useCallback, useRef } from 'react'
-import { Point } from '../classes/Geometry'
+import { Point } from '../classes/Geometry/Point'
+
 import { LabelType } from '../classes/Label'
 import {
   NEW_CATEGORY_NAME,
@@ -29,7 +30,7 @@ export const useMouseListeners = ({
   annoColors: UseColorsReturnProps
 }) => {
   const onDrawObj = useRef<fabric.Object | null>()
-  const lastPosition = useRef<Point>({ x: 0, y: 0 })
+  const lastPosition = useRef<Point>(new Point())
   const isPanning = useRef<boolean>(false)
   const isDrawingStarted = useRef<boolean>(false)
   const canvas = canvasRef.current!
@@ -51,7 +52,7 @@ export const useMouseListeners = ({
   )
 
   const setViewport = useCallback(
-    ({ zoom, offset = { x: 0, y: 0 } }: { zoom: number; offset?: Point }) => {
+    ({ zoom, offset = new Point() }: { zoom: number; offset?: Point }) => {
       const { w, h } = canvasDims
       const { x, y } = offset
       const vpt = canvas.viewportTransform as number[]
@@ -68,7 +69,7 @@ export const useMouseListeners = ({
     const { x: nowX, y: nowY } = canvas.getPointer(event.e)
     const x = getBetween(nowX, ...boundary.x)
     const y = getBetween(nowY, ...boundary.y)
-    lastPosition.current = { x, y }
+    lastPosition.current = new Point(x, y)
 
     const category = nowFocus.category || NEW_CATEGORY_NAME
     const id = Math.max(-1, ...nowState.map((anno) => anno.id)) + 1
@@ -76,7 +77,7 @@ export const useMouseListeners = ({
 
     const fabricObjects = newLabel({
       labelType: nowFocus.drawingType,
-      position: { x, y },
+      position: new Point(x, y),
       category,
       id,
       scale,
@@ -171,7 +172,7 @@ export const useMouseListeners = ({
       else {
         const evt = e.e as any
         const { clientX, clientY } = isTouchEvent(evt) ? evt.touches[0] : evt
-        lastPosition.current = { x: clientX, y: clientY }
+        lastPosition.current = new Point(clientX, clientY)
 
         const selectedObj = canvas.getActiveObject()
         isPanning.current = !selectedObj
@@ -183,12 +184,10 @@ export const useMouseListeners = ({
       if (isDrawingStarted.current) drawOnMouseMove(e)
       else if (isPanning.current) {
         const { e: evt } = e as any
-        const { clientX: x, clientY: y } = isTouchEvent(evt)
-          ? evt.touches[0]
-          : evt
+        const { clientX, clientY } = isTouchEvent(evt) ? evt.touches[0] : evt
         const { x: lastX, y: lastY } = lastPosition.current
-        const offset = { x: x - lastX, y: y - lastY }
-        lastPosition.current = { x, y }
+        const offset = new Point(clientX - lastX, clientY - lastY)
+        lastPosition.current = new Point(clientX, clientY)
 
         const zoom = canvas.getZoom()
         setViewport({ zoom, offset })
