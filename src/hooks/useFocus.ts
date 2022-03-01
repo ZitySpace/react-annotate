@@ -12,8 +12,9 @@ export interface UseFocusReturnProps {
     { type, id }: { type: string; id: number },
     showText?: boolean
   ) => boolean
-  isFocused: ({ id }: { id: number }) => boolean
   toggleSelectionMode: () => void
+  isFocused({ id }: { id: number }): boolean
+  isFocused(category: string): boolean
 }
 
 const initialFocus: Focus = {
@@ -28,7 +29,6 @@ export const useFocus = () => {
   const focusRef = useRef<Focus>(initialFocus)
   const nowFocus = focusRef.current
   const update = useUpdate()
-  console.log(nowFocus) // TODO: remove
 
   const methods = {
     setDrawingType: (drawingType: LabelType = LabelType.None) => {
@@ -52,14 +52,16 @@ export const useFocus = () => {
       (nowFocus.objects.map(({ id }) => id).includes(id) &&
         (showText || type !== 'textbox')),
 
-    isFocused: ({ id }: { id: number }) =>
-      nowFocus.objects.map(({ id }) => id).includes(id),
-
     toggleSelectionMode: () => {
       focusRef.current.isMultipleSelectionMode =
         !nowFocus.isMultipleSelectionMode
       update()
-    }
+    },
+
+    isFocused: (target: { id: number } | string) =>
+      typeof target === 'string'
+        ? nowFocus.objects.some(({ category }) => target === category)
+        : nowFocus.objects.map(({ id }) => id).includes(target.id)
   }
   return { nowFocus, ...methods }
 }

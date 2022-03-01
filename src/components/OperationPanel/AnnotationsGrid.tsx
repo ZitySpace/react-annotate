@@ -1,7 +1,6 @@
 import React from 'react'
 import { Label } from '../../classes/Label'
 import { UseFocusReturnProps } from '../../hooks/useFocus'
-import { IS_TOUCH_SCREEN } from '../../interfaces/config'
 
 export const AnnotationsGrid = ({
   annotations,
@@ -34,9 +33,8 @@ export const AnnotationsGrid = ({
       {annotations.map((anno, index) => (
         <div
           key={anno.id}
-          className={`h-5 w-5 rounded-md flex justify-center items-center ${
-            isFocused(anno) ? 'bg-indigo-600 text-gray-100' : 'bg-gray-200'
-          } ${IS_TOUCH_SCREEN ? '' : 'hover:border-indigo-600 border'}`}
+          className={`h-5 w-5 rounded-md flex justify-center items-center border border-transparent hover:border-indigo-600
+            ${isFocused(anno) ? 'bg-indigo-600 text-gray-100' : 'bg-gray-200'}`}
           data-anno-index={index}
           onClick={handleClick}
         >

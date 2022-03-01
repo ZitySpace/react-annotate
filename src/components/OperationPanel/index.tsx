@@ -24,9 +24,13 @@ export const OperationPanel = ({
     toggleSelectionMode
   } = focus
 
-  const { groupedState, renameCategory } = stateStack
+  const { groupedState } = stateStack
   const labels = groupedState
-  console.log(labels)
+
+  const renameCategory = (originalName: string, newName: string) => {
+    stateStack.renameCategory(originalName, newName)
+    annoColors.rename(originalName, newName)
+  }
 
   const handleClick = (e: MouseEvent) => {
     const annotations: Label[] = JSON.parse(

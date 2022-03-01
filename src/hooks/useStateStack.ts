@@ -20,7 +20,6 @@ interface Actions {
   next: () => boolean
   reset: () => boolean
   deleteObjects: (objectIds: number[]) => boolean
-  deleteCategory: (category: string) => boolean
   renameCategory: (oldName: string, newName: string) => void
 }
 export interface UseStateStackReturnProps extends Actions {
@@ -92,18 +91,12 @@ export const useStateStack = (): UseStateStackReturnProps => {
           : actions.push(newState)
       },
 
-      deleteCategory: (target: string) => {
-        if (!nowState.map(({ category }) => category).includes(target))
-          return false
-        const newState = nowState.filter(({ category }) => category !== target)
-        return actions.push(newState)
-      },
-
       renameCategory(oldCategory: string, newCategory: string) {
         nowState.forEach((label) => {
           label.category =
             label.category === oldCategory ? newCategory : label.category
         })
+        update()
       }
     }),
     [stack.current, index.current, can]

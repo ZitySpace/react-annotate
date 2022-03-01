@@ -94,7 +94,7 @@ export const ButtonBar = ({
         <Button
           canUse={canSave}
           onClick={() => {
-            console.log('sava clicked')
+            console.log('save clicked')
           }}
         >
           <SaveIcon />

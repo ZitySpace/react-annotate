@@ -76,7 +76,7 @@ export const useCanvas = ({
   useEffect(() => {
     actions.syncStateToCanvas(nowState) // sync state
     setObjects(nowState.filter(isFocused)) // sync focus
-  }, [nowState])
+  }, [JSON.stringify(nowState)]) // Deep compare
 
   // Sync Canvas to state when the number of Objects in Canvas changes(mostly incrase) and not equal to state's label's count.
   useEffect(() => {

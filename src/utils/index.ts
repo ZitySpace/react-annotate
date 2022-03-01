@@ -54,7 +54,7 @@ export const groupBy = (annotations: Label[], property: string) => {
 export const mostRepeatedValue = (array: any[]) =>
   array.sort(
     (a, b) =>
-      array.filter((v) => v === a).length - array.filter((v) => v === b).length
+      array.filter((v) => v === b).length - array.filter((v) => v === a).length
   )[0]
 
 /**
