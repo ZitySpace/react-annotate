@@ -32,6 +32,11 @@ export const useColors = () => {
     return newColor
   }
 
+  /**
+   * Add a brand new random color to the color map
+   * @param category category name
+   * @returns
+   */
   const addRandom = (category: string) => {
     const newColor = getRandomColor()
     colorRef.current?.set(category, newColor)
@@ -56,12 +61,28 @@ export const useColors = () => {
       }
     },
 
+    /**
+     * Get the relevent color of the category, or new one if not exist
+     * @param category category name
+     * @returns
+     */
     get: (category: string) =>
       colorRef.current?.get(category) || addRandom(category),
 
+    /**
+     * Set the color of the category
+     * @param category category name
+     * @param color color string
+     * @returns
+     */
     set: (category: string, color: string) =>
       colorRef.current?.set(category, color),
 
+    /**
+     * Rename the category and update the color map
+     * @param sourceCategory target category name
+     * @param newCategory new category name
+     */
     rename: (sourceCategory: string, newCategory: string) => {
       colorRef.current?.set(newCategory, actions.get(sourceCategory))
       colorRef.current?.delete(sourceCategory)

@@ -22,21 +22,20 @@ export const useCanvas = ({
   annoColors: UseColorsReturnProps
   stateStack: UseStateStackReturnProps
 }) => {
-  const canvas = canvasRef.current!
-  const canvasLabelsCount =
+  const canvas = canvasRef.current! // get canvas instance
+  const canvasLabelsCount = // count of labels in canvas
     canvas && canvas.getObjects ? canvas.getObjects().filter(isLabel).length : 0
   const listenersRef = useRef<object>({})
   const listeners = listenersRef.current
 
   const { nowState, push: pushState } = stateStack
+  const { offset, scale, boundary } = canvasProps
   const {
     nowFocus: { drawingType, objects: focusObjs, category: focusCate },
     canObjectShow,
     isFocused,
     setObjects
   } = focus
-
-  const { offset, scale, boundary } = canvasProps
 
   // render lock used to avoid whole cycle callback caused by canvas changed which will ruin the canvas
   const renderLock = useRef<boolean>(false)
@@ -151,8 +150,11 @@ export const useCanvas = ({
 
   // set default listeners and must after declare actions otherwise it will not work
   Object.assign(listeners, {
+    // when canvas's object is moving, sync its line's position if the object is line's endpoint
     'object:moving': (e: fabric.IEvent) =>
       setLinePositionIfMoveEndpoint(e.target),
+
+    // when canvas's object was moved, ensure its position is in the image boundary
     'object:modified': () => {
       const obj: any = canvas.getActiveObject()
       const _boundary = JSON.parse(JSON.stringify(boundary)) // deep clone to avoid rect-type calculate influences

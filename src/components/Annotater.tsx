@@ -1,7 +1,6 @@
 import React, { useEffect, useLayoutEffect, useState } from 'react'
 import { useEffectOnce, useStateList } from 'react-use'
 import { Label } from '../classes/Label'
-import { RectLabel } from '../classes/Label/RectLabel'
 import { useCanvas } from '../hooks/useCanvas'
 import { useColors } from '../hooks/useColor'
 import { useContainer } from '../hooks/useContainer'
@@ -9,6 +8,7 @@ import { useFocus } from '../hooks/useFocus'
 import { useKeyboard } from '../hooks/useKeyboard'
 import { useMouseListeners } from '../hooks/useMouseListeners'
 import { useStateStack } from '../hooks/useStateStack'
+import { ImageObject } from '../interfaces/basic'
 import '../tailwind.css'
 import { ButtonBar } from './ButtonBar'
 import { OperationPanel } from './OperationPanel'
@@ -21,7 +21,7 @@ export const Annotater = ({
   categories,
   colors
 }: {
-  imagesList: any[]
+  imagesList: ImageObject[]
   index?: number
   isAnnotationsVisible?: boolean
   categoryColors?: Map<string, string>
@@ -29,18 +29,6 @@ export const Annotater = ({
   colors?: string[]
   onSwitchVisible?: Function // TODO: bind to button
 }) => {
-  // Handle inputs with old shape
-  // TODO: remove
-  imagesList = imagesList.map((img) => {
-    return {
-      ...img,
-      annotations: img.annotations.map((anno: any, id: number) => {
-        const { x, y, w, h, category } = anno
-        return new RectLabel({ x, y, w, h, id, category })
-      })
-    }
-  })
-
   if (!(categoryColors || categories || colors))
     throw new Error(
       'Params categoryColors can not be empty if categoryNames and colors not exists.'
