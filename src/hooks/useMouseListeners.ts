@@ -81,9 +81,8 @@ export const useMouseListeners = ({
       category,
       id,
       scale,
-      offset,
-      color
-    }).getFabricObjects({})
+      offset
+    }).getFabricObjects(color)
 
     canvas.add(...fabricObjects)
     onDrawObj.current = fabricObjects[0]

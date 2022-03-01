@@ -22,10 +22,6 @@ export const useCanvas = ({
   annoColors: UseColorsReturnProps
   stateStack: UseStateStackReturnProps
 }) => {
-  // TODO: remove
-  const nothing = { annoColors }
-  !nothing
-
   const canvas = canvasRef.current!
   const canvasLabelsCount =
     canvas && canvas.getObjects ? canvas.getObjects().filter(isLabel).length : 0
@@ -68,13 +64,13 @@ export const useCanvas = ({
    * Update all labels' text position in canvas via regenerate them
    */
   const updateAllTextboxPosition = () => {
-    const allCanvasObjects = canvas.getObjects().filter(isLabel)
-    const allLabels = allCanvasObjects.map((obj) =>
-      newLabel({ obj, offset, scale })
+    const currentLabelObjs = canvas.getObjects().filter(isLabel)
+    const newObjects = currentLabelObjs.map((obj: any) =>
+      newLabel({ obj, offset, scale }).getFabricObjects(
+        annoColors.get(obj.category)
+      )
     )
-
-    canvas.remove(...canvas.getObjects())
-    allLabels.forEach((anno) => canvas.add(...anno.getFabricObjects({})))
+    canvas.remove(...canvas.getObjects()).add(...newObjects.flat())
   }
 
   // Sync state to canvas & focus if state changed
@@ -131,7 +127,7 @@ export const useCanvas = ({
           const currentColor = annoColors.get(category!)
           // TODO: ensure visible
           const visible = forceVisable || isAnnosVisible // && isFocused(categoryName, id))
-          const fabricObjects = anno.getFabricObjects({ currentColor, visible })
+          const fabricObjects = anno.getFabricObjects(currentColor, visible)
           canvas.add(...fabricObjects)
         })
         canvas.renderAll()

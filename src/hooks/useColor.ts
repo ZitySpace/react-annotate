@@ -1,22 +1,23 @@
 import randomColor from 'randomcolor'
-import { useMemo, useRef } from 'react'
+import { useRef } from 'react'
 
 export interface UseColorsReturnProps {
   init: ({
     categoryColors,
-    categoryNames,
+    categories,
     colors
   }: {
     categoryColors?: Map<string, string> | undefined
-    categoryNames?: string[]
+    categories?: string[]
     colors?: string[]
   }) => void
-  get: (categoryName: string) => string
-  set: (categoryName: string, newColor: string) => void
+  get: (category: string) => string
+  set: (category: string, color: string) => void
+  rename: (sourceCategory: string, newCategory: string) => void
 }
 
 export const useColors = () => {
-  const color = useRef<Map<string, string>>(new Map<string, string>())
+  const colorRef = useRef<Map<string, string>>(new Map<string, string>())
 
   const getRandomColor = () => {
     let newColor = ''
@@ -27,42 +28,45 @@ export const useColors = () => {
         alpha: 0.75,
         count: 1
       })[0]
-    } while (Array.from(color.current.values()).includes(newColor))
+    } while (Array.from(colorRef.current.values()).includes(newColor))
     return newColor
   }
 
-  const addRandom = (categoryName: string) => {
+  const addRandom = (category: string) => {
     const newColor = getRandomColor()
-    color.current?.set(categoryName, newColor)
+    colorRef.current?.set(category, newColor)
     return newColor
   }
 
-  const actions = useMemo(
-    () => ({
-      init: ({
-        categoryColors,
-        categoryNames = [],
-        colors = []
-      }: {
-        categoryColors?: Map<string, string> | undefined
-        categoryNames?: string[]
-        colors?: string[]
-      }) => {
-        if (categoryColors) color.current = categoryColors
-        else if (categoryNames.length) {
-          for (let i = 0; i < categoryNames.length; i++) {
-            color.current?.set(categoryNames[i], colors[i] || getRandomColor())
-          }
+  const actions = {
+    init: ({
+      categoryColors,
+      categories = [],
+      colors = []
+    }: {
+      categoryColors?: Map<string, string> | undefined
+      categories?: string[]
+      colors?: string[]
+    }) => {
+      if (categoryColors) colorRef.current = categoryColors
+      else if (categories.length) {
+        for (let i = 0; i < categories.length; i++) {
+          colorRef.current?.set(categories[i], colors[i] || getRandomColor())
         }
-      },
-      get: (categoryName: string) =>
-        color.current?.get(categoryName) || addRandom(categoryName),
-      set: (categoryName: string, newColor: string) => {
-        color.current?.set(categoryName, newColor)
       }
-    }),
-    [color]
-  )
+    },
+
+    get: (category: string) =>
+      colorRef.current?.get(category) || addRandom(category),
+
+    set: (category: string, color: string) =>
+      colorRef.current?.set(category, color),
+
+    rename: (sourceCategory: string, newCategory: string) => {
+      colorRef.current?.set(newCategory, actions.get(sourceCategory))
+      colorRef.current?.delete(sourceCategory)
+    }
+  }
 
   return { ...actions }
 }

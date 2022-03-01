@@ -1,7 +1,6 @@
 import { fabric } from 'fabric'
 import { Label, LabelType } from '.'
 import {
-  DEFAULT_COLOR,
   LINE_DEFAULT_CONFIG,
   POINT_DEFAULT_CONFIG,
   RADIUS,
@@ -16,7 +15,6 @@ interface LineLabelArgs {
   id?: number
   scale?: number
   offset: Point
-  color?: string
   x?: number
   y?: number
   _x?: number
@@ -28,8 +26,8 @@ export class LineLabel extends Label {
   line: Line
 
   constructor({ obj, scale, offset }: LineLabelArgs) // construct from fabric object
-  constructor({ x, y, category, id, scale, offset, color }: LineLabelArgs) // construct from cursor position
-  constructor({ x, y, _x, _y, category, id, color }: LineLabelArgs) // construct from existing data
+  constructor({ x, y, category, id, scale, offset }: LineLabelArgs) // construct from cursor position
+  constructor({ x, y, _x, _y, category, id }: LineLabelArgs) // construct from existing data
   constructor({
     x = 0,
     y = 0,
@@ -39,16 +37,15 @@ export class LineLabel extends Label {
     id = 0,
     scale = 1,
     offset = new Point(),
-    color = DEFAULT_COLOR,
     obj
   }: LineLabelArgs) {
     const labelType = LabelType.Line
     if (obj) {
-      const { x1: x, y1: y, x2: _x, y2: _y, category, id, color } = obj as any
-      super({ labelType, category, id, scale, offset, color })
+      const { x1: x, y1: y, x2: _x, y2: _y, category, id } = obj as any
+      super({ labelType, category, id, scale, offset })
       this.line = new Line(x, y, _x, _y)
     } else {
-      super({ labelType, category, id, scale, offset, color })
+      super({ labelType, category, id, scale, offset })
       this.line = new Line(x, y, _x!, _y!)
     }
   }
@@ -68,21 +65,13 @@ export class LineLabel extends Label {
     return this
   }
 
-  getFabricObjects({
-    currentColor,
-    visible = true
-  }: {
-    currentColor?: string
-    visible?: boolean
-  }) {
+  getFabricObjects(color: string, visible: boolean = true) {
     const {
       line: { x, y, _x, _y },
-      color: oriColor,
       id,
       category,
       labelType
     } = this
-    const color = currentColor || oriColor
     const line = new fabric.Line([x, y, _x, _y], {
       ...LINE_DEFAULT_CONFIG,
       stroke: color,
@@ -119,9 +108,7 @@ export class LineLabel extends Label {
     })
 
     const products = [line, textbox, ...endpoints]
-    products.forEach((obj) =>
-      obj.setOptions({ labelType, category, id, color })
-    )
+    products.forEach((obj) => obj.setOptions({ labelType, category, id }))
     return products
   }
 }

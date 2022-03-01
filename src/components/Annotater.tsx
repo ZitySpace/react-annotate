@@ -18,14 +18,14 @@ export const Annotater = ({
   index = 0,
   isAnnotationsVisible = true,
   categoryColors,
-  categoryNames,
+  categories,
   colors
 }: {
   imagesList: any[]
   index?: number
   isAnnotationsVisible?: boolean
   categoryColors?: Map<string, string>
-  categoryNames?: string[]
+  categories?: string[]
   colors?: string[]
   onSwitchVisible?: Function // TODO: bind to button
 }) => {
@@ -41,7 +41,7 @@ export const Annotater = ({
     }
   })
 
-  if (!(categoryColors || categoryNames || colors))
+  if (!(categoryColors || categories || colors))
     throw new Error(
       'Params categoryColors can not be empty if categoryNames and colors not exists.'
     )
@@ -92,7 +92,7 @@ export const Annotater = ({
     const imageAnnos = imageObj.annotations.map((anno) =>
       anno.scaleTransform(canvasProps.scale, canvasProps.offset)
     )
-    annoColors.init({ categoryColors, categoryNames, colors }) // initialize colors
+    annoColors.init({ categoryColors, categories, colors }) // initialize colors
     stateStack.set([imageAnnos])
   }, [canvasProps.imageDims, canvasProps.canvasDims])
 

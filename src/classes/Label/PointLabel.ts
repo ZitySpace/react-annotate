@@ -1,7 +1,6 @@
 import { fabric } from 'fabric'
 import { Label, LabelType } from '.'
 import {
-  DEFAULT_COLOR,
   POINT_DEFAULT_CONFIG,
   RADIUS,
   STROKE_WIDTH,
@@ -15,7 +14,6 @@ interface PointLabelArgs {
   id?: number
   scale?: number
   offset?: Point
-  color?: string
   x?: number
   y?: number
   obj?: fabric.Circle
@@ -24,8 +22,8 @@ export class PointLabel extends Label {
   point: Point
 
   constructor({ obj, scale, offset }: PointLabelArgs) // construct from fabric object
-  constructor({ x, y, category, id, scale, offset, color }: PointLabelArgs) // construct from cursor position
-  constructor({ x, y, category, id, color }: PointLabelArgs) // construct from existing data
+  constructor({ x, y, category, id, scale, offset }: PointLabelArgs) // construct from cursor position
+  constructor({ x, y, category, id }: PointLabelArgs) // construct from existing data
   constructor({
     x = 0,
     y = 0,
@@ -33,16 +31,15 @@ export class PointLabel extends Label {
     id = 0,
     scale = 1,
     offset = new Point(),
-    color = DEFAULT_COLOR,
     obj
   }: PointLabelArgs) {
     const labelType = LabelType.Point
     if (obj) {
-      const { left: x, top: y, category, id, color } = obj as any
-      super({ labelType, category, id, scale, offset, color })
+      const { left: x, top: y, category, id } = obj as any
+      super({ labelType, category, id, scale, offset })
       this.point = new Point(x, y)
     } else {
-      super({ labelType, category, id, scale, offset, color })
+      super({ labelType, category, id, scale, offset })
       this.point = new Point(x, y)
     }
   }
@@ -62,21 +59,13 @@ export class PointLabel extends Label {
     return this
   }
 
-  getFabricObjects({
-    currentColor,
-    visible = true
-  }: {
-    currentColor?: string
-    visible?: boolean
-  }) {
+  getFabricObjects(color: string, visible: boolean = true) {
     const {
       point: { x, y },
-      color: oriColor,
       id,
       category,
       labelType
     } = this
-    const color = currentColor || oriColor
     const point = new fabric.Circle({
       ...POINT_DEFAULT_CONFIG,
       left: x,
@@ -96,9 +85,7 @@ export class PointLabel extends Label {
     })
 
     const products = [point, textbox]
-    products.forEach((obj) =>
-      obj.setOptions({ labelType, category, id, color })
-    )
+    products.forEach((obj) => obj.setOptions({ labelType, category, id }))
     return products
   }
 }

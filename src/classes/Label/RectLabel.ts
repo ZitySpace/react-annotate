@@ -1,7 +1,6 @@
 import { fabric } from 'fabric'
 import { Label, LabelType } from '.'
 import {
-  DEFAULT_COLOR,
   RECT_DEFAULT_CONFIG,
   STROKE_WIDTH,
   TEXTBOX_DEFAULT_CONFIG
@@ -15,7 +14,6 @@ interface RectLabelArgs {
   id?: number
   scale?: number
   offset?: Point
-  color?: string
   x?: number
   y?: number
   w?: number
@@ -27,8 +25,8 @@ export class RectLabel extends Label {
   rect: Rect
 
   constructor({ obj, offset, scale }: RectLabelArgs) // construct from fabric object
-  constructor({ x, y, category, id, scale, offset, color }: RectLabelArgs) // construct from cursor position
-  constructor({ x, y, w, h, category, id, color }: RectLabelArgs) // construct from existing data
+  constructor({ x, y, category, id, scale, offset }: RectLabelArgs) // construct from cursor position
+  constructor({ x, y, w, h, category, id }: RectLabelArgs) // construct from existing data
   constructor({
     x = 0,
     y = 0,
@@ -38,19 +36,18 @@ export class RectLabel extends Label {
     id = 0,
     scale = 1,
     offset = new Point(),
-    color = DEFAULT_COLOR,
     obj
   }: RectLabelArgs) {
     const labelType = LabelType.Rect
     if (obj) {
-      const { left: x, top: y, category, id, color } = obj as any
+      const { left: x, top: y, category, id } = obj as any
       const w = obj.getScaledWidth() // stroke width had been added
       const h = obj.getScaledHeight() // stroke width had been added
 
-      super({ labelType, category, id, scale, offset, color })
+      super({ labelType, category, id, scale, offset })
       this.rect = new Rect(x, y, w, h)
     } else {
-      super({ labelType, category, id, scale, offset, color })
+      super({ labelType, category, id, scale, offset })
       this.rect = new Rect(x, y, w, h)
     }
   }
@@ -70,21 +67,13 @@ export class RectLabel extends Label {
     return this
   }
 
-  getFabricObjects({
-    currentColor,
-    visible = true
-  }: {
-    currentColor?: string
-    visible?: boolean
-  }) {
+  getFabricObjects(color: string, visible: boolean = true) {
     const {
       rect: { x, y, w, h },
       labelType,
       category,
-      id,
-      color: oriColor
+      id
     } = this
-    const color = currentColor || oriColor
     const rect = new fabric.Rect({
       ...RECT_DEFAULT_CONFIG,
       left: x,
@@ -105,9 +94,7 @@ export class RectLabel extends Label {
     })
 
     const products = [rect, textbox]
-    products.forEach((obj) =>
-      obj.setOptions({ labelType, category, id, color })
-    )
+    products.forEach((obj) => obj.setOptions({ labelType, category, id }))
     return products
   }
 }

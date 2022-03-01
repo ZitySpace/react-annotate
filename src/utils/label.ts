@@ -16,8 +16,7 @@ export function newLabel({
   category,
   id,
   scale,
-  offset,
-  color
+  offset
 }: {
   labelType: LabelType
   position: Point
@@ -25,7 +24,6 @@ export function newLabel({
   id: number
   scale: number
   offset: Point
-  color: string
 }): Label
 
 export function newLabel({
@@ -45,7 +43,6 @@ export function newLabel({
   id,
   scale = 1,
   offset = new Point(),
-  color,
   obj
 }: {
   labelType?: LabelType
@@ -53,13 +50,12 @@ export function newLabel({
   id?: number
   scale?: number
   offset?: Point
-  color?: string
   position?: Point
   obj?: fabric.Object
 }): Label {
   if (position && labelType) {
     const { x, y } = position
-    return _newLabel[labelType]({ x, y, category, id, scale, offset, color })
+    return _newLabel[labelType]({ x, y, category, id, scale, offset })
   } else {
     const { labelType } = obj as any
     return _newLabel[labelType]({ obj, scale, offset })
