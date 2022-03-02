@@ -1,5 +1,5 @@
-export { Annotater as default } from './components/Annotater'
-export { Annotater } from './components/Annotater'
+export { Annotator as default } from './components/Annotator'
+export { Annotator } from './components/Annotator'
 
 export { Label } from './classes/Label'
 export { PointLabel } from './classes/Label/PointLabel'

@@ -1,6 +1,6 @@
 import React from 'react'
 
-import { Annotater, RectLabel } from 'react-annotate-image'
+import { Annotator, RectLabel } from 'react-annotate-image'
 import 'react-annotate-image/dist/index.css'
 
 import { pagingData, projectMock } from './mockdata'
@@ -18,7 +18,7 @@ const App = () => {
 
   return (
     <div className='h-screen w-screen'>
-      <Annotater
+      <Annotator
         imagesList={imagesList}
         index={1}
         categoryColors={categoryColors}

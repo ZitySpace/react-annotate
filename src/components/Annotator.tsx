@@ -13,7 +13,7 @@ import '../tailwind.css'
 import { ButtonBar } from './ButtonBar'
 import { OperationPanel } from './OperationPanel'
 
-export const Annotater = ({
+export const Annotator = ({
   imagesList,
   index = 0,
   isAnnotationsVisible = true,
