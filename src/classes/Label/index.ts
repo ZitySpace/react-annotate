@@ -4,7 +4,8 @@ export enum LabelType {
   None,
   Point,
   Line,
-  Rect
+  Rect,
+  Polygon
 }
 
 export abstract class Label {

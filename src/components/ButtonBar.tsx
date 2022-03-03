@@ -9,12 +9,14 @@ import {
   NextIcon,
   PervIcon,
   PointIcon,
+  PolygonIcon,
   RectangleIcon,
   RedoIcon,
   ResetIcon,
   SaveIcon,
   TrashIcon,
-  UndoIcon
+  UndoIcon,
+  VisibleIcon
 } from './Icons'
 
 export const ButtonBar = ({
@@ -44,11 +46,13 @@ export const ButtonBar = ({
   const drawPoint = draw(LabelType.Point)
   const drawLine = draw(LabelType.Line)
   const drawRect = draw(LabelType.Rect)
+  // const drawPolygon = draw(LabelType.Polygon)
 
   const isDrawingMe = (labelType: LabelType | null) => drawingType === labelType
   const isDrawingPoint = isDrawingMe(LabelType.Point)
   const isDrawingLine = isDrawingMe(LabelType.Line)
   const isDrawingRect = isDrawingMe(LabelType.Rect)
+  const isDrawingPolygon = isDrawingMe(LabelType.Polygon)
 
   return (
     <div className='h-9 flex justify-center space-x-8 items-center absolute bottom-0'>
@@ -59,6 +63,10 @@ export const ButtonBar = ({
           }}
         >
           <CloseIcon />
+        </Button>
+
+        <Button onClick={() => {}}>
+          <VisibleIcon />
         </Button>
       </div>
 
@@ -77,6 +85,10 @@ export const ButtonBar = ({
 
         <Button isUsing={isDrawingLine} onClick={drawLine}>
           <LineIcon />
+        </Button>
+
+        <Button isUsing={isDrawingPolygon} onClick={() => {}}>
+          <PolygonIcon />
         </Button>
 
         <Button canUse={canUndo} onClick={undo}>
