@@ -1,4 +1,3 @@
-export { Annotator as default } from './components/Annotator'
 export { Annotator } from './components/Annotator'
 
 export { Label } from './classes/Label'

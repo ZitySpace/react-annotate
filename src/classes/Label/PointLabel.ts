@@ -59,6 +59,14 @@ export class PointLabel extends Label {
     return this
   }
 
+  getAnnotation() {
+    const point = this.point
+    return {
+      ...this,
+      point: point.translate(this.offset.inverse()).zoom(1 / this.scale)
+    }
+  }
+
   getFabricObjects(color: string, visible: boolean = true) {
     const {
       point: { x, y },

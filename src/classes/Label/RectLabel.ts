@@ -67,6 +67,14 @@ export class RectLabel extends Label {
     return this
   }
 
+  getAnnotation() {
+    const rect = this.rect
+    return {
+      ...this,
+      rect: rect.translate(this.offset.inverse()).zoom(1 / this.scale)
+    }
+  }
+
   getFabricObjects(color: string, visible: boolean = true) {
     const {
       rect: { x, y, w, h },

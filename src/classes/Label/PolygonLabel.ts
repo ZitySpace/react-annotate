@@ -31,6 +31,16 @@ export class PolygonLabel extends Label {
     return this
   }
 
+  getAnnotation() {
+    const endpoints = this.endpoints
+    return {
+      ...this,
+      endpoints: endpoints.map((p) =>
+        p.translate(this.offset.inverse()).zoom(1 / this.scale)
+      )
+    }
+  }
+
   getFabricObjects(color: string, visible?: boolean) {
     return [
       new fabric.Polygon(this.endpoints, {

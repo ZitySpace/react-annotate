@@ -65,6 +65,14 @@ export class LineLabel extends Label {
     return this
   }
 
+  getAnnotation() {
+    const line = this.line
+    return {
+      ...this,
+      line: line.translate(this.offset.inverse()).zoom(1 / this.scale)
+    }
+  }
+
   getFabricObjects(color: string, visible: boolean = true) {
     const {
       line: { x, y, _x, _y },
