@@ -72,8 +72,36 @@ export const useMouseListeners = ({
     lastPosition.current = new Point(x, y)
 
     const category = nowFocus.category || NEW_CATEGORY_NAME
-    const id = Math.max(-1, ...nowState.map((anno) => anno.id)) + 1
+    const id = Math.max(-1, ...nowState.map(({ id }) => id)) + 1
     const color = annoColors.get(category)
+
+    if (nowFocus.drawingType === LabelType.Polygon) {
+      const endpoints = [new Point(x, y), new Point(x, y)]
+      const obj = new fabric.Polygon(endpoints, {
+        fill: color.replace('0.75', '0.5'),
+        stroke: color,
+        strokeWidth: STROKE_WIDTH,
+        // selectable: false,
+        // hoverCursor: 'pointer',
+        // hasControls: false,
+        // hasBorders: false,
+        // hasRotatingPoint: false,
+        // lockMovementX: true,
+        // lockMovementY: true,
+        // lockScalingX: true,
+        // lockScalingY: true,
+        // lockRotation: true,
+        // objectCaching: false,
+        // perPixelTargetFind: true,
+        // targetFindTolerance: 1,
+        visible: true
+      })
+      canvas.add(obj)
+      // onDrawObj.current = obj
+      // isDrawingStarted.current = true
+      console.log(canvas.getObjects())
+      return
+    }
 
     const fabricObjects = newLabel({
       labelType: nowFocus.drawingType,

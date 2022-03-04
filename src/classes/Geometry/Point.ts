@@ -43,4 +43,13 @@ export class Point implements Point {
   inverse(): Point {
     return new Point(-this.x, -this.y)
   }
+
+  /**
+   * Get distance between two points
+   */
+  getDistance(target: Point): number {
+    return Math.sqrt(
+      Math.pow(this.x - target.x, 2) + Math.pow(this.y - target.y, 2)
+    )
+  }
 }

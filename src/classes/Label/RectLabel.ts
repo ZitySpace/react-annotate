@@ -24,7 +24,7 @@ interface RectLabelArgs {
 export class RectLabel extends Label {
   rect: Rect
 
-  constructor({ obj, offset, scale }: RectLabelArgs) // construct from fabric object
+  constructor({ obj, scale, offset }: RectLabelArgs) // construct from fabric object
   constructor({ x, y, category, id, scale, offset }: RectLabelArgs) // construct from cursor position
   constructor({ x, y, w, h, category, id }: RectLabelArgs) // construct from existing data
   constructor({

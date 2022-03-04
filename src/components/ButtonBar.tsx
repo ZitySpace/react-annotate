@@ -46,7 +46,7 @@ export const ButtonBar = ({
   const drawPoint = draw(LabelType.Point)
   const drawLine = draw(LabelType.Line)
   const drawRect = draw(LabelType.Rect)
-  // const drawPolygon = draw(LabelType.Polygon)
+  const drawPolygon = draw(LabelType.Polygon)
 
   const isDrawingMe = (labelType: LabelType | null) => drawingType === labelType
   const isDrawingPoint = isDrawingMe(LabelType.Point)
@@ -87,7 +87,7 @@ export const ButtonBar = ({
           <LineIcon />
         </Button>
 
-        <Button isUsing={isDrawingPolygon} onClick={() => {}}>
+        <Button isUsing={isDrawingPolygon} onClick={drawPolygon}>
           <PolygonIcon />
         </Button>
 
