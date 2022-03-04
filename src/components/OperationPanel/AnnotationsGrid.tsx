@@ -21,7 +21,7 @@ export const AnnotationsGrid = ({
     const anno = annotations[annoIndex]
     const doesFocused = isFocused(anno)
     const newObjects = isMultipleSelectionMode
-      ? objects.filter((o) => o !== anno)
+      ? objects.filter(({ id }) => id !== anno.id)
       : []
 
     if (doesFocused) setObjects(newObjects)
