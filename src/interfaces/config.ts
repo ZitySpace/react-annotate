@@ -18,10 +18,10 @@ export const MAX_FONT_SIZE = 14
 export const POINT_DEFAULT_CONFIG: fabric.ICircleOptions = {
   originX: 'center',
   originY: 'center',
+  selectable: !IS_TOUCH_SCREEN,
   hasControls: false,
   hasBorders: false,
   strokeWidth: STROKE_WIDTH,
-  selectable: !IS_TOUCH_SCREEN,
   fill: TRANSPARENT,
   radius: RADIUS
 }
@@ -34,8 +34,7 @@ export const LINE_DEFAULT_CONFIG: fabric.ILineOptions = {
   hoverCursor: 'default',
   strokeWidth: STROKE_WIDTH,
   strokeUniform: true,
-  selectable: false,
-  visible: true
+  selectable: false
 }
 
 export const RECT_DEFAULT_CONFIG: fabric.IRectOptions | any = {

@@ -73,7 +73,11 @@ export class LineLabel extends Label {
     }
   }
 
-  getFabricObjects(color: string, visible: boolean = true) {
+  getFabricObjects(
+    color: string,
+    visible: boolean = true,
+    needText: boolean = true
+  ) {
     const {
       line: { x, y, _x, _y },
       id,
@@ -115,7 +119,9 @@ export class LineLabel extends Label {
       visible
     })
 
-    const products = [line, textbox, ...endpoints]
+    const products = needText
+      ? [line, textbox, ...endpoints]
+      : [line, ...endpoints]
     products.forEach((obj) => obj.setOptions({ labelType, category, id }))
     return products
   }

@@ -75,7 +75,11 @@ export class RectLabel extends Label {
     }
   }
 
-  getFabricObjects(color: string, visible: boolean = true) {
+  getFabricObjects(
+    color: string,
+    visible: boolean = true,
+    needText: boolean = true
+  ) {
     const {
       rect: { x, y, w, h },
       labelType,
@@ -101,7 +105,7 @@ export class RectLabel extends Label {
       visible
     })
 
-    const products = [rect, textbox]
+    const products = needText ? [rect, textbox] : [rect]
     products.forEach((obj) => obj.setOptions({ labelType, category, id }))
     return products
   }

@@ -2,13 +2,8 @@ import { usePinch } from '@use-gesture/react'
 import { fabric } from 'fabric'
 import { MutableRefObject, useCallback, useRef } from 'react'
 import { Point } from '../classes/Geometry/Point'
-
 import { LabelType } from '../classes/Label'
-import {
-  NEW_CATEGORY_NAME,
-  STROKE_WIDTH,
-  TRANSPARENT
-} from '../interfaces/config'
+import { NEW_CATEGORY_NAME, STROKE_WIDTH } from '../interfaces/config'
 import { getBetween, isInvalid, isTouchEvent } from '../utils'
 import { isLine, isPoint, isRect, newLabel } from '../utils/label'
 import { UseColorsReturnProps } from './useColor'
@@ -37,7 +32,6 @@ export const useMouseListeners = ({
 
   const { nowState } = stateStack
   const { nowFocus, setDrawingType, setObjects } = focus
-
   const { canvasDims, boundary, offset, scale } = canvasProps
 
   const setZoomAndGetNewZoom = useCallback(
@@ -65,7 +59,17 @@ export const useMouseListeners = ({
     [canvas, canvasDims]
   )
 
-  const drawOnMouseDown = (event: fabric.IEvent) => {
+  const exchangeColorIfIsEndpoint = (event: fabric.IEvent) => {
+    const obj = event.target as any
+    if (obj?.type === 'circle')
+      obj.set({
+        fill: obj.stroke,
+        stroke: obj.fill
+      })
+    canvas.renderAll()
+  }
+
+  const drawingStart = (event: fabric.IEvent) => {
     const { x: nowX, y: nowY } = canvas.getPointer(event.e)
     const x = getBetween(nowX, ...boundary.x)
     const y = getBetween(nowY, ...boundary.y)
@@ -110,7 +114,7 @@ export const useMouseListeners = ({
       id,
       scale,
       offset
-    }).getFabricObjects(color)
+    }).getFabricObjects(color, true, false)
 
     canvas.add(...fabricObjects)
     onDrawObj.current = fabricObjects[0]
@@ -144,7 +148,7 @@ export const useMouseListeners = ({
     canvas.renderAll()
   }
 
-  const drawStopOnMouseUp = () => {
+  const drawingStop = () => {
     const obj = onDrawObj.current as any
 
     if (isInvalid(obj, nowFocus.drawingType!)) {
@@ -175,27 +179,12 @@ export const useMouseListeners = ({
       const zoom = setZoomAndGetNewZoom(e.e)
       setViewport({ zoom })
     },
-    'mouse:over': (e: fabric.IEvent) => {
-      const obj = e.target as any
-      if (obj?.type === 'circle')
-        obj.set({
-          fill: TRANSPARENT,
-          stroke: obj.color
-        })
-      canvas.renderAll()
-    },
-    'mouse:out': (e: fabric.IEvent) => {
-      const obj = e.target as any
-      if (obj?.type === 'circle')
-        obj.set({
-          fill: obj.color,
-          stroke: TRANSPARENT
-        })
-      canvas.renderAll()
-    },
+    'mouse:over': exchangeColorIfIsEndpoint,
+    'mouse:out': exchangeColorIfIsEndpoint,
     'mouse:down': (e: fabric.IEvent<MouseEvent>) => {
-      ;(document.activeElement as HTMLElement).blur() // canvas would block blur event, need set it manually
-      if (nowFocus.drawingType) drawOnMouseDown(e)
+      // ;(document.activeElement as HTMLElement).blur() // canvas would block blur event, need set it manually
+      if (isDrawingStarted.current) drawingStop()
+      else if (nowFocus.drawingType) drawingStart(e)
       else {
         const evt = e.e as any
         const { clientX, clientY } = isTouchEvent(evt) ? evt.touches[0] : evt
@@ -223,7 +212,8 @@ export const useMouseListeners = ({
       }
     },
     'mouse:up': () => {
-      if (isDrawingStarted.current) drawStopOnMouseUp()
+      if (isDrawingStarted.current && nowFocus.drawingType === LabelType.Point)
+        drawingStop()
       else if (isPanning.current) {
         canvas.setViewportTransform(canvas.viewportTransform as number[])
         isPanning.current = false

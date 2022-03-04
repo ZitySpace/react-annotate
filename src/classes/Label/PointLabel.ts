@@ -67,7 +67,11 @@ export class PointLabel extends Label {
     }
   }
 
-  getFabricObjects(color: string, visible: boolean = true) {
+  getFabricObjects(
+    color: string,
+    visible: boolean = true,
+    needText: boolean = true
+  ) {
     const {
       point: { x, y },
       id,
@@ -92,7 +96,7 @@ export class PointLabel extends Label {
       visible
     })
 
-    const products = [point, textbox]
+    const products = needText ? [point, textbox] : [point]
     products.forEach((obj) => obj.setOptions({ labelType, category, id }))
     return products
   }
