@@ -47,7 +47,7 @@ export class Point implements Point {
   /**
    * Get distance between two points
    */
-  getDistance(target: Point): number {
+  distanceFrom(target: Point): number {
     return Math.sqrt(
       Math.pow(this.x - target.x, 2) + Math.pow(this.y - target.y, 2)
     )

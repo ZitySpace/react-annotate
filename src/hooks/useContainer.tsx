@@ -98,12 +98,10 @@ export const useContainer = ({
       const lowerCanvasElm = canvas.getElement()
       const upperCanvasElm = lowerCanvasElm.nextElementSibling as Element
       extendElm = lowerCanvasElm.parentElement as HTMLElement
-
       extendElm.style.position = 'absolute'
       extendElm.style.top = '0'
       extendElm.style.touchAction = 'none'
       extendElm.classList.add('bg-gray-200')
-
       lowerCanvasElm.classList.remove('hidden')
       upperCanvasElm.classList.remove('hidden')
 
