@@ -76,3 +76,12 @@ export function getBetween(value: number, ...args: number[]): number {
 export const getFontSize = (width: number, height: number) => {
   return Math.min(MAX_FONT_SIZE, width / 2, height / 2)
 }
+
+export const transparenter = (color: string) => {
+  const [r, g, b, a] = color
+    .replace('rgba', '')
+    .replace('(', '')
+    .replace(')', '')
+    .split(',')
+  return `rgba(${r}, ${g}, ${b}, ${parseFloat(a) * 0.5})`
+}

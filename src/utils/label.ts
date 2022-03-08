@@ -2,12 +2,14 @@ import { Point } from '../classes/Geometry/Point'
 import { Label, LabelType } from '../classes/Label'
 import { LineLabel } from '../classes/Label/LineLabel'
 import { PointLabel } from '../classes/Label/PointLabel'
+import { PolygonLabel } from '../classes/Label/PolygonLabel'
 import { RectLabel } from '../classes/Label/RectLabel'
 
 const _newLabel = {
   [LabelType.Point]: (args: any) => new PointLabel(args),
   [LabelType.Line]: (args: any) => new LineLabel(args),
-  [LabelType.Rect]: (args: any) => new RectLabel(args)
+  [LabelType.Rect]: (args: any) => new RectLabel(args),
+  [LabelType.Polygon]: (args: any) => new PolygonLabel(args)
 }
 
 export function newLabel({
@@ -74,7 +76,11 @@ export const isLine = ({ type, labelType }: any) =>
 export const isLineEndpoint = ({ type, labelType }: any) =>
   type === 'circle' && labelType === LabelType.Line
 
+export const isPolygon = ({ type, labelType }: any) =>
+  type === 'polygon' && labelType === LabelType.Polygon
+
 export const isLabel = ({ type, labelType }: any) =>
   isRect({ type, labelType }) ||
   isLine({ type, labelType }) ||
-  isPoint({ type, labelType })
+  isPoint({ type, labelType }) ||
+  isPolygon({ type, labelType })
