@@ -1,5 +1,11 @@
 import { fabric } from 'fabric'
 import { Label, LabelType } from '.'
+import {
+  POLYGON_DEFAULT_CONFIG,
+  RADIUS,
+  TEXTBOX_DEFAULT_CONFIG
+} from '../../interfaces/config'
+import { transparenter } from '../../utils'
 import { Point } from '../Geometry/Point'
 
 interface PolygonLabelArgs {
@@ -34,12 +40,9 @@ export class PolygonLabel extends Label {
       const { points, category, id } = obj as any
       super({ labelType, category, id, scale, offset })
       this.points = points.map(({ x, y }: Point) => new Point(x, y))
-    } else if (points) {
-      super({ labelType, category, id, scale, offset })
-      this.points = points
     } else {
       super({ labelType, category, id, scale, offset })
-      this.points = [new Point(x, y), new Point(x, y)]
+      this.points = points || [new Point(x, y)]
     }
   }
 
@@ -70,14 +73,34 @@ export class PolygonLabel extends Label {
     }
   }
 
-  getFabricObjects(color: string, visible?: boolean) {
-    return [
-      new fabric.Polygon(this.points, {
-        fill: color,
-        stroke: color,
-        strokeWidth: 1,
-        visible
-      })
-    ]
+  getFabricObjects(
+    color: string,
+    visible: boolean = true,
+    needText: boolean = true
+  ) {
+    const { points, id, category, labelType } = this
+    const polygon = new fabric.Polygon(
+      points.map(({ x, y }) => new fabric.Point(x, y)),
+      {
+        ...POLYGON_DEFAULT_CONFIG,
+        cornerColor: color,
+        fill: transparenter(color)
+      }
+    )
+
+    const topPoint = points.sort((a, b) => a.y - b.y)[0]
+    const textbox = new fabric.Textbox(id.toString(), {
+      ...TEXTBOX_DEFAULT_CONFIG,
+      left: topPoint.x,
+      top: topPoint.y - RADIUS,
+      originX: 'center',
+      originY: 'bottom',
+      backgroundColor: color,
+      visible
+    })
+
+    const products = needText ? [polygon, textbox] : [polygon]
+    products.forEach((obj) => obj.setOptions({ labelType, category, id }))
+    return products
   }
 }

@@ -53,6 +53,10 @@ export const RECT_DEFAULT_CONFIG: fabric.IRectOptions | any = {
   perPixelTargetFind: true
 }
 
+export const POLYGON_DEFAULT_CONFIG: fabric.IPolylineOptions = {
+  cornerStyle: 'circle'
+}
+
 export const TEXTBOX_DEFAULT_CONFIG: fabric.ITextboxOptions = {
   fill: 'black',
   selectable: false,
