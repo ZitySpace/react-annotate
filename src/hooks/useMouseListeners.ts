@@ -3,9 +3,9 @@ import { fabric } from 'fabric'
 import { MutableRefObject, useCallback, useRef } from 'react'
 import { Point } from '../classes/Geometry/Point'
 import { LabelType } from '../classes/Label'
-import { NEW_CATEGORY_NAME, STROKE_WIDTH } from '../interfaces/config'
+import { NEW_CATEGORY_NAME, RADIUS, STROKE_WIDTH } from '../interfaces/config'
 import { getBetween, isInvalid, isTouchEvent } from '../utils'
-import { isLine, isPoint, isRect, newLabel } from '../utils/label'
+import { isLine, isPoint, isPolygon, isRect, newLabel } from '../utils/label'
 import { UseColorsReturnProps } from './useColor'
 import { CanvasProps } from './useContainer'
 import { UseFocusReturnProps } from './useFocus'
@@ -79,34 +79,6 @@ export const useMouseListeners = ({
     const id = Math.max(-1, ...nowState.map(({ id }) => id)) + 1
     const color = annoColors.get(category)
 
-    if (nowFocus.drawingType === LabelType.Polygon) {
-      const endpoints = [new Point(x, y), new Point(x, y)]
-      const obj = new fabric.Polygon(endpoints, {
-        fill: color.replace('0.75', '0.5'),
-        stroke: color,
-        strokeWidth: STROKE_WIDTH,
-        // selectable: false,
-        // hoverCursor: 'pointer',
-        // hasControls: false,
-        // hasBorders: false,
-        // hasRotatingPoint: false,
-        // lockMovementX: true,
-        // lockMovementY: true,
-        // lockScalingX: true,
-        // lockScalingY: true,
-        // lockRotation: true,
-        // objectCaching: false,
-        // perPixelTargetFind: true,
-        // targetFindTolerance: 1,
-        visible: true
-      })
-      canvas.add(obj)
-      // onDrawObj.current = obj
-      // isDrawingStarted.current = true
-      console.log(canvas.getObjects())
-      return
-    }
-
     const fabricObjects = newLabel({
       labelType: nowFocus.drawingType,
       position: new Point(x, y),
@@ -117,6 +89,7 @@ export const useMouseListeners = ({
     }).getFabricObjects(color, true, false)
 
     canvas.add(...fabricObjects)
+    console.log(canvas.getObjects())
     onDrawObj.current = fabricObjects[0]
     isDrawingStarted.current = true
   }
@@ -148,10 +121,26 @@ export const useMouseListeners = ({
     canvas.renderAll()
   }
 
+  const drawingBreak = (event: fabric.IEvent) => {
+    const obj = onDrawObj.current as any
+    if (isPolygon(obj)) {
+      const { x, y } = canvas.getPointer(event.e)
+      const nowPoint = new Point(x, y)
+      const { points } = obj
+
+      if (nowPoint.distanceFrom(points[0]) < RADIUS * 2) drawingStop()
+      else {
+        obj.set({ points: [...points, nowPoint] })
+        canvas.renderAll()
+      }
+    } else drawingStop()
+  }
+
   const drawingStop = () => {
     const obj = onDrawObj.current as any
+    console.log(obj)
 
-    if (isInvalid(obj, nowFocus.drawingType!)) {
+    if (isInvalid(obj, nowFocus.drawingType)) {
       canvas.remove(...canvas.getObjects().filter((o: any) => o.id === obj.id))
     } else {
       setObjects([newLabel({ obj, offset, scale })])
@@ -182,8 +171,8 @@ export const useMouseListeners = ({
     'mouse:over': exchangeColorIfIsEndpoint,
     'mouse:out': exchangeColorIfIsEndpoint,
     'mouse:down': (e: fabric.IEvent<MouseEvent>) => {
-      // ;(document.activeElement as HTMLElement).blur() // canvas would block blur event, need set it manually
-      if (isDrawingStarted.current) drawingStop()
+      // if (isDrawingStarted.current) drawingStop()f
+      if (isDrawingStarted.current) drawingBreak(e)
       else if (nowFocus.drawingType) drawingStart(e)
       else {
         const evt = e.e as any
