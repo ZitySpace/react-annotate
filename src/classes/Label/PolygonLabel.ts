@@ -5,8 +5,9 @@ import {
   RADIUS,
   TEXTBOX_DEFAULT_CONFIG
 } from '../../interfaces/config'
-import { transparenter } from '../../utils'
+import { boundaryOfPolygon, transparenter } from '../../utils'
 import { Point } from '../Geometry/Point'
+import { Rect } from '../Geometry/Rect'
 
 interface PolygonLabelArgs {
   category?: string
@@ -20,6 +21,7 @@ interface PolygonLabelArgs {
 }
 
 export class PolygonLabel extends Label {
+  boundary: Rect
   points: Point[]
 
   constructor({ obj, scale, offset }: PolygonLabelArgs) // construct from fabric object
@@ -37,12 +39,18 @@ export class PolygonLabel extends Label {
   }: PolygonLabelArgs) {
     const labelType = LabelType.Polygon
     if (obj) {
-      const { points, category, id } = obj as any
+      const { left, top, points, scaleX, scaleY, category, id } = obj as any
       super({ labelType, category, id, scale, offset })
-      this.points = points.map(({ x, y }: Point) => new Point(x, y))
+      this.points = points.map(
+        ({ x, y }: Point) => new Point(x * scaleX, y * scaleY)
+      )
+      const { w, h } = boundaryOfPolygon(this.points)
+      this.boundary = new Rect(left, top, w, h)
     } else {
       super({ labelType, category, id, scale, offset })
       this.points = points || [new Point(x, y)]
+      const { x: left, y: top, w, h } = boundaryOfPolygon(this.points)
+      this.boundary = new Rect(left, top, w, h)
     }
   }
 
@@ -78,17 +86,18 @@ export class PolygonLabel extends Label {
     visible: boolean = true,
     needText: boolean = true
   ) {
-    const { points, id, category, labelType } = this
-    const polygon = new fabric.Polygon(
-      points.map(({ x, y }) => new fabric.Point(x, y)),
-      {
-        ...POLYGON_DEFAULT_CONFIG,
-        cornerColor: color,
-        fill: transparenter(color)
-      }
-    )
+    const { boundary, points, id, category, labelType } = this
+    const polygon = new fabric.Polygon(points, {
+      ...POLYGON_DEFAULT_CONFIG,
+      left: boundary.x,
+      top: boundary.y,
+      cornerColor: color,
+      fill: transparenter(color)
+    })
 
-    const topPoint = points.sort((a, b) => a.y - b.y)[0]
+    const topPoint = JSON.parse(JSON.stringify(points)).sort(
+      (a: Point, b: Point) => a.y - b.y
+    )[0]
     const textbox = new fabric.Textbox(id.toString(), {
       ...TEXTBOX_DEFAULT_CONFIG,
       left: topPoint.x,

@@ -138,7 +138,6 @@ export const useMouseListeners = ({
 
   const drawingStop = () => {
     const obj = onDrawObj.current as any
-    console.log(obj)
 
     if (isInvalid(obj, nowFocus.drawingType)) {
       canvas.remove(...canvas.getObjects().filter((o: any) => o.id === obj.id))

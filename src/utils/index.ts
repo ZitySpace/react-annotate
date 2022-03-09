@@ -1,5 +1,6 @@
 import { MAX_FONT_SIZE, RADIUS, STROKE_WIDTH } from '../interfaces/config'
 import { Label, LabelType } from '../classes/Label'
+import { Point } from '../classes/Geometry/Point'
 
 /**
  * Judge that is the label invalid
@@ -77,6 +78,11 @@ export const getFontSize = (width: number, height: number) => {
   return Math.min(MAX_FONT_SIZE, width / 2, height / 2)
 }
 
+/**
+ * Get more transparent color
+ * @param color target color
+ * @returns half transparent color
+ */
 export const transparenter = (color: string) => {
   const [r, g, b, a] = color
     .replace('rgba', '')
@@ -84,4 +90,16 @@ export const transparenter = (color: string) => {
     .replace(')', '')
     .split(',')
   return `rgba(${r}, ${g}, ${b}, ${parseFloat(a) * 0.5})`
+}
+
+export const boundaryOfPolygon = (points: Point[]) => {
+  const xSet = points.map((p) => p.x)
+  const ySet = points.map((p) => p.y)
+
+  return {
+    x: Math.min(...xSet),
+    y: Math.min(...ySet),
+    w: Math.max(...xSet) - Math.min(...xSet),
+    h: Math.max(...ySet) - Math.min(...ySet)
+  }
 }
