@@ -4,7 +4,12 @@ import { MutableRefObject, useCallback, useRef } from 'react'
 import { Point } from '../classes/Geometry/Point'
 import { LabelType } from '../classes/Label'
 import { NEW_CATEGORY_NAME, RADIUS, STROKE_WIDTH } from '../interfaces/config'
-import { getBetween, isInvalid, isTouchEvent } from '../utils'
+import {
+  boundaryOfPolygon,
+  getBetween,
+  isInvalid,
+  isTouchEvent
+} from '../utils'
 import { isLine, isPoint, isPolygon, isRect, newLabel } from '../utils/label'
 import { UseColorsReturnProps } from './useColor'
 import { CanvasProps } from './useContainer'
@@ -117,6 +122,20 @@ export const useMouseListeners = ({
       const top = nowY
       obj.endpoints[1].set({ left, top })
       obj.set({ x2: left, y2: top })
+    } else if (isPolygon(obj)) {
+      const nowPoint = new Point(nowX, nowY)
+      const { points } = obj
+      points.splice(points.length - 1, 1, nowPoint)
+      const { x, y, w, h } = boundaryOfPolygon(points)
+      const newPolygon = new fabric.Polygon(points, {
+        ...obj,
+        left: x,
+        top: y,
+        width: w,
+        height: h
+      })
+      onDrawObj.current = newPolygon
+      canvas.remove(obj).add(newPolygon)
     }
     canvas.renderAll()
   }
@@ -124,14 +143,26 @@ export const useMouseListeners = ({
   const drawingBreak = (event: fabric.IEvent) => {
     const obj = onDrawObj.current as any
     if (isPolygon(obj)) {
+      console.log(obj)
+
       const { x, y } = canvas.getPointer(event.e)
       const nowPoint = new Point(x, y)
       const { points } = obj
 
       if (nowPoint.distanceFrom(points[0]) < RADIUS * 2) drawingStop()
       else {
-        obj.set({ points: [...points, nowPoint] })
-        canvas.renderAll()
+        points.push(nowPoint)
+        const { x, y, w, h } = boundaryOfPolygon(points)
+        const newPolygon = new fabric.Polygon(points, {
+          ...obj,
+          left: x,
+          top: y,
+          width: w,
+          height: h,
+          visible: true,
+        })
+        onDrawObj.current = newPolygon
+        canvas.remove(obj).add(newPolygon).renderAll()
       }
     } else drawingStop()
   }

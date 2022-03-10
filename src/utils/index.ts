@@ -89,7 +89,7 @@ export const transparenter = (color: string) => {
     .replace('(', '')
     .replace(')', '')
     .split(',')
-  return `rgba(${r}, ${g}, ${b}, ${parseFloat(a) * 0.5})`
+  return `rgba(${r},${g},${b},${parseFloat(a) * 0.5})`
 }
 
 export const boundaryOfPolygon = (points: Point[]) => {

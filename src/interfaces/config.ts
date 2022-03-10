@@ -54,7 +54,15 @@ export const RECT_DEFAULT_CONFIG: fabric.IRectOptions | any = {
 }
 
 export const POLYGON_DEFAULT_CONFIG: fabric.IPolylineOptions = {
-  cornerStyle: 'circle'
+  originX: 'left',
+  originY: 'top',
+  hasBorders: false,
+  lockRotation: true,
+  fill: TRANSPARENT,
+  strokeWidth: STROKE_WIDTH,
+  strokeUniform: true,
+  noScaleCache: false,
+  cornerStyle: 'circle',
 }
 
 export const TEXTBOX_DEFAULT_CONFIG: fabric.ITextboxOptions = {

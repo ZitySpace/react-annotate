@@ -3,9 +3,10 @@ import { Label, LabelType } from '.'
 import {
   POLYGON_DEFAULT_CONFIG,
   RADIUS,
-  TEXTBOX_DEFAULT_CONFIG
+  TEXTBOX_DEFAULT_CONFIG,
+  TRANSPARENT
 } from '../../interfaces/config'
-import { boundaryOfPolygon, transparenter } from '../../utils'
+import { boundaryOfPolygon } from '../../utils'
 import { Point } from '../Geometry/Point'
 import { Rect } from '../Geometry/Rect'
 
@@ -48,7 +49,7 @@ export class PolygonLabel extends Label {
       this.boundary = new Rect(left, top, w, h)
     } else {
       super({ labelType, category, id, scale, offset })
-      this.points = points || [new Point(x, y)]
+      this.points = points || [new Point(x, y), new Point(x, y)]
       const { x: left, y: top, w, h } = boundaryOfPolygon(this.points)
       this.boundary = new Rect(left, top, w, h)
     }
@@ -92,7 +93,8 @@ export class PolygonLabel extends Label {
       left: boundary.x,
       top: boundary.y,
       cornerColor: color,
-      fill: transparenter(color)
+      fill: TRANSPARENT,
+      stroke: color
     })
 
     const topPoint = JSON.parse(JSON.stringify(points)).sort(
