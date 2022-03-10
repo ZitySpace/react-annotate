@@ -14,6 +14,14 @@ Still under development.
 2. run `yarn start` to start the process which watch the files changes and build in real time. The process wouldn't stop until you press `ctrl + c`.
 3. New a terminal and enter the **example** dir, then run `yarn` to install dependencies and run `yarn start` to start the development server.
 
+## Reference
+
+- [controls-customization](http://fabricjs.com/controls-customization)
+- [effect of different setting](http://fabricjs.com/customization)
+- [line-point-stickman](http://fabricjs.com/stickman)
+
+
+
 ## License
 
 Apache 2.0 © [ZitySpace](https://github.com/ZitySpace)
