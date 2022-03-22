@@ -1,6 +1,6 @@
 import { MutableRefObject, useEffect, useMemo, useRef } from 'react'
 import { Label } from '../classes/Label'
-import { getBetween } from '../utils'
+import { deepClone, getBetween } from '../utils'
 import { isLabel, isLineEndpoint, isRect, newLabel } from '../utils/label'
 import { UseColorsReturnProps } from './useColor'
 import { CanvasProps } from './useContainer'
@@ -157,7 +157,7 @@ export const useCanvas = ({
     // when canvas's object was moved, ensure its position is in the image boundary
     'object:modified': () => {
       const obj: any = canvas.getActiveObject()
-      const _boundary = JSON.parse(JSON.stringify(boundary)) // deep clone to avoid rect-type calculate influences
+      const _boundary = deepClone(boundary) // deep clone to avoid rect-type calculate influences
       // rect's boundary need consider of its dimensions
       if (isRect(obj)) {
         _boundary.x[1] -= obj.getScaledWidth()

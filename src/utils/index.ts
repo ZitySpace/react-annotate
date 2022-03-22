@@ -92,6 +92,11 @@ export const transparenter = (color: string) => {
   return `rgba(${r},${g},${b},${parseFloat(a) * 0.5})`
 }
 
+/**
+ * Calculate the boundary of polygon
+ * @param points points coordinates of the polygon
+ * @returns boundary of polygon
+ */
 export const boundaryOfPolygon = (points: Point[]) => {
   const xSet = points.map((p) => p.x)
   const ySet = points.map((p) => p.y)
@@ -103,3 +108,10 @@ export const boundaryOfPolygon = (points: Point[]) => {
     h: Math.max(...ySet) - Math.min(...ySet)
   }
 }
+
+/**
+ * Deep clone an object
+ * @param obj target object
+ * @returns a deep copy of the object
+ */
+export const deepClone = (obj: any) => JSON.parse(JSON.stringify(obj))
