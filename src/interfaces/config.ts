@@ -5,7 +5,7 @@ export const IS_TOUCH_SCREEN =
 
 export const STROKE_WIDTH = 2
 
-export const RADIUS = 5
+export const RADIUS = 3
 
 export const NEW_CATEGORY_NAME = 'new_category'
 
@@ -57,12 +57,12 @@ export const POLYGON_DEFAULT_CONFIG: fabric.IPolylineOptions = {
   originX: 'left',
   originY: 'top',
   hasBorders: false,
+  hasControls: false,
   lockRotation: true,
   fill: TRANSPARENT,
   strokeWidth: STROKE_WIDTH,
   strokeUniform: true,
-  noScaleCache: false,
-  cornerStyle: 'circle',
+  noScaleCache: false
 }
 
 export const TEXTBOX_DEFAULT_CONFIG: fabric.ITextboxOptions = {
