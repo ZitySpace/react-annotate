@@ -3,13 +3,15 @@ import { fabric } from 'fabric'
 import { MutableRefObject, useCallback, useRef } from 'react'
 import { Point } from '../classes/Geometry/Point'
 import { LabelType } from '../classes/Label'
-import { NEW_CATEGORY_NAME, RADIUS, STROKE_WIDTH } from '../interfaces/config'
 import {
-  boundaryOfPolygon,
-  getBetween,
-  isInvalid,
-  isTouchEvent
-} from '../utils'
+  LINE_DEFAULT_CONFIG,
+  NEW_CATEGORY_NAME,
+  POINT_DEFAULT_CONFIG,
+  RADIUS,
+  STROKE_WIDTH,
+  TRANSPARENT
+} from '../interfaces/config'
+import { getBetween, isInvalid, isTouchEvent } from '../utils'
 import { isLine, isPoint, isPolygon, isRect, newLabel } from '../utils/label'
 import { UseColorsReturnProps } from './useColor'
 import { CanvasProps } from './useContainer'
@@ -94,7 +96,6 @@ export const useMouseListeners = ({
     }).getFabricObjects(color, true, false)
 
     canvas.add(...fabricObjects)
-    console.log(canvas.getObjects())
     onDrawObj.current = fabricObjects[0]
     isDrawingStarted.current = true
   }
@@ -123,59 +124,93 @@ export const useMouseListeners = ({
       obj.endpoints[1].set({ left, top })
       obj.set({ x2: left, y2: top })
     } else if (isPolygon(obj)) {
-      const nowPoint = new Point(nowX, nowY)
-      const { points } = obj
-      points.splice(points.length - 1, 1, nowPoint)
-      const { x, y, w, h } = boundaryOfPolygon(points)
-      const newPolygon = new fabric.Polygon(points, {
-        ...obj,
-        left: x,
-        top: y,
-        width: w,
-        height: h
+      const left = nowX
+      const top = nowY
+      obj.points[obj.points.length - 1] = new Point(left, top)
+      const endpoint = obj.endpoints[obj.endpoints.length - 1]
+      endpoint.set({ left, top })
+      const { lines, _id } = endpoint
+      lines.forEach((line: fabric.Line) => {
+        const { endpoints } = line as any
+        const [{ left: x1, top: y1 }] = endpoints.filter(
+          (p: any) => p._id !== _id
+        )
+        line.set({ x1, y1, x2: left, y2: top })
       })
-      onDrawObj.current = newPolygon
-      canvas.remove(obj).add(newPolygon)
     }
     canvas.renderAll()
   }
 
   const drawingBreak = (event: fabric.IEvent) => {
+    console.log('drawingBreak')
     const obj = onDrawObj.current as any
+
     if (isPolygon(obj)) {
-      console.log(obj)
-
+      const { points, endpoints, labelType, category, id } = obj
+      const color = annoColors.get(category)
       const { x, y } = canvas.getPointer(event.e)
-      const nowPoint = new Point(x, y)
-      const { points } = obj
+      const nowX = getBetween(x, ...boundary.x)
+      const nowY = getBetween(y, ...boundary.y)
+      const nowPoint = new Point(nowX, nowY)
 
-      if (nowPoint.distanceFrom(points[0]) < RADIUS * 2) drawingStop()
-      else {
-        points.push(nowPoint)
-        const { x, y, w, h } = boundaryOfPolygon(points)
-        const newPolygon = new fabric.Polygon(points, {
-          ...obj,
-          left: x,
-          top: y,
-          width: w,
-          height: h,
-          visible: true,
+      if (nowPoint.distanceFrom(points[0]) < 2 * RADIUS) {
+        points.pop()
+        const { left, top } = endpoints[0]
+        const endpoint = endpoints[endpoints.length - 1]
+        endpoint.set({ left, top })
+        const { lines, _id } = endpoint
+        lines.forEach((line: fabric.Line) => {
+          const { endpoints } = line as any
+          const [{ left: x1, top: y1 }] = endpoints.filter(
+            (p: any) => p._id !== _id
+          )
+          line.set({ x1, y1, x2: left, y2: top })
         })
-        onDrawObj.current = newPolygon
-        canvas.remove(obj).add(newPolygon).renderAll()
+        drawingStop()
+      } else {
+        points.push(nowPoint)
+        const newEndpoint = new fabric.Circle({
+          ...POINT_DEFAULT_CONFIG,
+          left: nowX,
+          top: nowY,
+          fill: color,
+          stroke: TRANSPARENT,
+          selectable: false
+        })
+        newEndpoint.setOptions({ _id: endpoints.length, lines: [] })
+        endpoints.push(newEndpoint)
+        const endpointsOfNewLine = endpoints.slice(
+          endpoints.length - 2,
+          endpoints.length
+        )
+        const newLine = new fabric.Line([nowX, nowY, nowX, nowY], {
+          ...LINE_DEFAULT_CONFIG,
+          stroke: color
+        })
+        newLine.setOptions({ endpoints: endpointsOfNewLine })
+        endpointsOfNewLine.forEach((endpoint: fabric.Circle) => {
+          ;(endpoint as any).lines.push(newLine)
+        })
+        const products = [newLine, newEndpoint]
+        products.forEach((obj) => obj.setOptions({ labelType, category, id }))
+        canvas.add(...products)
       }
     } else drawingStop()
   }
 
   const drawingStop = () => {
+    console.log('drawingStop')
     const obj = onDrawObj.current as any
 
     if (isInvalid(obj, nowFocus.drawingType)) {
+      console.log('invalid')
       canvas.remove(...canvas.getObjects().filter((o: any) => o.id === obj.id))
     } else {
       setObjects([newLabel({ obj, offset, scale })])
       canvas.setActiveObject(
-        obj.labelType !== LabelType.Line ? obj : obj.endpoints[1]
+        [LabelType.Line].includes(obj.labelType)
+          ? obj.endpoints[obj.endpoints.length - 1]
+          : obj
       )
     }
 

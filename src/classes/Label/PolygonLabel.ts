@@ -1,12 +1,15 @@
 import { fabric } from 'fabric'
 import { Label, LabelType } from '.'
 import {
+  LINE_DEFAULT_CONFIG,
+  POINT_DEFAULT_CONFIG,
   POLYGON_DEFAULT_CONFIG,
   RADIUS,
+  STROKE_WIDTH,
   TEXTBOX_DEFAULT_CONFIG,
   TRANSPARENT
 } from '../../interfaces/config'
-import { boundaryOfPolygon } from '../../utils'
+import { boundaryOfPolygon, deepClone } from '../../utils'
 import { Point } from '../Geometry/Point'
 import { Rect } from '../Geometry/Rect'
 
@@ -18,6 +21,7 @@ interface PolygonLabelArgs {
   x?: number
   y?: number
   points?: Point[]
+  isClosed?: boolean
   obj?: fabric.Polygon
 }
 
@@ -40,13 +44,13 @@ export class PolygonLabel extends Label {
   }: PolygonLabelArgs) {
     const labelType = LabelType.Polygon
     if (obj) {
-      const { left, top, points, scaleX, scaleY, category, id } = obj as any
+      const { points, scaleX, scaleY, category, id } = obj as any
       super({ labelType, category, id, scale, offset })
       this.points = points.map(
         ({ x, y }: Point) => new Point(x * scaleX, y * scaleY)
       )
-      const { w, h } = boundaryOfPolygon(this.points)
-      this.boundary = new Rect(left, top, w, h)
+      const { x, y, w, h } = boundaryOfPolygon(this.points)
+      this.boundary = new Rect(x, y, w, h)
     } else {
       super({ labelType, category, id, scale, offset })
       this.points = points || [new Point(x, y), new Point(x, y)]
@@ -88,16 +92,56 @@ export class PolygonLabel extends Label {
     needText: boolean = true
   ) {
     const { boundary, points, id, category, labelType } = this
-    const polygon = new fabric.Polygon(points, {
-      ...POLYGON_DEFAULT_CONFIG,
-      left: boundary.x,
-      top: boundary.y,
-      cornerColor: color,
-      fill: TRANSPARENT,
-      stroke: color
+    const isClosed = points.length > 2
+
+    // generate endpoints, without last point if polygon is closed
+    const endpoints = points.map(({ x, y }, _id) => {
+      const endpoint = new fabric.Circle({
+        ...POINT_DEFAULT_CONFIG,
+        left: x,
+        top: y,
+        fill: color,
+        stroke: TRANSPARENT,
+        selectable: false,
+        visible
+      })
+
+      endpoint.setOptions({ _id: _id, lines: [] })
+      return endpoint
     })
 
-    const topPoint = JSON.parse(JSON.stringify(points)).sort(
+    // generate lines
+    const lines = (isClosed ? [...points, points[0]] : points) // [p0, p1, p2, p0] / [p0, p1]
+      .map((thePoint, idx, points) => [thePoint, points[idx + 1]]) // [[p0, p1], [p1, p2], [p2, p0], [p0, undefined]]
+      .slice(0, points.length - (isClosed ? 0 : 1)) // remove last line which composed with undefined
+      .map(
+        ([{ x, y }, { x: _x, y: _y }]) =>
+          new fabric.Line([x, y, _x, _y], {
+            ...LINE_DEFAULT_CONFIG,
+            stroke: color,
+            visible
+          })
+      )
+
+    // associate lines to endpoints
+    lines.forEach((line, idx) => {
+      const endpointsOfLine = endpoints.slice(idx, idx + 2) // get endpoints of line
+      endpointsOfLine.forEach((endpoint) => (endpoint as any).lines.push(line)) // add line to endpoint
+      line.setOptions({ endpoints: endpointsOfLine }) // add endpoints to line
+    })
+
+    // generate polygon
+    const polygon = new fabric.Polygon(points, {
+      ...POLYGON_DEFAULT_CONFIG,
+      left: boundary.x - STROKE_WIDTH / 2,
+      top: boundary.y - STROKE_WIDTH / 2,
+      fill: color
+    })
+
+    // associate lines and endpoints to polygon
+    polygon.setOptions({ endpoints, lines })
+
+    const topPoint = deepClone(points).sort(
       (a: Point, b: Point) => a.y - b.y
     )[0]
     const textbox = new fabric.Textbox(id.toString(), {
@@ -110,7 +154,10 @@ export class PolygonLabel extends Label {
       visible
     })
 
-    const products = needText ? [polygon, textbox] : [polygon]
+    const products = needText
+      ? [polygon, ...endpoints, ...lines, textbox]
+      : [polygon, ...endpoints, ...lines]
+
     products.forEach((obj) => obj.setOptions({ labelType, category, id }))
     return products
   }
