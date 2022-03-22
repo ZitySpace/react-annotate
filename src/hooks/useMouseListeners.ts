@@ -12,7 +12,14 @@ import {
   TRANSPARENT
 } from '../interfaces/config'
 import { getBetween, isInvalid, isTouchEvent } from '../utils'
-import { isLine, isPoint, isPolygon, isRect, newLabel } from '../utils/label'
+import {
+  isLine,
+  isPoint,
+  isPolygon,
+  isRect,
+  newLabel,
+  updateEndpointAssociatedLinesPosition
+} from '../utils/label'
 import { UseColorsReturnProps } from './useColor'
 import { CanvasProps } from './useContainer'
 import { UseFocusReturnProps } from './useFocus'
@@ -66,7 +73,7 @@ export const useMouseListeners = ({
     [canvas, canvasDims]
   )
 
-  const exchangeColorIfIsEndpoint = (event: fabric.IEvent) => {
+  const setHoverEffectIfIsEndpoint = (event: fabric.IEvent) => {
     const obj = event.target as any
     if (obj?.type === 'circle')
       obj.set({
@@ -118,26 +125,16 @@ export const useMouseListeners = ({
       const left = nowX
       const top = nowY
       obj.set({ left, top })
-    } else if (isLine(obj)) {
+    } else if (isLine(obj) || isPolygon(obj)) {
       const left = nowX
       const top = nowY
-      obj.endpoints[1].set({ left, top })
-      obj.set({ x2: left, y2: top })
-    } else if (isPolygon(obj)) {
-      const left = nowX
-      const top = nowY
-      obj.points[obj.points.length - 1] = new Point(left, top)
-      const endpoint = obj.endpoints[obj.endpoints.length - 1]
-      endpoint.set({ left, top })
-      const { lines, _id } = endpoint
-      lines.forEach((line: fabric.Line) => {
-        const { endpoints } = line as any
-        const [{ left: x1, top: y1 }] = endpoints.filter(
-          (p: any) => p._id !== _id
-        )
-        line.set({ x1, y1, x2: left, y2: top })
-      })
+      const { points, endpoints } = obj
+      const lastEndpoint = endpoints[endpoints.length - 1]
+      lastEndpoint.set({ left, top })
+      updateEndpointAssociatedLinesPosition(lastEndpoint)
+      if (points) points[points.length - 1] = new Point(left, top)
     }
+
     canvas.renderAll()
   }
 
@@ -158,14 +155,7 @@ export const useMouseListeners = ({
         const { left, top } = endpoints[0]
         const endpoint = endpoints[endpoints.length - 1]
         endpoint.set({ left, top })
-        const { lines, _id } = endpoint
-        lines.forEach((line: fabric.Line) => {
-          const { endpoints } = line as any
-          const [{ left: x1, top: y1 }] = endpoints.filter(
-            (p: any) => p._id !== _id
-          )
-          line.set({ x1, y1, x2: left, y2: top })
-        })
+        updateEndpointAssociatedLinesPosition(endpoint)
         drawingStop()
       } else {
         points.push(nowPoint)
@@ -233,8 +223,8 @@ export const useMouseListeners = ({
       const zoom = setZoomAndGetNewZoom(e.e)
       setViewport({ zoom })
     },
-    'mouse:over': exchangeColorIfIsEndpoint,
-    'mouse:out': exchangeColorIfIsEndpoint,
+    'mouse:over': setHoverEffectIfIsEndpoint,
+    'mouse:out': setHoverEffectIfIsEndpoint,
     'mouse:down': (e: fabric.IEvent<MouseEvent>) => {
       // if (isDrawingStarted.current) drawingStop()f
       if (isDrawingStarted.current) drawingBreak(e)

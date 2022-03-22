@@ -84,6 +84,7 @@ export class LineLabel extends Label {
       category,
       labelType
     } = this
+
     const line = new fabric.Line([x, y, _x, _y], {
       ...LINE_DEFAULT_CONFIG,
       stroke: color,
@@ -102,7 +103,7 @@ export class LineLabel extends Label {
         stroke: TRANSPARENT,
         visible
       })
-      endpoint.setOptions({ _id: _id + 1, line })
+      endpoint.setOptions({ _id: _id, lines: [line] })
       return endpoint
     })
 

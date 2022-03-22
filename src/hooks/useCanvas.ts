@@ -1,7 +1,12 @@
 import { MutableRefObject, useEffect, useMemo, useRef } from 'react'
 import { Label } from '../classes/Label'
 import { deepClone, getBetween } from '../utils'
-import { isLabel, isLineEndpoint, isRect, newLabel } from '../utils/label'
+import {
+  isLabel,
+  isRect,
+  newLabel,
+  updateEndpointAssociatedLinesPosition
+} from '../utils/label'
 import { UseColorsReturnProps } from './useColor'
 import { CanvasProps } from './useContainer'
 import { UseFocusReturnProps } from './useFocus'
@@ -46,17 +51,6 @@ export const useCanvas = ({
     const nowLock = renderLock.current
     renderLock.current = false // if it was queried, unlock
     return nowLock
-  }
-
-  /**
-   * Set line's position if moving its endpoint
-   * @param event canvas' fabric object moving event
-   */
-  const setLinePositionIfMoveEndpoint = (object?: fabric.Object) => {
-    if (object && isLineEndpoint(object)) {
-      const { left, top, line, _id } = object as any // try to get attributes
-      line.set({ [`x${_id}`]: left, [`y${_id}`]: top })
-    }
   }
 
   /**
@@ -152,7 +146,7 @@ export const useCanvas = ({
   Object.assign(listeners, {
     // when canvas's object is moving, sync its line's position if the object is line's endpoint
     'object:moving': (e: fabric.IEvent) =>
-      setLinePositionIfMoveEndpoint(e.target),
+      updateEndpointAssociatedLinesPosition(e.target),
 
     // when canvas's object was moved, ensure its position is in the image boundary
     'object:modified': () => {
@@ -166,7 +160,7 @@ export const useCanvas = ({
       // as for other types label, they controlled by its endpoint
       obj.left = getBetween(obj.left, ..._boundary.x)
       obj.top = getBetween(obj.top, ..._boundary.y)
-      setLinePositionIfMoveEndpoint(obj)
+      updateEndpointAssociatedLinesPosition(obj)
 
       actions.syncCanvasToState()
     },

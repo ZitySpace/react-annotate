@@ -73,14 +73,30 @@ export const isPoint = ({ type, labelType }: any) =>
 export const isLine = ({ type, labelType }: any) =>
   type === 'line' && labelType === LabelType.Line
 
-export const isLineEndpoint = ({ type, labelType }: any) =>
-  type === 'circle' && labelType === LabelType.Line
-
 export const isPolygon = ({ type, labelType }: any) =>
   type === 'polygon' && labelType === LabelType.Polygon
 
+export const isEndpoint = ({ type, labelType }: any) =>
+  type === 'circle' && [LabelType.Line, LabelType.Polygon].includes(labelType)
+
 export const isLabel = ({ type, labelType }: any) =>
-  isRect({ type, labelType }) ||
-  isLine({ type, labelType }) ||
-  isPoint({ type, labelType }) ||
-  isPolygon({ type, labelType })
+  [isRect, isLine, isPoint, isPolygon].some((fn) => fn({ type, labelType }))
+
+/**
+ * Update associated lines' position if the endpoint is moved
+ * @param event canvas' fabric object moving event
+ */
+export const updateEndpointAssociatedLinesPosition = (
+  object?: fabric.Object
+) => {
+  if (object && isEndpoint(object)) {
+    const { left, top, lines, _id } = object as any
+    lines.forEach((line: fabric.Line) => {
+      const { endpoints } = line as any
+      const [{ left: x1, top: y1 }] = endpoints.filter(
+        (p: any) => p._id !== _id
+      )
+      line.set({ x1, y1, x2: left, y2: top })
+    })
+  }
+}
