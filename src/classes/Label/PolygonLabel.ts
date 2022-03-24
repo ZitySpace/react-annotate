@@ -154,8 +154,8 @@ export class PolygonLabel extends Label {
     })
 
     const products = needText
-      ? [polygon, ...endpoints, ...lines, textbox]
-      : [polygon, ...endpoints, ...lines]
+      ? [textbox, polygon, ...lines, ...endpoints]
+      : [polygon, ...lines, ...endpoints]
 
     products.forEach((obj) => obj.setOptions({ labelType, category, id }))
     return products

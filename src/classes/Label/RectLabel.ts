@@ -105,7 +105,7 @@ export class RectLabel extends Label {
       visible
     })
 
-    const products = needText ? [rect, textbox] : [rect]
+    const products = needText ? [textbox, rect] : [rect]
     products.forEach((obj) => obj.setOptions({ labelType, category, id }))
     return products
   }

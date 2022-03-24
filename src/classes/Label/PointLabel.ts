@@ -96,7 +96,7 @@ export class PointLabel extends Label {
       visible
     })
 
-    const products = needText ? [point, textbox] : [point]
+    const products = needText ? [textbox, point] : [point]
     products.forEach((obj) => obj.setOptions({ labelType, category, id }))
     return products
   }

@@ -197,8 +197,7 @@ export const useMouseListeners = ({
     console.log('drawingStop')
     const obj = onDrawObj.current as any
 
-    if (isInvalid(obj, nowFocus.drawingType)) {
-      console.log('invalid')
+    if (isInvalid(obj)) {
       canvas.remove(...canvas.getObjects().filter((o: any) => o.id === obj.id))
     } else {
       setObjects([newLabel({ obj, offset, scale })])

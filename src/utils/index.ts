@@ -8,15 +8,23 @@ import { Point } from '../classes/Geometry/Point'
  * @param labelType label type of the object
  * @returns is the obj invalid
  */
-export const isInvalid = (obj: any, labelType: LabelType) => {
-  return labelType === LabelType.Rect
-    ? obj.width <= STROKE_WIDTH || obj.height <= STROKE_WIDTH
-    : labelType === LabelType.Line
-    ? obj.endpoints[0]
-        .getPointByOrigin()
-        .distanceFrom(obj.endpoints[1].getPointByOrigin()) <
-      (RADIUS + STROKE_WIDTH) * 2
-    : false
+export const isInvalid = (obj: any) => {
+  const { labelType } = obj
+  switch (labelType) {
+    case LabelType.Rect:
+      return obj.width <= STROKE_WIDTH || obj.height <= STROKE_WIDTH
+    case LabelType.Line:
+      return (
+        obj.endpoints[0]
+          .getPointByOrigin()
+          .distanceFrom(obj.endpoints[1].getPointByOrigin()) <
+        (RADIUS + STROKE_WIDTH) * 2
+      )
+    case LabelType.Polygon:
+      return obj.points.length <= 2
+    default:
+      return false
+  }
 }
 
 /**

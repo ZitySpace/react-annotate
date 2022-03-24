@@ -174,7 +174,7 @@ export const useCanvas = ({
 
     // Sync canvas's selection to focus
     'selection:created': (e: any) => {
-      const obj = e.target
+      const obj = e.target.polygon || e.target
       const anno = newLabel({ obj, offset, scale })
       setObjects([anno])
     },

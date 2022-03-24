@@ -122,7 +122,7 @@ export class LineLabel extends Label {
     })
 
     const products = needText
-      ? [line, textbox, ...endpoints]
+      ? [textbox, line, ...endpoints]
       : [line, ...endpoints]
     products.forEach((obj) => obj.setOptions({ labelType, category, id }))
     return products
