@@ -79,20 +79,6 @@ export const getFontSize = (width: number, height: number) => {
 }
 
 /**
- * Get more transparent color
- * @param color target color
- * @returns half transparent color
- */
-export const transparenter = (color: string) => {
-  const [r, g, b, a] = color
-    .replace('rgba', '')
-    .replace('(', '')
-    .replace(')', '')
-    .split(',')
-  return `rgba(${r},${g},${b},${parseFloat(a) * 0.5})`
-}
-
-/**
  * Calculate the boundary of polygon
  * @param points points coordinates of the polygon
  * @returns boundary of polygon
@@ -114,4 +100,4 @@ export const boundaryOfPolygon = (points: Point[]) => {
  * @param obj target object
  * @returns a deep copy of the object
  */
-export const deepClone = (obj: any) => JSON.parse(JSON.stringify(obj))
+export const deepClone = <T>(obj: T): T => JSON.parse(JSON.stringify(obj))

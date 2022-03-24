@@ -3,6 +3,7 @@ import { fabric } from 'fabric'
 import { MutableRefObject, useCallback, useRef } from 'react'
 import { Point } from '../classes/Geometry/Point'
 import { LabelType } from '../classes/Label'
+import { PolygonLabel } from '../classes/Label/PolygonLabel'
 import {
   LINE_DEFAULT_CONFIG,
   NEW_CATEGORY_NAME,
@@ -143,19 +144,21 @@ export const useMouseListeners = ({
     const obj = onDrawObj.current as any
 
     if (isPolygon(obj)) {
-      const { points, endpoints, labelType, category, id } = obj
+      const { points, endpoints, lines, labelType, category, id } = obj
       const color = annoColors.get(category)
       const { x, y } = canvas.getPointer(event.e)
       const nowX = getBetween(x, ...boundary.x)
       const nowY = getBetween(y, ...boundary.y)
       const nowPoint = new Point(nowX, nowY)
 
-      if (nowPoint.distanceFrom(points[0]) < 2 * RADIUS) {
+      if (nowPoint.distanceFrom(points[0]) < RADIUS) {
         points.pop()
-        const { left, top } = endpoints[0]
-        const endpoint = endpoints[endpoints.length - 1]
-        endpoint.set({ left, top })
-        updateEndpointAssociatedLinesPosition(endpoint)
+        const newFabricObjs = new PolygonLabel({
+          obj,
+          scale,
+          offset
+        }).getFabricObjects(color, true, false)
+        canvas.remove(obj, ...endpoints, ...lines).add(...newFabricObjs)
         drawingStop()
       } else {
         points.push(nowPoint)
@@ -169,6 +172,7 @@ export const useMouseListeners = ({
         })
         newEndpoint.setOptions({ _id: endpoints.length, lines: [] })
         endpoints.push(newEndpoint)
+
         const endpointsOfNewLine = endpoints.slice(
           endpoints.length - 2,
           endpoints.length
@@ -178,6 +182,7 @@ export const useMouseListeners = ({
           stroke: color
         })
         newLine.setOptions({ endpoints: endpointsOfNewLine })
+        lines.push(newLine)
         endpointsOfNewLine.forEach((endpoint: fabric.Circle) => {
           ;(endpoint as any).lines.push(newLine)
         })

@@ -59,10 +59,12 @@ export const POLYGON_DEFAULT_CONFIG: fabric.IPolylineOptions = {
   hasBorders: false,
   hasControls: false,
   lockRotation: true,
+  selectable: false,
   fill: TRANSPARENT,
   strokeWidth: STROKE_WIDTH,
   strokeUniform: true,
-  noScaleCache: false
+  noScaleCache: false,
+  opacity: 0.5
 }
 
 export const TEXTBOX_DEFAULT_CONFIG: fabric.ITextboxOptions = {

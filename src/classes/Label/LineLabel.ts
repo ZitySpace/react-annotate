@@ -7,6 +7,7 @@ import {
   TEXTBOX_DEFAULT_CONFIG,
   TRANSPARENT
 } from '../../interfaces/config'
+import { deepClone } from '../../utils'
 import { Line } from '../Geometry/Line'
 import { Point } from '../Geometry/Point'
 
@@ -103,13 +104,13 @@ export class LineLabel extends Label {
         stroke: TRANSPARENT,
         visible
       })
-      endpoint.setOptions({ _id: _id, lines: [line] })
+      endpoint.setOptions({ _id, lines: [line] })
       return endpoint
     })
 
     line.setOptions({ endpoints })
 
-    const topPoint = endpoints.sort((a, b) => a.top! - b.top!)[0]
+    const topPoint = deepClone(endpoints).sort((a, b) => a.top! - b.top!)[0]
     const textbox = new fabric.Textbox(id.toString(), {
       ...TEXTBOX_DEFAULT_CONFIG,
       left: topPoint.left!,

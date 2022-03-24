@@ -50,7 +50,7 @@ export const useFocus = () => {
     ) =>
       (!nowFocus.objects.length && !nowFocus.drawingType) ||
       (nowFocus.objects.map(({ id }) => id).includes(id) &&
-        (showText || type !== 'textbox')),
+        (showText || !['textbox', 'polygon'].includes(type))),
 
     toggleSelectionMode: () => {
       focusRef.current.isMultipleSelectionMode =

@@ -1,7 +1,9 @@
 import { MutableRefObject, useEffect, useMemo, useRef } from 'react'
+import { Point } from '../classes/Geometry/Point'
 import { Label } from '../classes/Label'
 import { deepClone, getBetween } from '../utils'
 import {
+  isEndpoint,
   isLabel,
   isRect,
   newLabel,
@@ -66,6 +68,14 @@ export const useCanvas = ({
     canvas.remove(...canvas.getObjects()).add(...newObjects.flat())
   }
 
+  /**
+   * Update polygon's if the obj is polygon's endpoint
+   */
+  const updateEndpointAssociatedPolygon = (obj: fabric.Object) => {
+    const { left, top, polygon, _id } = obj as any
+    if (isEndpoint(obj) && polygon) polygon.points[_id] = new Point(left, top)
+  }
+
   // Sync state to canvas & focus if state changed
   useEffect(() => {
     actions.syncStateToCanvas(nowState) // sync state
@@ -87,11 +97,7 @@ export const useCanvas = ({
     if (drawingType || !adjustMode) canvas.discardActiveObject()
     canvas.forEachObject((obj: any) => {
       obj.visible = canObjectShow(obj, !(drawingType || adjustMode))
-      if (
-        (drawingType || adjustMode) &&
-        isFocused(obj) &&
-        !['textbox', 'line'].includes(obj.type)
-      )
+      if ((drawingType || adjustMode) && isFocused(obj) && isRect(obj))
         canvas.setActiveObject(obj)
     })
     canvas.renderAll()
@@ -161,6 +167,7 @@ export const useCanvas = ({
       obj.left = getBetween(obj.left, ..._boundary.x)
       obj.top = getBetween(obj.top, ..._boundary.y)
       updateEndpointAssociatedLinesPosition(obj)
+      updateEndpointAssociatedPolygon(obj)
 
       actions.syncCanvasToState()
     },

@@ -93,6 +93,14 @@ export class PolygonLabel extends Label {
     const { boundary, points, id, category, labelType } = this
     const isPolygonClosed = points.length > 2
 
+    // generate polygon
+    const polygon = new fabric.Polygon(points, {
+      ...POLYGON_DEFAULT_CONFIG,
+      left: boundary.x - STROKE_WIDTH / 2,
+      top: boundary.y - STROKE_WIDTH / 2,
+      fill: needText ? color : TRANSPARENT
+    })
+
     // generate endpoints, without last point if polygon is closed
     const endpoints = points.map(({ x, y }, _id) => {
       const endpoint = new fabric.Circle({
@@ -101,11 +109,11 @@ export class PolygonLabel extends Label {
         top: y,
         fill: color,
         stroke: TRANSPARENT,
-        selectable: false,
+        selectable: isPolygonClosed,
         visible
       })
 
-      endpoint.setOptions({ _id: _id, lines: [] })
+      endpoint.setOptions({ _id, lines: [], polygon })
       return endpoint
     })
 
@@ -114,8 +122,8 @@ export class PolygonLabel extends Label {
       .map((thePoint, idx, points) => [thePoint, points[idx + 1]]) // [[p0, p1], [p1, p2], [p2, p0], [p0, undefined]]
       .slice(0, points.length - (isPolygonClosed ? 0 : 1)) // remove last line which composed with undefined
       .map(
-        ([{ x, y }, { x: _x, y: _y }]) =>
-          new fabric.Line([x, y, _x, _y], {
+        (twoPoints: Point[]) =>
+          new fabric.Line(twoPoints.map(Object.values).flat(), {
             ...LINE_DEFAULT_CONFIG,
             stroke: color,
             visible
@@ -123,26 +131,18 @@ export class PolygonLabel extends Label {
       )
 
     // associate lines and endpoints
+    isPolygonClosed && endpoints.push(endpoints[0]) // push the origin into the endpoints array
     lines.forEach((line, idx) => {
       const endpointsOfLine = endpoints.slice(idx, idx + 2) // get endpoints of line
       endpointsOfLine.forEach((endpoint) => (endpoint as any).lines.push(line)) // add line to endpoint
-      line.setOptions({ endpoints: endpointsOfLine }) // add endpoints to line
+      line.setOptions({ endpoints: endpointsOfLine, polygon }) // add endpoints to line
     })
-
-    // generate polygon
-    const polygon = new fabric.Polygon(points, {
-      ...POLYGON_DEFAULT_CONFIG,
-      left: boundary.x - STROKE_WIDTH / 2,
-      top: boundary.y - STROKE_WIDTH / 2,
-      fill: color
-    })
+    isPolygonClosed && endpoints.pop() // remove the last endpoint if polygon is closed
 
     // associate lines and endpoints to polygon
     polygon.setOptions({ endpoints, lines })
 
-    const topPoint = deepClone(points).sort(
-      (a: Point, b: Point) => a.y - b.y
-    )[0]
+    const topPoint = deepClone(points).sort((a, b) => a.y - b.y)[0]
     const textbox = new fabric.Textbox(id.toString(), {
       ...TEXTBOX_DEFAULT_CONFIG,
       left: topPoint.x,
