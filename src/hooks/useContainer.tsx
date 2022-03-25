@@ -1,12 +1,13 @@
 import { fabric } from 'fabric'
 import React, { useCallback, useRef, useState } from 'react'
+import { Boundary } from '../classes/Geometry/Boundary'
 import { Dimension } from '../classes/Geometry/Dimension'
 import { Point } from '../classes/Geometry/Point'
 
 export interface CanvasProps {
   imageDims: Dimension // image dimensions in container
   canvasDims: Dimension // canvas dimensions
-  boundary: { x: number[]; y: number[] } // boundary of image in canvas
+  imgBoundary: Boundary //  boundary of image in canvas
   offset: Point // offset of image in canvas
   scale: number // scale of image for its original size in canvas
 }
@@ -29,10 +30,7 @@ export const useContainer = ({
 }): UseContainerReturnProps => {
   const [imageDims, setImageDims] = useState<Dimension>(new Dimension())
   const [canvasDims, setCanvasDims] = useState<Dimension>(new Dimension())
-  const [boundary, setBoundary] = useState<{ x: number[]; y: number[] }>({
-    x: [0, 0],
-    y: [0, 0]
-  })
+  const [imgBoundary, setImgBoundary] = useState<Boundary>(new Boundary())
   const [offset, setOffset] = useState<Point>(new Point())
   const [scale, setScale] = useState<number>(1)
 
@@ -67,10 +65,14 @@ export const useContainer = ({
 
       setImageDims(new Dimension(iw, ih))
       setCanvasDims(new Dimension(cew, ceh)) // canvas dimensions will be set as same as extend element
-      setBoundary({
-        x: [(cew - iw) / 2, (cew + iw) / 2],
-        y: [(ceh - ih) / 2, (ceh + ih) / 2]
-      })
+      setImgBoundary(
+        new Boundary(
+          (cew - iw) / 2, // x
+          (ceh - ih) / 2, // y
+          (cew + iw) / 2, // _x
+          (ceh + ih) / 2 // _y
+        )
+      )
       setOffset(_offset)
       setScale(_scale)
 
@@ -131,6 +133,6 @@ export const useContainer = ({
       </div>
     ),
     canvasRef,
-    canvasProps: { imageDims, canvasDims, boundary, offset, scale }
+    canvasProps: { imageDims, canvasDims, imgBoundary, offset, scale }
   }
 }

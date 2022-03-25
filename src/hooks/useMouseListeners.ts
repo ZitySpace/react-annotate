@@ -47,7 +47,7 @@ export const useMouseListeners = ({
 
   const { nowState } = stateStack
   const { nowFocus, setDrawingType, setObjects } = focus
-  const { canvasDims, boundary, offset, scale } = canvasProps
+  const { canvasDims, imgBoundary, offset, scale } = canvasProps
 
   const setZoomAndGetNewZoom = useCallback(
     (evt: any) => {
@@ -85,9 +85,7 @@ export const useMouseListeners = ({
   }
 
   const drawingStart = (event: fabric.IEvent) => {
-    const { x: nowX, y: nowY } = canvas.getPointer(event.e)
-    const x = getBetween(nowX, ...boundary.x)
-    const y = getBetween(nowY, ...boundary.y)
+    const { x, y } = imgBoundary.within(canvas.getPointer(event.e))
     lastPosition.current = new Point(x, y)
 
     const category = nowFocus.category || NEW_CATEGORY_NAME
@@ -109,9 +107,7 @@ export const useMouseListeners = ({
   }
 
   const drawOnMouseMove = (event: fabric.IEvent) => {
-    const { x, y } = canvas.getPointer(event.e)
-    const nowX = getBetween(x, ...boundary.x)
-    const nowY = getBetween(y, ...boundary.y)
+    const { x: nowX, y: nowY } = imgBoundary.within(canvas.getPointer(event.e))
     const { x: lastX, y: lastY } = lastPosition.current
     const obj = onDrawObj.current as any
     if (!obj) return
@@ -146,10 +142,8 @@ export const useMouseListeners = ({
     if (isPolygon(obj)) {
       const { points, endpoints, lines, labelType, category, id } = obj
       const color = annoColors.get(category)
-      const { x, y } = canvas.getPointer(event.e)
-      const nowX = getBetween(x, ...boundary.x)
-      const nowY = getBetween(y, ...boundary.y)
-      const nowPoint = new Point(nowX, nowY)
+      const { left, top } = imgBoundary.within(canvas.getPointer(event.e))
+      const nowPoint = new Point(left, top)
 
       if (nowPoint.distanceFrom(points[0]) < RADIUS) {
         points.pop()
@@ -164,8 +158,8 @@ export const useMouseListeners = ({
         points.push(nowPoint)
         const newEndpoint = new fabric.Circle({
           ...POINT_DEFAULT_CONFIG,
-          left: nowX,
-          top: nowY,
+          left,
+          top,
           fill: color,
           stroke: TRANSPARENT,
           selectable: false
@@ -177,7 +171,7 @@ export const useMouseListeners = ({
           endpoints.length - 2,
           endpoints.length
         )
-        const newLine = new fabric.Line([nowX, nowY, nowX, nowY], {
+        const newLine = new fabric.Line([left, top, left, top], {
           ...LINE_DEFAULT_CONFIG,
           stroke: color
         })

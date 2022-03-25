@@ -1,7 +1,7 @@
 import { MutableRefObject, useEffect, useMemo, useRef } from 'react'
+import { Boundary } from '../classes/Geometry/Boundary'
 import { Point } from '../classes/Geometry/Point'
 import { Label } from '../classes/Label'
-import { deepClone, getBetween } from '../utils'
 import {
   isEndpoint,
   isLabel,
@@ -36,7 +36,7 @@ export const useCanvas = ({
   const listeners = listenersRef.current
 
   const { nowState, push: pushState } = stateStack
-  const { offset, scale, boundary } = canvasProps
+  const { offset, scale, imgBoundary } = canvasProps
   const {
     nowFocus: { drawingType, objects: focusObjs, category: focusCate },
     canObjectShow,
@@ -157,15 +157,15 @@ export const useCanvas = ({
     // when canvas's object was moved, ensure its position is in the image boundary
     'object:modified': () => {
       const obj: any = canvas.getActiveObject()
-      const _boundary = deepClone(boundary) // deep clone to avoid rect-type calculate influences
+      const { x, y, _x, _y } = imgBoundary
+      const _imgBoundary = new Boundary(x, y, _x, _y) // deep clone to avoid rect-type calculate influences
       // rect's boundary need consider of its dimensions
       if (isRect(obj)) {
-        _boundary.x[1] -= obj.getScaledWidth()
-        _boundary.y[1] -= obj.getScaledHeight()
+        _imgBoundary._x -= obj.getScaledWidth()
+        _imgBoundary._y -= obj.getScaledHeight()
       }
       // as for other types label, they controlled by its endpoint
-      obj.left = getBetween(obj.left, ..._boundary.x)
-      obj.top = getBetween(obj.top, ..._boundary.y)
+      obj.set(_imgBoundary.within(obj))
       updateEndpointAssociatedLinesPosition(obj)
       updateEndpointAssociatedPolygon(obj)
 
