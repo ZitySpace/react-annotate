@@ -15,12 +15,22 @@ export const DEFAULT_COLOR = 'rgba(0,0,0,1)'
 
 export const MAX_FONT_SIZE = 14
 
+export const CANVAS_CONFIG: fabric.ICanvasOptions = {
+  defaultCursor: 'default',
+  selection: false,
+  uniformScaling: false,
+  perPixelTargetFind: true,
+  targetFindTolerance: RADIUS
+}
+
 export const POINT_DEFAULT_CONFIG: fabric.ICircleOptions = {
   originX: 'center',
   originY: 'center',
   selectable: !IS_TOUCH_SCREEN,
   hasControls: false,
   hasBorders: false,
+  // hoverCursor: 'crosshair',
+  // moveCursor: 'crosshair',
   strokeWidth: STROKE_WIDTH,
   fill: TRANSPARENT,
   radius: RADIUS
@@ -49,8 +59,7 @@ export const RECT_DEFAULT_CONFIG: fabric.IRectOptions | any = {
   strokeUniform: true,
   noScaleCache: false,
   cornerSize: 8,
-  transparentCorners: false,
-  perPixelTargetFind: true
+  transparentCorners: false
 }
 
 export const POLYGON_DEFAULT_CONFIG: fabric.IPolylineOptions = {
@@ -58,13 +67,16 @@ export const POLYGON_DEFAULT_CONFIG: fabric.IPolylineOptions = {
   originY: 'top',
   hasBorders: false,
   hasControls: false,
+  hoverCursor: 'default',
+  lockMovementX: true,
+  lockMovementY: true,
   lockRotation: true,
-  selectable: false,
+  selectable: true,
   fill: TRANSPARENT,
   strokeWidth: STROKE_WIDTH,
   strokeUniform: true,
   noScaleCache: false,
-  opacity: 0.5
+  opacity: 0.3
 }
 
 export const TEXTBOX_DEFAULT_CONFIG: fabric.ITextboxOptions = {
