@@ -7,7 +7,6 @@ export interface Line extends Point {
 
 export class Line {
   /**
-   *
    * @param args [x, y, (_x || x), (_y || y)]
    */
   constructor(...args: number[]) {
@@ -18,7 +17,6 @@ export class Line {
   }
 
   /**
-   *
    * @param ratio zoom ratio
    */
   zoom(ratio: number): Line {
@@ -30,7 +28,6 @@ export class Line {
   }
 
   /**
-   *
    * @param coefficient coefficient
    * @returns
    */
@@ -43,12 +40,10 @@ export class Line {
   }
 
   /**
-   *  Get the length of the line
-   * @returns this Line's length
+   * Get the midpoint of the line
+   * @returns the midpoint of the line
    */
-  getLength(): number {
-    return Math.sqrt(
-      Math.pow(this.x - this._x, 2) + Math.pow(this.y - this._y, 2)
-    )
+  getMidpoint(): Point {
+    return new Point((this.x + this._x) / 2, (this.y + this._y) / 2)
   }
 }

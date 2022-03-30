@@ -10,6 +10,7 @@ import {
   TRANSPARENT
 } from '../../interfaces/config'
 import { boundaryOfPolygon, deepClone } from '../../utils'
+import { Line } from '../Geometry/Line'
 import { Point } from '../Geometry/Point'
 import { Rect } from '../Geometry/Rect'
 
@@ -121,14 +122,25 @@ export class PolygonLabel extends Label {
     const lines = (isPolygonClosed ? [...points, points[0]] : points) // add origin to the end to generate close line
       .map((thePoint, idx, points) => [thePoint, points[idx + 1]]) // [[p0, p1], [p1, p2], [p2, p0], [p0, undefined]]
       .slice(0, points.length - (isPolygonClosed ? 0 : 1)) // remove last line which composed with undefined
-      .map(
-        (twoPoints: Point[]) =>
-          new fabric.Line(twoPoints.map(Object.values).flat(), {
-            ...LINE_DEFAULT_CONFIG,
-            stroke: color,
-            visible
-          })
-      )
+      .map(([{ x, y }, { x: _x, y: _y }]) => {
+        const line = new fabric.Line([x, y, _x, _y], {
+          ...LINE_DEFAULT_CONFIG,
+          stroke: color,
+          visible
+        })
+
+        const { x: left, y: top } = new Line(x, y, _x, _y).getMidpoint()
+        const midpoint = new fabric.Circle({
+          ...POINT_DEFAULT_CONFIG,
+          left,
+          top,
+          fill: color,
+          stroke: TRANSPARENT
+        })
+
+        line.setOptions({ midpoint })
+        return line
+      })
 
     // associate lines and endpoints
     isPolygonClosed && endpoints.push(endpoints[0]) // push the origin into the endpoints array
@@ -142,6 +154,7 @@ export class PolygonLabel extends Label {
     // associate lines and endpoints to polygon
     polygon.setOptions({ endpoints, lines })
 
+    // generate textbox
     const topPoint = deepClone(points).sort((a, b) => a.y - b.y)[0]
     const textbox = new fabric.Textbox(id.toString(), {
       ...TEXTBOX_DEFAULT_CONFIG,

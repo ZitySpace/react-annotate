@@ -1,9 +1,15 @@
+import { Line } from '../classes/Geometry/Line'
 import { Point } from '../classes/Geometry/Point'
 import { Label, LabelType } from '../classes/Label'
 import { LineLabel } from '../classes/Label/LineLabel'
 import { PointLabel } from '../classes/Label/PointLabel'
 import { PolygonLabel } from '../classes/Label/PolygonLabel'
 import { RectLabel } from '../classes/Label/RectLabel'
+
+interface something {
+  type: string
+  labelType: LabelType
+}
 
 const _newLabel = {
   [LabelType.Point]: (args: any) => new PointLabel(args),
@@ -64,23 +70,29 @@ export function newLabel({
   }
 }
 
-export const isRect = ({ type, labelType }: any) =>
-  type === 'rect' && labelType === LabelType.Rect
+const isSomething = (target: something, type: string, labelType: LabelType[]) =>
+  type === target.type && labelType.includes(target.labelType)
 
-export const isPoint = ({ type, labelType }: any) =>
-  type === 'circle' && labelType === LabelType.Point
+export const isRect = (target: any) =>
+  target && isSomething(target, 'rect', [LabelType.Rect])
 
-export const isLine = ({ type, labelType }: any) =>
-  type === 'line' && labelType === LabelType.Line
+export const isPoint = (target: any) =>
+  target && isSomething(target, 'circle', [LabelType.Point])
 
-export const isPolygon = ({ type, labelType }: any) =>
-  type === 'polygon' && labelType === LabelType.Polygon
+export const isLine = (target: any) =>
+  target && isSomething(target, 'line', [LabelType.Line])
 
-export const isEndpoint = ({ type, labelType }: any) =>
-  type === 'circle' && [LabelType.Line, LabelType.Polygon].includes(labelType)
+export const isPolygon = (target: any) =>
+  target && isSomething(target, 'polygon', [LabelType.Polygon])
 
-export const isLabel = ({ type, labelType }: any) =>
-  [isRect, isLine, isPoint, isPolygon].some((fn) => fn({ type, labelType }))
+export const isEndpoint = (target: any) =>
+  target && isSomething(target, 'circle', [LabelType.Line, LabelType.Polygon])
+
+export const isPolygonLine = (target: any) =>
+  target && isSomething(target, 'line', [LabelType.Polygon])
+
+export const isLabel = (target: any) =>
+  [isRect, isLine, isPoint, isPolygon].some((fn) => fn(target))
 
 /**
  * Update associated lines' position if the endpoint is moved
@@ -92,11 +104,15 @@ export const updateEndpointAssociatedLinesPosition = (
   if (object && isEndpoint(object)) {
     const { left, top, lines, _id } = object as any
     lines.forEach((line: fabric.Line) => {
-      const { endpoints } = line as any
+      const { endpoints, midpoint } = line as any
       const [{ left: x1, top: y1 }] = endpoints.filter(
         (p: any) => p._id !== _id
       )
       line.set({ x1, y1, x2: left, y2: top })
+      if (midpoint) {
+        const { x, y } = new Line(x1, y1, left, top).getMidpoint()
+        midpoint.set({ left: x, top: y })
+      }
     })
   }
 }

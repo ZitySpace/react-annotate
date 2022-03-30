@@ -20,7 +20,7 @@ export const CANVAS_CONFIG: fabric.ICanvasOptions = {
   selection: false,
   uniformScaling: false,
   perPixelTargetFind: true,
-  targetFindTolerance: RADIUS
+  targetFindTolerance: RADIUS + STROKE_WIDTH
 }
 
 export const POINT_DEFAULT_CONFIG: fabric.ICircleOptions = {

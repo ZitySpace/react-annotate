@@ -14,9 +14,11 @@ import {
 } from '../interfaces/config'
 import { getBetween, isInvalid, isTouchEvent } from '../utils'
 import {
+  isEndpoint,
   isLine,
   isPoint,
   isPolygon,
+  isPolygonLine,
   isRect,
   newLabel,
   updateEndpointAssociatedLinesPosition
@@ -46,7 +48,7 @@ export const useMouseListeners = ({
   const canvas = canvasRef.current!
 
   const { nowState } = stateStack
-  const { nowFocus, setDrawingType, setObjects } = focus
+  const { nowFocus, setDrawingType, setObjects, isFocused } = focus
   const { canvasDims, imgBoundary, offset, scale } = canvasProps
 
   const setZoomAndGetNewZoom = useCallback(
@@ -74,14 +76,33 @@ export const useMouseListeners = ({
     [canvas, canvasDims]
   )
 
-  const setHoverEffectIfIsEndpoint = (event: fabric.IEvent) => {
+  const setHoverEffectOfEndpoint = (event: fabric.IEvent) => {
     const obj = event.target as any
-    if (obj?.type === 'circle')
+    if (obj && (isPoint(obj) || isEndpoint(obj))) {
       obj.set({
         fill: obj.stroke,
         stroke: obj.fill
       })
-    canvas.renderAll()
+    }
+    canvas.requestRenderAll()
+  }
+
+  const setHoverEffectOfPolygonLine = (event: fabric.IEvent) => {
+    const obj = event.target as any
+    const isOver = event.hasOwnProperty('previousTarget')
+
+    if (obj && isPolygonLine(obj) && isFocused(obj)) {
+      const { midpoint } = obj
+      if (isOver) {
+        const oldMidpoints = canvas
+          .getObjects('circle')
+          .filter((o: any) => !o.labelType)
+        canvas.remove(...oldMidpoints).add(midpoint)
+      } else {
+        const isMoveToMidpoint = (event as any).nextTarget === midpoint
+        if (!isMoveToMidpoint) canvas.remove(midpoint)
+      }
+    }
   }
 
   const drawingStart = (event: fabric.IEvent) => {
@@ -221,8 +242,14 @@ export const useMouseListeners = ({
       const zoom = setZoomAndGetNewZoom(e.e)
       setViewport({ zoom })
     },
-    'mouse:over': setHoverEffectIfIsEndpoint,
-    'mouse:out': setHoverEffectIfIsEndpoint,
+    'mouse:over': (e: fabric.IEvent<MouseEvent>) => {
+      setHoverEffectOfEndpoint(e)
+      setHoverEffectOfPolygonLine(e)
+    },
+    'mouse:out': (e: fabric.IEvent<MouseEvent>) => {
+      setHoverEffectOfEndpoint(e)
+      setHoverEffectOfPolygonLine(e)
+    },
     'mouse:down': (e: fabric.IEvent<MouseEvent>) => {
       // if (isDrawingStarted.current) drawingStop()f
       if (isDrawingStarted.current) drawingBreak(e)

@@ -3,6 +3,7 @@ import React, { useCallback, useRef, useState } from 'react'
 import { Boundary } from '../classes/Geometry/Boundary'
 import { Dimension } from '../classes/Geometry/Dimension'
 import { Point } from '../classes/Geometry/Point'
+import { CANVAS_CONFIG } from '../interfaces/config'
 
 export interface CanvasProps {
   imageDims: Dimension // image dimensions in container
@@ -78,13 +79,7 @@ export const useContainer = ({
 
       // initialize canvas
       const canvas =
-        canvasRef.current ||
-        new fabric.Canvas(canvasElm, {
-          defaultCursor: 'default',
-          selection: false,
-          targetFindTolerance: 5,
-          uniformScaling: false
-        })
+        canvasRef.current || new fabric.Canvas(canvasElm, CANVAS_CONFIG)
 
       canvas.setWidth(cew)
       canvas.setHeight(ceh)
