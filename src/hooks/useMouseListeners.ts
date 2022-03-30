@@ -47,7 +47,7 @@ export const useMouseListeners = ({
   const isDrawingStarted = useRef<boolean>(false)
   const canvas = canvasRef.current!
 
-  const { nowState } = stateStack
+  const { nowState, replaceObject } = stateStack
   const { nowFocus, setDrawingType, setObjects, isFocused } = focus
   const { canvasDims, imgBoundary, offset, scale } = canvasProps
 
@@ -94,9 +94,7 @@ export const useMouseListeners = ({
     if (obj && isPolygonLine(obj) && isFocused(obj)) {
       const { midpoint } = obj
       if (isOver) {
-        const oldMidpoints = canvas
-          .getObjects('circle')
-          .filter((o: any) => !o.labelType)
+        const oldMidpoints = canvas.getObjects('midpoint')
         canvas.remove(...oldMidpoints).add(midpoint)
       } else {
         const isMoveToMidpoint = (event as any).nextTarget === midpoint
@@ -251,18 +249,26 @@ export const useMouseListeners = ({
       setHoverEffectOfPolygonLine(e)
     },
     'mouse:down': (e: fabric.IEvent<MouseEvent>) => {
-      // if (isDrawingStarted.current) drawingStop()f
+      isPanning.current = !e.target
+
       if (isDrawingStarted.current) drawingBreak(e)
       else if (nowFocus.drawingType) drawingStart(e)
-      else {
+      else if (isPanning.current) {
         const evt = e.e as any
         const { clientX, clientY } = isTouchEvent(evt) ? evt.touches[0] : evt
         lastPosition.current = new Point(clientX, clientY)
-
-        const selectedObj = canvas.getActiveObject()
-        isPanning.current = !selectedObj
-        isPanning.current && setObjects()
-        isPanning.current && canvas.setCursor('grabbing')
+        setObjects()
+        canvas.setCursor('grabbing')
+      } else if (e.target?.type === 'midpoint') {
+        const { polygon, _id, left, top } = e.target as any
+        polygon.points.splice(_id + 1, 0, new Point(left, top))
+        const newPolygonLabel = new PolygonLabel({
+          obj: polygon,
+          scale,
+          offset
+        })
+        replaceObject(polygon.id, newPolygonLabel)
+        setObjects([newPolygonLabel])
       }
     },
     'mouse:move': (e: fabric.IEvent<MouseEvent>) => {

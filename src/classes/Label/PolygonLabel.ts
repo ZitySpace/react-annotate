@@ -122,7 +122,7 @@ export class PolygonLabel extends Label {
     const lines = (isPolygonClosed ? [...points, points[0]] : points) // add origin to the end to generate close line
       .map((thePoint, idx, points) => [thePoint, points[idx + 1]]) // [[p0, p1], [p1, p2], [p2, p0], [p0, undefined]]
       .slice(0, points.length - (isPolygonClosed ? 0 : 1)) // remove last line which composed with undefined
-      .map(([{ x, y }, { x: _x, y: _y }]) => {
+      .map(([{ x, y }, { x: _x, y: _y }], _id) => {
         const line = new fabric.Line([x, y, _x, _y], {
           ...LINE_DEFAULT_CONFIG,
           stroke: color,
@@ -135,9 +135,13 @@ export class PolygonLabel extends Label {
           left,
           top,
           fill: color,
-          stroke: TRANSPARENT
+          stroke: TRANSPARENT,
+          selectable: false,
+          type: 'midpoint',
+          hoverCursor: 'copy'
         })
 
+        midpoint.setOptions({ _id })
         line.setOptions({ midpoint })
         return line
       })
@@ -147,7 +151,9 @@ export class PolygonLabel extends Label {
     lines.forEach((line, idx) => {
       const endpointsOfLine = endpoints.slice(idx, idx + 2) // get endpoints of line
       endpointsOfLine.forEach((endpoint) => (endpoint as any).lines.push(line)) // add line to endpoint
-      line.setOptions({ endpoints: endpointsOfLine, polygon }) // add endpoints to line
+      ;[line, (line as any).midpoint].forEach((obj) =>
+        obj.setOptions({ endpoints: endpointsOfLine, polygon })
+      ) // add endpoints to line
     })
     isPolygonClosed && endpoints.pop() // remove the last endpoint if polygon is closed
 

@@ -46,7 +46,6 @@ export const LINE_DEFAULT_CONFIG: fabric.ILineOptions = {
   strokeUniform: true,
   lockMovementX: true,
   lockMovementY: true,
-  lockRotation: true,
   selectable: true
 }
 
