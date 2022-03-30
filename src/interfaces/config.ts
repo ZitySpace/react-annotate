@@ -44,7 +44,10 @@ export const LINE_DEFAULT_CONFIG: fabric.ILineOptions = {
   hoverCursor: 'default',
   strokeWidth: STROKE_WIDTH,
   strokeUniform: true,
-  selectable: false
+  lockMovementX: true,
+  lockMovementY: true,
+  lockRotation: true,
+  selectable: true
 }
 
 export const RECT_DEFAULT_CONFIG: fabric.IRectOptions | any = {
