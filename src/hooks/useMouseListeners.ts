@@ -249,17 +249,9 @@ export const useMouseListeners = ({
       setHoverEffectOfPolygonLine(e)
     },
     'mouse:down': (e: fabric.IEvent<MouseEvent>) => {
-      isPanning.current = !e.target
-
       if (isDrawingStarted.current) drawingBreak(e)
       else if (nowFocus.drawingType) drawingStart(e)
-      else if (isPanning.current) {
-        const evt = e.e as any
-        const { clientX, clientY } = isTouchEvent(evt) ? evt.touches[0] : evt
-        lastPosition.current = new Point(clientX, clientY)
-        setObjects()
-        canvas.setCursor('grabbing')
-      } else if (e.target?.type === 'midpoint') {
+      else if (e.target?.type === 'midpoint') {
         const { polygon, _id, left, top } = e.target as any
         polygon.points.splice(_id + 1, 0, new Point(left, top))
         const newPolygonLabel = new PolygonLabel({
@@ -269,6 +261,13 @@ export const useMouseListeners = ({
         })
         replaceObject(polygon.id, newPolygonLabel)
         setObjects([newPolygonLabel])
+      } else if (!canvas.getActiveObject()) {
+        const evt = e.e as any
+        const { clientX, clientY } = isTouchEvent(evt) ? evt.touches[0] : evt
+        lastPosition.current = new Point(clientX, clientY)
+        setObjects()
+        canvas.setCursor('grabbing')
+        isPanning.current = true
       }
     },
     'mouse:move': (e: fabric.IEvent<MouseEvent>) => {
