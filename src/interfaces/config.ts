@@ -19,7 +19,6 @@ export const CANVAS_CONFIG: fabric.ICanvasOptions = {
   defaultCursor: 'default',
   selection: false,
   uniformScaling: false,
-  perPixelTargetFind: true,
   targetFindTolerance: RADIUS + STROKE_WIDTH
 }
 
@@ -33,7 +32,8 @@ export const POINT_DEFAULT_CONFIG: fabric.ICircleOptions = {
   // moveCursor: 'crosshair',
   strokeWidth: STROKE_WIDTH,
   fill: TRANSPARENT,
-  radius: RADIUS
+  radius: RADIUS,
+  perPixelTargetFind: false
 }
 
 export const LINE_DEFAULT_CONFIG: fabric.ILineOptions = {
@@ -46,7 +46,8 @@ export const LINE_DEFAULT_CONFIG: fabric.ILineOptions = {
   strokeUniform: true,
   lockMovementX: true,
   lockMovementY: true,
-  selectable: true
+  selectable: true,
+  perPixelTargetFind: true
 }
 
 export const RECT_DEFAULT_CONFIG: fabric.IRectOptions | any = {
@@ -61,7 +62,8 @@ export const RECT_DEFAULT_CONFIG: fabric.IRectOptions | any = {
   strokeUniform: true,
   noScaleCache: false,
   cornerSize: 8,
-  transparentCorners: false
+  transparentCorners: false,
+  perPixelTargetFind: true
 }
 
 export const POLYGON_DEFAULT_CONFIG: fabric.IPolylineOptions = {
@@ -78,7 +80,8 @@ export const POLYGON_DEFAULT_CONFIG: fabric.IPolylineOptions = {
   strokeWidth: STROKE_WIDTH,
   strokeUniform: true,
   noScaleCache: false,
-  opacity: 0.3
+  opacity: 0.3,
+  perPixelTargetFind: true
 }
 
 export const TEXTBOX_DEFAULT_CONFIG: fabric.ITextboxOptions = {
