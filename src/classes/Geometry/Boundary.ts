@@ -16,8 +16,8 @@ export class Boundary extends Line {
    */
   within(obj: { x?: number; y?: number; left?: number; top?: number }) {
     const { x, y, left, top } = obj
-    const _x = getBetween(x || left || this.x, this.x, this._x)
-    const _y = getBetween(y || top || this.y, this.y, this._y)
+    const _x = getBetween(left || x || this.x, this.x, this._x)
+    const _y = getBetween(top || y || this.y, this.y, this._y)
     return { x: _x, y: _y, left: _x, top: _y }
   }
 }
