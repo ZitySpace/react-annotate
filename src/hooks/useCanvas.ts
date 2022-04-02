@@ -152,7 +152,7 @@ export const useCanvas = ({
   Object.assign(listeners, {
     // when canvas's object is moving, sync its line's position if the object is line's endpoint
     'object:moving': (e: fabric.IEvent) =>
-      updateEndpointAssociatedLinesPosition(e.target),
+      updateEndpointAssociatedLinesPosition(e.target!),
 
     // when canvas's object was moved, ensure its position is in the image boundary
     'object:modified': () => {
@@ -166,7 +166,7 @@ export const useCanvas = ({
       }
       // as for other types label, they controlled by its endpoint
       obj.set(_imgBoundary.within(obj))
-      updateEndpointAssociatedLinesPosition(obj)
+      updateEndpointAssociatedLinesPosition(obj, true)
       updateEndpointAssociatedPolygon(obj)
 
       actions.syncCanvasToState()

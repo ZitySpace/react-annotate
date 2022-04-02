@@ -38,12 +38,4 @@ export class Line {
     this._y += offset.y
     return this
   }
-
-  /**
-   * Get the midpoint of the line
-   * @returns the midpoint of the line
-   */
-  getMidpoint(): Point {
-    return new Point((this.x + this._x) / 2, (this.y + this._y) / 2)
-  }
 }

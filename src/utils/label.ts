@@ -1,4 +1,3 @@
-import { Line } from '../classes/Geometry/Line'
 import { Point } from '../classes/Geometry/Point'
 import { Label, LabelType } from '../classes/Label'
 import { LineLabel } from '../classes/Label/LineLabel'
@@ -99,7 +98,8 @@ export const isLabel = (target: any) =>
  * @param event canvas' fabric object moving event
  */
 export const updateEndpointAssociatedLinesPosition = (
-  object?: fabric.Object
+  object: fabric.Object,
+  needUpdateCoords: boolean = false
 ) => {
   if (object && isEndpoint(object)) {
     const { left, top, lines, _id } = object as any
@@ -109,8 +109,9 @@ export const updateEndpointAssociatedLinesPosition = (
         (p: any) => p._id !== _id
       )
       line.set({ x1, y1, x2: left, y2: top })
+      needUpdateCoords && line.setCoords()
       if (midpoint) {
-        const { x, y } = new Line(x1, y1, left, top).getMidpoint()
+        const { x, y } = line.getCenterPoint()
         midpoint.set({ left: x, top: y })
       }
     })

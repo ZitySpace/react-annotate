@@ -10,7 +10,6 @@ import {
   TRANSPARENT
 } from '../../interfaces/config'
 import { boundaryOfPolygon, deepClone } from '../../utils'
-import { Line } from '../Geometry/Line'
 import { Point } from '../Geometry/Point'
 import { Rect } from '../Geometry/Rect'
 
@@ -129,7 +128,7 @@ export class PolygonLabel extends Label {
           visible
         })
 
-        const { x: left, y: top } = new Line(x, y, _x, _y).getMidpoint()
+        const { x: left, y: top } = line.getCenterPoint()
         const midpoint = new fabric.Circle({
           ...POINT_DEFAULT_CONFIG,
           left,
