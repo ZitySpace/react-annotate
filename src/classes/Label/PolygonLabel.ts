@@ -85,6 +85,13 @@ export class PolygonLabel extends Label {
     }
   }
 
+  /**
+   * generate fabric objects from the label
+   * @param color the color of the category
+   * @param visible
+   * @param needText is it need to show the text
+   * @returns
+   */
   getFabricObjects(
     color: string,
     visible: boolean = true,
@@ -135,12 +142,11 @@ export class PolygonLabel extends Label {
           top,
           fill: color,
           stroke: TRANSPARENT,
-          selectable: false,
           type: 'midpoint',
           hoverCursor: 'copy'
         })
 
-        midpoint.setOptions({ _id })
+        midpoint.setOptions({ _id, line, polygon })
         line.setOptions({ midpoint })
         return line
       })

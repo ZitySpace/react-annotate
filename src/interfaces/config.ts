@@ -18,8 +18,7 @@ export const MAX_FONT_SIZE = 14
 export const CANVAS_CONFIG: fabric.ICanvasOptions = {
   defaultCursor: 'default',
   selection: false,
-  uniformScaling: false,
-  targetFindTolerance: RADIUS + STROKE_WIDTH
+  uniformScaling: false
 }
 
 export const POINT_DEFAULT_CONFIG: fabric.ICircleOptions = {
@@ -36,7 +35,7 @@ export const POINT_DEFAULT_CONFIG: fabric.ICircleOptions = {
   perPixelTargetFind: false
 }
 
-export const LINE_DEFAULT_CONFIG: fabric.ILineOptions = {
+export const LINE_DEFAULT_CONFIG: fabric.ILineOptions | any = {
   originX: 'center',
   originY: 'center',
   hasControls: false,
@@ -47,7 +46,8 @@ export const LINE_DEFAULT_CONFIG: fabric.ILineOptions = {
   lockMovementX: true,
   lockMovementY: true,
   selectable: true,
-  perPixelTargetFind: true
+  perPixelTargetFind: true,
+  targetFindTolerance: RADIUS + STROKE_WIDTH
 }
 
 export const RECT_DEFAULT_CONFIG: fabric.IRectOptions | any = {

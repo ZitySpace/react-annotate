@@ -113,6 +113,7 @@ export const updateEndpointAssociatedLinesPosition = (
       if (midpoint) {
         const { x, y } = line.getCenterPoint()
         midpoint.set({ left: x, top: y })
+        midpoint.setCoords()
       }
     })
   }

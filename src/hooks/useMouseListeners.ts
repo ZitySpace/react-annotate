@@ -14,11 +14,9 @@ import {
 } from '../interfaces/config'
 import { getBetween, isInvalid, isTouchEvent } from '../utils'
 import {
-  isEndpoint,
   isLine,
   isPoint,
   isPolygon,
-  isPolygonLine,
   isRect,
   newLabel,
   updateEndpointAssociatedLinesPosition
@@ -47,8 +45,8 @@ export const useMouseListeners = ({
   const isDrawingStarted = useRef<boolean>(false)
   const canvas = canvasRef.current!
 
-  const { nowState, replaceObject } = stateStack
-  const { nowFocus, setDrawingType, setObjects, isFocused } = focus
+  const { nowState } = stateStack
+  const { nowFocus, setDrawingType, setObjects } = focus
   const { canvasDims, imgBoundary, offset, scale } = canvasProps
 
   const setZoomAndGetNewZoom = useCallback(
@@ -71,37 +69,10 @@ export const useMouseListeners = ({
       const offsetY = h * (1 - zoom)
       vpt[4] = zoom < 1 ? offsetX / 2 : getBetween(vpt[4] + x, offsetX, 0)
       vpt[5] = zoom < 1 ? offsetY / 2 : getBetween(vpt[5] + y, offsetY, 0)
-      canvas.renderAll()
+      canvas.requestRenderAll()
     },
     [canvas, canvasDims]
   )
-
-  const setHoverEffectOfEndpoint = (event: fabric.IEvent) => {
-    const obj = event.target as any
-    if (obj && (isPoint(obj) || isEndpoint(obj))) {
-      obj.set({
-        fill: obj.stroke,
-        stroke: obj.fill
-      })
-    }
-    canvas.requestRenderAll()
-  }
-
-  const setHoverEffectOfPolygonLine = (event: fabric.IEvent) => {
-    const obj = event.target as any
-    const isOver = event.hasOwnProperty('previousTarget')
-
-    if (obj && isPolygonLine(obj) && isFocused(obj)) {
-      const { midpoint } = obj
-      if (isOver) {
-        const oldMidpoints = canvas.getObjects('midpoint')
-        canvas.remove(...oldMidpoints).add(midpoint)
-      } else {
-        const isMoveToMidpoint = (event as any).nextTarget === midpoint
-        if (!isMoveToMidpoint) canvas.remove(midpoint)
-      }
-    }
-  }
 
   const drawingStart = (event: fabric.IEvent) => {
     const { x, y } = imgBoundary.within(canvas.getPointer(event.e))
@@ -151,7 +122,7 @@ export const useMouseListeners = ({
       if (points) points[points.length - 1] = new Point(left, top)
     }
 
-    canvas.renderAll()
+    canvas.requestRenderAll()
   }
 
   const drawingBreak = (event: fabric.IEvent) => {
@@ -224,7 +195,7 @@ export const useMouseListeners = ({
     isDrawingStarted.current = false
     onDrawObj.current = null
     setDrawingType()
-    canvas.renderAll()
+    canvas.requestRenderAll()
   }
 
   // mount gestures event listener
@@ -240,28 +211,11 @@ export const useMouseListeners = ({
       const zoom = setZoomAndGetNewZoom(e.e)
       setViewport({ zoom })
     },
-    'mouse:over': (e: fabric.IEvent<MouseEvent>) => {
-      setHoverEffectOfEndpoint(e)
-      setHoverEffectOfPolygonLine(e)
-    },
-    'mouse:out': (e: fabric.IEvent<MouseEvent>) => {
-      setHoverEffectOfEndpoint(e)
-      setHoverEffectOfPolygonLine(e)
-    },
+
     'mouse:down': (e: fabric.IEvent<MouseEvent>) => {
       if (isDrawingStarted.current) drawingBreak(e)
       else if (nowFocus.drawingType) drawingStart(e)
-      else if (e.target?.type === 'midpoint') {
-        const { polygon, _id, left, top } = e.target as any
-        polygon.points.splice(_id + 1, 0, new Point(left, top))
-        const newPolygonLabel = new PolygonLabel({
-          obj: polygon,
-          scale,
-          offset
-        })
-        replaceObject(polygon.id, newPolygonLabel)
-        setObjects([newPolygonLabel])
-      } else if (!canvas.getActiveObject()) {
+      else if (!canvas.getActiveObject()) {
         const evt = e.e as any
         const { clientX, clientY } = isTouchEvent(evt) ? evt.touches[0] : evt
         lastPosition.current = new Point(clientX, clientY)
@@ -270,6 +224,7 @@ export const useMouseListeners = ({
         isPanning.current = true
       }
     },
+
     'mouse:move': (e: fabric.IEvent<MouseEvent>) => {
       if (isDrawingStarted.current) drawOnMouseMove(e)
       else if (isPanning.current) {
@@ -281,10 +236,10 @@ export const useMouseListeners = ({
 
         const zoom = canvas.getZoom()
         setViewport({ zoom, offset })
-
         canvas.setCursor('grabbing')
       }
     },
+
     'mouse:up': () => {
       if (isDrawingStarted.current && nowFocus.drawingType === LabelType.Point)
         drawingStop()

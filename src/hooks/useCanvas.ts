@@ -2,6 +2,7 @@ import { MutableRefObject, useEffect, useMemo, useRef } from 'react'
 import { Boundary } from '../classes/Geometry/Boundary'
 import { Point } from '../classes/Geometry/Point'
 import { Label } from '../classes/Label'
+import { PolygonLabel } from '../classes/Label/PolygonLabel'
 import {
   isEndpoint,
   isLabel,
@@ -76,6 +77,45 @@ export const useCanvas = ({
     if (isEndpoint(obj) && polygon) polygon.points[_id] = new Point(left, top)
   }
 
+  const addPointToPolygon = (obj: fabric.Circle) => {
+    const { left, top, _id, polygon } = obj as any
+    polygon.points.splice(_id + 1, 0, new Point(left, top))
+
+    const oldObjs = canvas.getObjects().filter((o: any) => o.id === polygon.id)
+    const newLabel = new PolygonLabel({
+      obj: polygon,
+      scale,
+      offset
+    })
+    const newObjs = newLabel.getFabricObjects(
+      annoColors.get(polygon.category),
+      true,
+      false
+    )
+
+    const theEndpoint = newObjs.find(
+      (o: any) => o._id === _id + 1 && o.type === 'circle'
+    )
+    obj
+      .set({ hoverCursor: 'move' })
+      .on('moving', () => {
+        const { left, top } = obj
+        ;(theEndpoint as fabric.Circle).set({ left, top })
+        ;(theEndpoint as fabric.Circle).setCoords()
+        updateEndpointAssociatedLinesPosition(
+          theEndpoint as fabric.Circle,
+          true
+        )
+        updateEndpointAssociatedPolygon(theEndpoint as fabric.Circle)
+      })
+      .on('moved', () => {
+        canvas.setActiveObject(theEndpoint as fabric.Circle)
+      })
+
+    actions.syncCanvasToState()
+    canvas.remove(...oldObjs).add(...newObjs)
+  }
+
   // Sync state to canvas & focus if state changed
   useEffect(() => {
     actions.syncStateToCanvas(nowState) // sync state
@@ -100,7 +140,7 @@ export const useCanvas = ({
       if ((drawingType || adjustMode) && isFocused(obj) && isRect(obj))
         canvas.setActiveObject(obj)
     })
-    canvas.renderAll()
+    canvas.requestRenderAll()
   }, [drawingType, focusObjs, focusCate])
 
   const actions = useMemo(
@@ -129,7 +169,7 @@ export const useCanvas = ({
           const fabricObjects = anno.getFabricObjects(currentColor, visible)
           canvas.add(...fabricObjects)
         })
-        canvas.renderAll()
+        canvas.requestRenderAll()
       },
 
       /**
@@ -138,7 +178,7 @@ export const useCanvas = ({
        */
       loadListeners: (newListeners: object) => {
         if (!canvas) return
-        Object.assign(listeners, newListeners) // save new listeners
+        Object.assign(listeners, newListeners) // save new listenrs
         canvas.off() // remove all existed listeners
         Object.entries(listeners).forEach(([event, handler]) => {
           canvas.on(event, handler)
@@ -172,11 +212,20 @@ export const useCanvas = ({
       actions.syncCanvasToState()
     },
 
+    'selection:updated': (e: fabric.IEvent) => {
+      if (e.target?.type === 'midpoint')
+        addPointToPolygon(e.target as fabric.Circle)
+    },
+
     // Sync canvas's selection to focus
     'selection:created': (e: any) => {
-      const obj = e.target.polygon || e.target
-      const anno = newLabel({ obj, offset, scale })
-      setObjects([anno])
+      if (e.target?.type === 'midpoint')
+        addPointToPolygon(e.target as fabric.Circle)
+      else {
+        const obj = e.target.polygon || e.target
+        const anno = newLabel({ obj, offset, scale })
+        setObjects([anno])
+      }
     },
     'selection:cleared': (e: any) => e.e && setObjects()
   })

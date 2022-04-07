@@ -6,6 +6,7 @@ import { useColors } from '../hooks/useColor'
 import { useContainer } from '../hooks/useContainer'
 import { useFocus } from '../hooks/useFocus'
 import { useKeyboard } from '../hooks/useKeyboard'
+import { useMouseHover } from '../hooks/useMouseHover'
 import { useMouseListeners } from '../hooks/useMouseListeners'
 import { useStateStack } from '../hooks/useStateStack'
 import { ImageObject } from '../interfaces/basic'
@@ -59,13 +60,17 @@ export const Annotator = ({
     stateStack
   }) // canvas host canvas' status and responsible for synchronize canvas & focus & stateStack.
 
-  const mouseListeners = useMouseListeners({
-    canvasRef,
-    canvasProps,
-    stateStack,
-    focus,
-    annoColors
-  }) // hanlde mouse & touch board operations logic.
+  const mouseListeners = {
+    ...useMouseListeners({
+      canvasRef,
+      canvasProps,
+      stateStack,
+      focus,
+      annoColors
+    }), // hanlde mouse & touch board operations logic.
+
+    ...useMouseHover({ focus })
+  }
 
   useKeyboard({ stateStack, focus, next, prev }) // listeners for keyboard for support shortcuts.
 

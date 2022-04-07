@@ -75,6 +75,13 @@ export class RectLabel extends Label {
     }
   }
 
+  /**
+   * generate fabric objects from the label
+   * @param color the color of the category
+   * @param visible
+   * @param needText is it need to show the text
+   * @returns
+   */
   getFabricObjects(
     color: string,
     visible: boolean = true,
