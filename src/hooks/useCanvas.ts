@@ -82,35 +82,25 @@ export const useCanvas = ({
     polygon.points.splice(_id + 1, 0, new Point(left, top))
 
     const oldObjs = canvas.getObjects().filter((o: any) => o.id === polygon.id)
-    const newLabel = new PolygonLabel({
+    const newObjs = new PolygonLabel({
       obj: polygon,
       scale,
       offset
-    })
-    const newObjs = newLabel.getFabricObjects(
-      annoColors.get(polygon.category),
-      true,
-      false
-    )
+    }).getFabricObjects(annoColors.get(polygon.category), true, false)
 
     const theEndpoint = newObjs.find(
       (o: any) => o._id === _id + 1 && o.type === 'circle'
     )
-    obj
-      .set({ hoverCursor: 'move' })
-      .on('moving', () => {
-        const { left, top } = obj
-        ;(theEndpoint as fabric.Circle).set({ left, top })
-        ;(theEndpoint as fabric.Circle).setCoords()
-        updateEndpointAssociatedLinesPosition(
-          theEndpoint as fabric.Circle,
-          true
-        )
-        updateEndpointAssociatedPolygon(theEndpoint as fabric.Circle)
-      })
-      .on('moved', () => {
-        canvas.setActiveObject(theEndpoint as fabric.Circle)
-      })
+    obj.set({ hoverCursor: 'move' }).on('moving', () => {
+      const { left, top } = obj
+      ;(theEndpoint as fabric.Circle).set({ left, top })
+      ;(theEndpoint as fabric.Circle).setCoords()
+      updateEndpointAssociatedLinesPosition(theEndpoint as fabric.Circle, true)
+      updateEndpointAssociatedPolygon(theEndpoint as fabric.Circle)
+    })
+    // .on('moved', () => {
+    //   canvas.setActiveObject(theEndpoint as fabric.Circle)
+    // })
 
     actions.syncCanvasToState()
     canvas.remove(...oldObjs).add(...newObjs)
@@ -178,7 +168,7 @@ export const useCanvas = ({
        */
       loadListeners: (newListeners: object) => {
         if (!canvas) return
-        Object.assign(listeners, newListeners) // save new listenrs
+        Object.assign(listeners, newListeners) // save new listeners
         canvas.off() // remove all existed listeners
         Object.entries(listeners).forEach(([event, handler]) => {
           canvas.on(event, handler)
