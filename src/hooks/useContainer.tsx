@@ -118,7 +118,7 @@ export const useContainer = ({
         <img
           alt={imageObj.fileName}
           title={imageObj.fileName}
-          src={imageObj.blobUrl}
+          src={imageObj.url}
           loading='lazy'
           onLoad={onLoad}
           className='object-contain max-h-full invisible'

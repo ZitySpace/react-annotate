@@ -1,12 +1,11 @@
 import { Label, LabelType } from '../classes/Label'
 
 export interface ImageObject {
-  fileName: string
-  fileSize: number
-  imageWidth: number
-  imageHeight: number
+  filename: string
+  width: number
+  height: number
   annotations: Label[]
-  blobUrl: string
+  url: string
 }
 
 export interface Focus {

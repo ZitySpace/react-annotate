@@ -1,50 +1,24 @@
-export const imgObj = {
-  id: 24,
-  fileName: '000000015746.jpg',
-  fileSize: 196039,
-  imageWidth: 427,
-  imageHeight: 640,
-  image_area: 273280,
-  upload_time: '2021-11-10T10:28:44+00:00',
-  annotations: [
-    {
-      x: 72,
-      y: 198,
-      w: 279,
-      h: 378,
-      category: 'fire hydrant',
-      timestamp_z: '2021-11-12T22:04:03',
-      unique_hash_z: '241e823d6867aca577c3d7f72c5bd3db',
-      text_id: 0
-    }
-  ],
-  name: '000000015746.jpg',
-  idxInPage: 23,
-  selected: false,
-  blobUrl: 'http://hacmini/images/000000015746.jpg'
-}
-
 export const pagingData = [
   {
     id: 0,
-    fileName: 'hq-test.jpg',
+    filename: 'hq-test.jpg',
     fileSize: 174022,
-    imageWidth: 4007,
-    imageHeight: 5008,
+    width: 4007,
+    height: 5008,
     image_area: 20067056,
     upload_time: '2021-11-10T10:28:43+00:00',
     annotations: [],
     name: 'hq-test.jpg',
     idxInPage: 1,
     selected: false,
-    blobUrl: 'http://hacmini/images/hq-test.jpg'
+    url: 'http://hacmini/images/hq-test.jpg'
   },
   {
     id: 1,
-    fileName: '000000001532.jpg',
+    filename: '000000001532.jpg',
     fileSize: 174022,
-    imageWidth: 640,
-    imageHeight: 480,
+    width: 640,
+    height: 480,
     image_area: 307200,
     upload_time: '2021-11-10T10:28:43+00:00',
     annotations: [
@@ -124,15 +98,15 @@ export const pagingData = [
     name: '000000001532.jpg',
     idxInPage: 1,
     selected: false,
-    // blobUrl: 'http://hacmini/images/hq-test.jpg'
-    blobUrl: 'http://hacmini/images/000000001532.jpg'
+    // url: 'http://hacmini/images/hq-test.jpg'
+    url: 'http://hacmini/images/000000001532.jpg'
   },
   {
     id: 2,
-    fileName: '000000002006.jpg',
+    filename: '000000002006.jpg',
     fileSize: 202589,
-    imageWidth: 640,
-    imageHeight: 480,
+    width: 640,
+    height: 480,
     image_area: 307200,
     upload_time: '2021-11-10T10:28:43+00:00',
     annotations: [
@@ -212,14 +186,14 @@ export const pagingData = [
     name: '000000002006.jpg',
     idxInPage: 2,
     selected: false,
-    blobUrl: 'http://hacmini/images/000000002006.jpg'
+    url: 'http://hacmini/images/000000002006.jpg'
   },
   {
     id: 4,
-    fileName: '000000005193.jpg',
+    filename: '000000005193.jpg',
     fileSize: 102722,
-    imageWidth: 640,
-    imageHeight: 425,
+    width: 640,
+    height: 425,
     image_area: 272000,
     upload_time: '2021-11-10T10:28:43+00:00',
     annotations: [
@@ -308,14 +282,14 @@ export const pagingData = [
     name: '000000005193.jpg',
     idxInPage: 3,
     selected: false,
-    blobUrl: 'http://hacmini/images/000000005193.jpg'
+    url: 'http://hacmini/images/000000005193.jpg'
   },
   {
     id: 5,
-    fileName: '000000006471.jpg',
+    filename: '000000006471.jpg',
     fileSize: 96115,
-    imageWidth: 500,
-    imageHeight: 333,
+    width: 500,
+    height: 333,
     image_area: 166500,
     upload_time: '2021-11-10T10:28:43+00:00',
     annotations: [
@@ -467,7 +441,7 @@ export const pagingData = [
     name: '000000006471.jpg',
     idxInPage: 4,
     selected: false,
-    blobUrl: 'http://hacmini/images/000000006471.jpg'
+    url: 'http://hacmini/images/000000006471.jpg'
   }
 ]
 
