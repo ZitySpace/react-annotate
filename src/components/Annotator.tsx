@@ -1,6 +1,5 @@
 import React, { useEffect, useLayoutEffect, useState } from 'react'
 import { useEffectOnce, useStateList } from 'react-use'
-import { Label } from '../classes/Label'
 import { useCanvas } from '../hooks/useCanvas'
 import { useColors } from '../hooks/useColor'
 import { useContainer } from '../hooks/useContainer'
@@ -30,11 +29,6 @@ export const Annotator = ({
   colors?: string[]
   onSwitchVisible?: Function // TODO: bind to button
 }) => {
-  if (!(categoryColors || categories || colors))
-    throw new Error(
-      'Params categoryColors can not be empty if categoryNames and colors not exists.'
-    )
-
   const [isAnnosVisible] = useState(isAnnotationsVisible) // TODO: remove this global state or add setter and bind to button
 
   const {
@@ -42,7 +36,7 @@ export const Annotator = ({
     setStateAt: setImageObjAt,
     next,
     prev
-  } = useStateList<{ annotations: Label[] }>(imagesList) // refer: https://github.com/streamich/react-use/blob/master/docs/useStateList.md
+  } = useStateList<ImageObject>(imagesList) // refer: https://github.com/streamich/react-use/blob/master/docs/useStateList.md
 
   // Initialize the main variables
   const focus = useFocus() // variables shared between canvas and category panel to show user interest in the other one.
@@ -67,9 +61,8 @@ export const Annotator = ({
       stateStack,
       focus,
       annoColors
-    }), // hanlde mouse & touch board operations logic.
-
-    ...useMouseHover({ focus })
+    }), // hanlde mouse & touch board operations logic, includes draw, panning and zoom
+    ...useMouseHover({ focus }) // handle hover effect of the points and polygon's lines
   }
 
   useKeyboard({ stateStack, focus, next, prev }) // listeners for keyboard for support shortcuts.

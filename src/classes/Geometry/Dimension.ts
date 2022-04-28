@@ -14,6 +14,10 @@ export class Dimension implements Dimension {
     this.h = h
   }
 
+  /**
+   * Calculate the dimensions
+   * @returns the size of the area
+   */
   getDimensions(): number {
     return this.w * this.h
   }
