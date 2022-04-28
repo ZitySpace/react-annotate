@@ -20,7 +20,7 @@ interface PolygonLabelArgs {
   offset?: Point
   x?: number
   y?: number
-  points?: Point[]
+  points?: number[]
   obj?: fabric.Polygon
 }
 
@@ -29,7 +29,7 @@ export class PolygonLabel extends Label {
   points: Point[]
 
   constructor({ obj, scale, offset }: PolygonLabelArgs) // construct from fabric object
-  constructor({ x, y, category, obj, scale, offset }: PolygonLabelArgs) // construct from cursor position
+  constructor({ x, y, category, id, scale, offset }: PolygonLabelArgs) // construct from cursor position
   constructor({ points, category, id }: PolygonLabelArgs) // construct from existing data
   constructor({
     x = 0,
@@ -52,7 +52,12 @@ export class PolygonLabel extends Label {
       this.boundary = new Rect(x, y, w, h)
     } else {
       super({ labelType, category, id, scale, offset })
-      this.points = points || [new Point(x, y), new Point(x, y)]
+      const splitPoints: Point[] | undefined = points ? [] : undefined
+      while (splitPoints && points?.length) {
+        const [_x, _y] = points.splice(0, 2)
+        splitPoints.push(new Point(_x, _y))
+      }
+      this.points = splitPoints || [new Point(x, y), new Point(x, y)]
       const { x: left, y: top, w, h } = boundaryOfPolygon(this.points)
       this.boundary = new Rect(left, top, w, h)
     }
