@@ -1,8 +1,8 @@
 import React, { useEffect, useLayoutEffect, useState } from 'react'
-import { useEffectOnce, useStateList } from 'react-use'
 import { useCanvas } from '../hooks/useCanvas'
 import { useColors } from '../hooks/useColor'
 import { useContainer } from '../hooks/useContainer'
+import { useData } from '../hooks/useData'
 import { useFocus } from '../hooks/useFocus'
 import { useKeyboard } from '../hooks/useKeyboard'
 import { useMouseHover } from '../hooks/useMouseHover'
@@ -31,16 +31,14 @@ export const Annotator = ({
 }) => {
   const [isAnnosVisible] = useState(isAnnotationsVisible) // TODO: remove this global state or add setter and bind to button
 
-  const {
-    state: imageObj,
-    setStateAt: setImageObjAt,
-    next,
-    prev
-  } = useStateList<ImageObject>(imagesList) // refer: https://github.com/streamich/react-use/blob/master/docs/useStateList.md
-
   // Initialize the main variables
   const focus = useFocus() // variables shared between canvas and category panel to show user interest in the other one.
   const stateStack = useStateStack() // handle canvas's state history stack and the buttons bar limits.
+  const { imageObj, prevImg, nextImg, save } = useData(
+    imagesList,
+    stateStack,
+    index
+  )
   const annoColors = useColors() // handle colors' stuff.
 
   const { ImageContainer, canvasRef, canvasProps } = useContainer({ imageObj }) // get tsx fragment and some variable which calculate after image loaded.
@@ -65,12 +63,7 @@ export const Annotator = ({
     ...useMouseHover({ focus }) // handle hover effect of the points and polygon's lines
   }
 
-  useKeyboard({ stateStack, focus, next, prev }) // listeners for keyboard for support shortcuts.
-
-  // re-render to set loading index images
-  useEffectOnce(() => {
-    index && setImageObjAt(index)
-  })
+  useKeyboard({ stateStack, focus, nextImg, prevImg, save }) // listeners for keyboard for support shortcuts.
 
   useLayoutEffect(() => {
     console.log('imageDims or canvasDims changed')
@@ -99,8 +92,9 @@ export const Annotator = ({
       <ButtonBar
         stateStack={stateStack}
         focus={focus}
-        nextImg={next}
-        prevImg={prev}
+        nextImg={nextImg}
+        prevImg={prevImg}
+        save={save}
       />
     </div>
   ) : null

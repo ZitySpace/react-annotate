@@ -1,17 +1,19 @@
-import { LabelType } from '../classes/Label'
+import { Label, LabelType } from '../classes/Label'
 import { UseFocusReturnProps } from './useFocus'
 import { UseStateStackReturnProps } from './useStateStack'
 
 export const useKeyboard = ({
   stateStack,
   focus,
-  prev: prevImage,
-  next: nextImage
+  prevImg,
+  nextImg,
+  save
 }: {
   stateStack: UseStateStackReturnProps
   focus: UseFocusReturnProps
-  prev: () => void
-  next: () => void
+  prevImg: () => void
+  nextImg: () => void
+  save: () => Label[]
 }) => {
   const {
     can,
@@ -20,7 +22,7 @@ export const useKeyboard = ({
     reset,
     deleteObjects
   } = stateStack
-  const { undo: canUndo, redo: canRedo, reset: canReset } = can
+  const { undo: canUndo, redo: canRedo, reset: canReset, save: canSave } = can
   const { setDrawingType } = focus
   const { drawingType, objects } = focus.nowFocus
 
@@ -39,10 +41,10 @@ export const useKeyboard = ({
     KeyR: drawRect,
     KeyO: drawPoint,
     KeyL: drawLine,
-    Period: nextImage,
-    ArrowRight: nextImage,
-    Comma: prevImage,
-    ArrowLeft: prevImage
+    Period: nextImg,
+    ArrowRight: nextImg,
+    Comma: prevImg,
+    ArrowLeft: prevImg
   }
 
   const keyboardEventRouter = (event: KeyboardEvent) => {
@@ -65,6 +67,11 @@ export const useKeyboard = ({
         else if (!shiftKey && !canUndo) throw new Error('Cannot undo.')
         else if (shiftKey && canRedo) nextState()
         else throw new Error('Cannot redo.')
+      },
+      KeyS: () => {
+        if (!controlKey || auxiliaryKey) return
+        else if (canSave) save()
+        else throw new Error('Cannot save.')
       }
     }
 

@@ -1,5 +1,5 @@
 import React from 'react'
-import { LabelType } from '../classes/Label'
+import { Label, LabelType } from '../classes/Label'
 import { UseFocusReturnProps } from '../hooks/useFocus'
 import { UseStateStackReturnProps } from '../hooks/useStateStack'
 import { Button } from './Button'
@@ -23,12 +23,14 @@ export const ButtonBar = ({
   focus,
   stateStack,
   nextImg,
-  prevImg
+  prevImg,
+  save
 }: {
   focus: UseFocusReturnProps
   stateStack: UseStateStackReturnProps
   nextImg: (event: any) => void
   prevImg: (event: any) => void
+  save: () => Label[]
 }) => {
   const { can, prev: undo, next: redo, reset, deleteObjects } = stateStack
 
@@ -103,12 +105,7 @@ export const ButtonBar = ({
           <ResetIcon />
         </Button>
 
-        <Button
-          canUse={canSave}
-          onClick={() => {
-            console.log('save clicked')
-          }}
-        >
+        <Button canUse={canSave} onClick={save}>
           <SaveIcon />
         </Button>
       </div>
