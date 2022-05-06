@@ -1,133 +1,66 @@
 import { fabric } from 'fabric'
-import React, { useCallback, useRef, useState } from 'react'
-import { Boundary } from '../classes/Geometry/Boundary'
+import React, { useEffect, useRef } from 'react'
 import { Dimension } from '../classes/Geometry/Dimension'
-import { Point } from '../classes/Geometry/Point'
-import { CANVAS_CONFIG } from '../interfaces/config'
-
-export interface CanvasProps {
-  imageDims: Dimension // image dimensions in container
-  canvasDims: Dimension // canvas dimensions
-  imgBoundary: Boundary //  boundary of image in canvas
-  offset: Point // offset of image in canvas
-  scale: number // scale of image for its original size in canvas
-}
-
 export interface UseContainerReturnProps {
-  ImageContainer: JSX.Element // canvas dom
-  canvasRef: React.RefObject<fabric.Canvas> // fabric.Canvas instance reference
-  canvasProps: CanvasProps // canvas properties
+  Container: JSX.Element // canvas dom
+  cavansRef: React.RefObject<fabric.Canvas>
 }
 
-/**
- * Load image and re-initialize canvas, then calculate the dimensions ans so on.
- * @param imageObj: an image object with basic info
- * @returns node of image&canvas container, and some calculated variables
- */
-export const useContainer = ({
-  imageObj
-}: {
-  imageObj: any
-}): UseContainerReturnProps => {
-  const [imageDims, setImageDims] = useState<Dimension>(new Dimension())
-  const [canvasDims, setCanvasDims] = useState<Dimension>(new Dimension())
-  const [imgBoundary, setImgBoundary] = useState<Boundary>(new Boundary())
-  const [offset, setOffset] = useState<Point>(new Point())
-  const [scale, setScale] = useState<number>(1)
-
-  const imgElRef = useRef<HTMLImageElement>(null)
-  const canvasElRef = useRef<HTMLCanvasElement>(null)
+export const useContainer = () => {
   const canvasRef = useRef<fabric.Canvas | null>(null)
+  const canvasElm = useRef<HTMLCanvasElement | null>(null)
+  const canvasDims = useRef<Dimension>(new Dimension())
 
-  /**
-   * Callback of the image src changed trigger image loading event
-   * Get image element and canvas element, initialize canvas object and calculate the dimensions and so on,
-   *  then set them to the reference and state
-   */
-  const onLoad = useCallback(() => {
-    // ensure that the image element and canvas element exist
-    const imgElm = imgElRef.current
-      ? (imgElRef.current as unknown as HTMLImageElement)
-      : imgElRef.current
-    const canvasElm = canvasElRef.current
-      ? (canvasElRef.current as unknown as HTMLCanvasElement)
-      : canvasElRef.current
+  const initializeCanvas = (resetViewport: boolean = true) => {
+    calcCanvasDims()
+    const canvas = canvasRef.current || new fabric.Canvas(canvasElm.current)
 
-    if (imgElm && canvasElm) {
-      let extendElm = document.getElementById('canvas_extended') as HTMLElement
+    const { w: canvas_w, h: canvas_h } = canvasDims.current
+    canvas.setWidth(canvas_w)
+    canvas.setHeight(canvas_h)
 
-      const { width: iw, height: ih } = imgElm.getBoundingClientRect() // get image dimensions in image dom contain
-      const { width: cew, height: _ceh } = extendElm.getBoundingClientRect() // get canvas extend element dimensions
-      const ceh = _ceh - 36 // minus the buttons bar's height
+    if (!canvasRef.current) canvasRef.current = canvas
 
-      // necessary for using in below step because setState in async
-      const _offset = new Point((cew - iw) / 2, (ceh - ih) / 2) // offset of scaled image to the canvas
-      const _scale = (iw / imgElm.naturalWidth + ih / imgElm.naturalHeight) / 2
+    // set canvas element and its extend element styles
+    const lowerCanvasElm = canvas.getElement()
+    const upperCanvasElm = lowerCanvasElm.nextElementSibling as Element
+    const extendElm = lowerCanvasElm.parentElement as HTMLElement
+    extendElm.style.position = 'absolute'
+    extendElm.style.top = '0'
+    extendElm.style.touchAction = 'none'
+    extendElm.classList.add('bg-gray-200')
+    lowerCanvasElm.classList.remove('hidden')
+    upperCanvasElm.classList.remove('hidden')
+    resetViewport && canvas.setViewportTransform([1, 0, 0, 1, 0, 0]) // set viewport to the center
+  }
 
-      setImageDims(new Dimension(iw, ih))
-      setCanvasDims(new Dimension(cew, ceh)) // canvas dimensions will be set as same as extend element
-      setImgBoundary(
-        new Boundary(
-          (cew - iw) / 2, // x
-          (ceh - ih) / 2, // y
-          (cew + iw) / 2, // _x
-          (ceh + ih) / 2 // _y
-        )
-      )
-      setOffset(_offset)
-      setScale(_scale)
+  const calcCanvasDims = () => {
+    const extendElm = document.getElementById('canvas_extended') as HTMLElement
+    const { width: canvas_w, height: _canvas_h } =
+      extendElm.getBoundingClientRect() // get canvas extend element dimensions
+    const canvas_h = _canvas_h - 36 // minus the buttons bar's height
+    canvasDims.current = new Dimension(canvas_w, canvas_h)
+  }
 
-      // initialize canvas
-      const canvas =
-        canvasRef.current || new fabric.Canvas(canvasElm, CANVAS_CONFIG)
+  useEffect(() => {
+    initializeCanvas()
+  }, [canvasElm])
 
-      canvas.setWidth(cew)
-      canvas.setHeight(ceh)
-
-      // update background image
-      const { x: left, y: top } = _offset
-      const scaleX = _scale
-      const scaleY = _scale
-      const img = new fabric.Image(imgElm, { left, top, scaleX, scaleY })
-      canvas.setBackgroundImage(img, () => {}) // use background image can make canvas's objects plain
-
-      // set canvas element and its extend element styles
-      const lowerCanvasElm = canvas.getElement()
-      const upperCanvasElm = lowerCanvasElm.nextElementSibling as Element
-      extendElm = lowerCanvasElm.parentElement as HTMLElement
-      extendElm.style.position = 'absolute'
-      extendElm.style.top = '0'
-      extendElm.style.touchAction = 'none'
-      extendElm.classList.add('bg-gray-200')
-      lowerCanvasElm.classList.remove('hidden')
-      upperCanvasElm.classList.remove('hidden')
-
-      canvas.setViewportTransform([1, 0, 0, 1, 0, 0]) // set viewport to the center
-      canvasRef.current = canvas
-    }
-  }, [imgElRef.current, canvasElRef.current])
-
-  window.onresize = onLoad // listen window resize event
+  window.onresize = () => {
+    initializeCanvas(false)
+  }
 
   return {
-    ImageContainer: (
+    Container: (
       <div
         className='h-full relative pb-7 md:pb-9 select-none w-full flex justify-center items-center overflow-y-hidden'
         id='canvas_extended'
       >
-        <img
-          alt={imageObj.fileName}
-          title={imageObj.fileName}
-          src={imageObj.url}
-          loading='lazy'
-          onLoad={onLoad}
-          className='object-contain max-h-full invisible'
-          ref={imgElRef}
-        />
-        <canvas ref={canvasElRef} className='hidden' />
+        <canvas ref={canvasElm} className='hidden' />
+        {/* <LoadingIcon /> */}
       </div>
     ),
     canvasRef,
-    canvasProps: { imageDims, canvasDims, imgBoundary, offset, scale }
+    canvasDims
   }
 }
