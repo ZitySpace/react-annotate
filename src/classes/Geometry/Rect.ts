@@ -35,7 +35,7 @@ export class Rect implements Rect {
 
   /**
    *
-   * @param coefficient coefficient
+   * @param offset offset
    * @returns
    */
   translate(offset: Point): Rect {

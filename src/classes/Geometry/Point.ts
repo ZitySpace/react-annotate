@@ -27,7 +27,7 @@ export class Point implements Point {
 
   /**
    *
-   * @param coefficient coefficient
+   * @param offset
    * @returns
    */
   translate(offset: Point): Point {

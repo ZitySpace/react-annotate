@@ -28,7 +28,8 @@ export class Line {
   }
 
   /**
-   * @param coefficient coefficient
+   *
+   * @param offset
    * @returns
    */
   translate(offset: Point): Line {

@@ -1,3 +1,6 @@
+import { Boundary } from './Boundary'
+import { Point } from './Point'
+
 export interface Dimension {
   w: number
   h: number
@@ -20,5 +23,37 @@ export class Dimension implements Dimension {
    */
   getDimensions(): number {
     return this.w * this.h
+  }
+
+  /**
+   *
+   * @param ratio zoom ratio
+   * @returns this
+   */
+  zoom(ratio: number): Dimension {
+    this.w *= ratio
+    this.h *= ratio
+    return this
+  }
+
+  /**
+   *
+   * @param external external
+   * @returns
+   */
+  offsetTo(external: Dimension): Point {
+    const { w, h } = external
+    const { w: _w, h: _h } = this
+    return new Point((w - _w) / 2, (h - _h) / 2)
+  }
+
+  /**
+   *
+   * @param external external
+   */
+  boundaryIn(external: Dimension): Boundary {
+    const { w, h } = external
+    const { w: _w, h: _h } = this
+    return new Boundary((w - _w) / 2, (h - _h) / 2, (w + _w) / 2, (h + _h) / 2)
   }
 }
