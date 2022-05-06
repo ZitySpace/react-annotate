@@ -1,6 +1,6 @@
 import { Label, LabelType } from '../classes/Label'
 
-export interface ImageObject {
+export interface ImageData {
   filename: string
   width: number
   height: number
@@ -14,4 +14,10 @@ export interface Focus {
   visibleType: LabelType[]
   category: string | null
   objects: Label[]
+}
+
+export enum DataState {
+  Ready,
+  Loading,
+  Error
 }
