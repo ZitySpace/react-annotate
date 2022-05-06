@@ -250,3 +250,44 @@ export const MultipleSelectIcon = Icon(
     <path d='M20 12v6a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h9' />
   </svg>
 )
+
+export const LoadingIcon = Icon(
+  <svg
+    id='rolling'
+    xmlns='http://www.w3.org/2000/svg'
+    xmlnsXlink='http://www.w3.org/1999/xlink'
+    style={{
+      margin: 'auto',
+      background: 'rgba(255, 255, 255, 0)',
+      display: 'block',
+      shapeRendering: 'auto',
+      animationPlayState: 'running',
+      animationDelay: '0s'
+    }}
+    width='64px'
+    height='64px'
+    viewBox='0 0 100 100'
+    preserveAspectRatio='xMidYMid'
+  >
+    <circle
+      cx='50'
+      cy='50'
+      fill='none'
+      stroke='#815be1'
+      strokeWidth='10'
+      r='20'
+      strokeDasharray='94.24777960769379 33.41592653589793'
+      style={{ animationPlayState: 'running', animationDelay: '0s' }}
+    >
+      <animateTransform
+        attributeName='transform'
+        type='rotate'
+        repeatCount='indefinite'
+        dur='1s'
+        values='0 50 50;360 50 50'
+        keyTimes='0;1'
+        style={{ animationPlayState: 'running', animationDelay: '0s' }}
+      ></animateTransform>
+    </circle>
+  </svg>
+)
