@@ -15,6 +15,8 @@ export const useContainer = () => {
   const canvasDims = useRef<Dimension | null>(null)
 
   const updateCanvas = (isInitialize: boolean = false) => {
+    console.log('updateCanvas', isInitialize)
+
     const canvas =
       canvasRef.current || new fabric.Canvas(canvasElm.current, CANVAS_CONFIG)
 
@@ -25,6 +27,7 @@ export const useContainer = () => {
     if (!canvasRef.current) canvasRef.current = canvas
 
     if (isInitialize) {
+      console.log(canvasRef)
       // set canvas element and its extend element styles
       const lowerCanvasElm = canvas.getElement()
       const upperCanvasElm = lowerCanvasElm.nextElementSibling as Element

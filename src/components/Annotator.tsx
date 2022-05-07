@@ -40,6 +40,7 @@ export const Annotator = ({
     imageObj,
     imageLoadingState,
     annosInitState,
+    geometricAttributes,
     prevImg,
     nextImg,
     save
@@ -48,7 +49,12 @@ export const Annotator = ({
     canvas,
     imageObj,
     imageLoadingState,
-    annosInitState
+    annosInitState,
+    stateStack,
+    geometricAttributes,
+    annoColors,
+    focus,
+    isAnnosVisible
   })
   useMouse({ canvas, canvasDims, focus, loadListeners })
   useKeyboard({ stateStack, focus, nextImg, prevImg, save }) // listeners for keyboard for support shortcuts.
