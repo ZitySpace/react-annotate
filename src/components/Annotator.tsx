@@ -35,7 +35,7 @@ export const Annotator = ({
   const stateStack = useStateStack() // handle canvas's state history stack and the buttons bar limits.
   const annoColors = useColors() // handle colors' stuff.
 
-  const { Container, canvasRef, canvasDims } = useContainer()
+  const { Container, canvas, canvasDims } = useContainer()
   const {
     imageObj,
     imageLoadingState,
@@ -45,12 +45,12 @@ export const Annotator = ({
     save
   } = useData(imagesList, stateStack, canvasDims, index)
   const { loadListeners } = useCanvas({
-    canvasRef,
+    canvas,
     imageObj,
     imageLoadingState,
     annosInitState
   })
-  useMouse({ canvasRef, canvasDims, focus, loadListeners })
+  useMouse({ canvas, canvasDims, focus, loadListeners })
   useKeyboard({ stateStack, focus, nextImg, prevImg, save }) // listeners for keyboard for support shortcuts.
 
   // const { ImageContainer, canvasRef, canvasProps } = useContainer({ imageData }) // get tsx fragment and some variable which calculate after image loaded.

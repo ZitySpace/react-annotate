@@ -1,19 +1,18 @@
 import { fabric } from 'fabric'
-import { MutableRefObject, useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { DataState } from '../interfaces/basic'
 
 export const useCanvas = ({
-  canvasRef,
+  canvas,
   imageObj,
   imageLoadingState,
   annosInitState
 }: {
-  canvasRef: MutableRefObject<fabric.Canvas | null>
+  canvas: fabric.Canvas | null
   imageObj: fabric.Image | null
   imageLoadingState: DataState
   annosInitState: DataState
 }) => {
-  const canvas = canvasRef.current
   const listenersRef = useRef<object>({})
   const listeners = listenersRef.current
 

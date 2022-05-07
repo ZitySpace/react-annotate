@@ -1,5 +1,5 @@
 import { usePinch } from '@use-gesture/react'
-import { MutableRefObject, useEffect, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { Dimension } from '../classes/Geometry/Dimension'
 import { Point } from '../classes/Geometry/Point'
 import { getBetween, isTouchEvent } from '../utils'
@@ -7,12 +7,12 @@ import { isEndpoint, isPoint, isPolygonLine } from '../utils/label'
 import { UseFocusReturnProps } from './useFocus'
 
 export const useMouse = ({
-  canvasRef,
+  canvas,
   canvasDims,
   focus,
   loadListeners
 }: {
-  canvasRef: MutableRefObject<fabric.Canvas | null>
+  canvas: fabric.Canvas | null
   canvasDims: Dimension | null
   focus: UseFocusReturnProps
   loadListeners: (newListeners: object) => void
@@ -20,7 +20,6 @@ export const useMouse = ({
   const lastPosition = useRef<Point>(new Point())
   const isPanning = useRef<boolean>(false)
 
-  const canvas = canvasRef.current!
   const { setObjects } = focus
   const nothing = { lastPosition, isPanning, setObjects, loadListeners }
   !nothing
@@ -45,6 +44,8 @@ export const useMouse = ({
   }
 
   useEffect(() => {
+    if (!canvas) return
+
     const setZoomAndGetNewZoom = (evt: WheelEvent) => {
       const { deltaY, offsetX: x, offsetY: y } = evt
       const delta = deltaY * (evt.cancelable ? 3 : 1) // make touchBoard more smooth
@@ -68,27 +69,25 @@ export const useMouse = ({
         const obj = e.target
         if (!obj) return
 
-        const { canvas } = obj
         setHoverEffectOfEndpoint(obj)
         focus.isFocused(obj as any) &&
           isPolygonLine(obj) &&
-          canvas?.add((obj as any).midpoint)
+          canvas.add((obj as any).midpoint)
 
-        canvas?.requestRenderAll()
+        canvas.requestRenderAll()
       },
       'mouse:out': (e: fabric.IEvent<MouseEvent>) => {
         const obj = e.target as fabric.Object
         if (!obj) return
 
-        const { canvas } = obj
         setHoverEffectOfEndpoint(obj)
         if (isPolygonLine(obj)) {
           const isMoveToMidpoint =
             (e as any).nextTarget === (obj as any).midpoint
-          if (!isMoveToMidpoint) canvas?.remove((obj as any).midpoint)
-        } else if (obj.type === 'midpoint') canvas?.remove(obj)
+          if (!isMoveToMidpoint) canvas.remove((obj as any).midpoint)
+        } else if (obj.type === 'midpoint') canvas.remove(obj)
 
-        canvas?.requestRenderAll()
+        canvas.requestRenderAll()
       },
       'mouse:wheel': (event: fabric.IEvent<WheelEvent>) => {
         setViewport(setZoomAndGetNewZoom(event.e))

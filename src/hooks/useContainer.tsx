@@ -2,9 +2,11 @@ import { fabric } from 'fabric'
 import React, { useEffect, useRef } from 'react'
 import { Dimension } from '../classes/Geometry/Dimension'
 import { CANVAS_CONFIG } from '../interfaces/config'
+
 export interface UseContainerReturnProps {
   Container: JSX.Element // canvas dom
-  cavansRef: React.RefObject<fabric.Canvas>
+  canvas: fabric.Canvas | null
+  canvasDims: Dimension | null
 }
 
 export const useContainer = () => {
@@ -64,7 +66,7 @@ export const useContainer = () => {
         {/* <LoadingIcon /> */}
       </div>
     ),
-    canvasRef,
+    canvas: canvasRef.current,
     canvasDims: canvasDims.current
   }
 }
