@@ -4,7 +4,8 @@ import { useColors } from '../hooks/useColor'
 import { useContainer } from '../hooks/useContainer'
 import { useData } from '../hooks/useData'
 import { useFocus } from '../hooks/useFocus'
-import { useMouseListeners } from '../hooks/useMouseListeners'
+import { useKeyboard } from '../hooks/useKeyboard'
+import { useMouse } from '../hooks/useMouse'
 import { useStateStack } from '../hooks/useStateStack'
 import { ImageData } from '../interfaces/basic'
 import '../tailwind.css'
@@ -49,7 +50,8 @@ export const Annotator = ({
     imageLoadingState,
     annosInitState
   })
-  useMouseListeners({ canvasRef, canvasDims, focus, loadListeners })
+  useMouse({ canvasRef, canvasDims, focus, loadListeners })
+  useKeyboard({ stateStack, focus, nextImg, prevImg, save }) // listeners for keyboard for support shortcuts.
 
   // const { ImageContainer, canvasRef, canvasProps } = useContainer({ imageData }) // get tsx fragment and some variable which calculate after image loaded.
   // const { imageObj, imageLoadingState } = useImage(imageData)
@@ -81,8 +83,6 @@ export const Annotator = ({
   //   }), // hanlde mouse & touch board operations logic, includes draw, panning and zoom
   //   ...useMouseHover({ focus }) // handle hover effect of the points and polygon's lines
   // }
-
-  // useKeyboard({ stateStack, focus, nextImg, prevImg, save }) // listeners for keyboard for support shortcuts.
 
   // useLayoutEffect(() => {
   //   console.log('imageDims or canvasDims changed')

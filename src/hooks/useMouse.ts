@@ -3,9 +3,10 @@ import { MutableRefObject, useEffect, useRef } from 'react'
 import { Dimension } from '../classes/Geometry/Dimension'
 import { Point } from '../classes/Geometry/Point'
 import { getBetween, isTouchEvent } from '../utils'
+import { isEndpoint, isPoint, isPolygonLine } from '../utils/label'
 import { UseFocusReturnProps } from './useFocus'
 
-export const useMouseListeners = ({
+export const useMouse = ({
   canvasRef,
   canvasDims,
   focus,
@@ -23,6 +24,18 @@ export const useMouseListeners = ({
   const { setObjects } = focus
   const nothing = { lastPosition, isPanning, setObjects, loadListeners }
   !nothing
+
+  /**
+   * Exchange its fill-color and stroke-color if it is point/endpoint
+   * @param obj moving object
+   */
+  const setHoverEffectOfEndpoint = (obj: fabric.Object) => {
+    if (isPoint(obj) || isEndpoint(obj))
+      obj.set({
+        fill: obj.stroke,
+        stroke: obj.fill as string
+      })
+  }
 
   // mount gestures event listener
   const pinchListener = usePinch(() => {})()
@@ -51,6 +64,32 @@ export const useMouseListeners = ({
     }
 
     const listeners = {
+      'mouse:over': (e: fabric.IEvent<MouseEvent>) => {
+        const obj = e.target
+        if (!obj) return
+
+        const { canvas } = obj
+        setHoverEffectOfEndpoint(obj)
+        focus.isFocused(obj as any) &&
+          isPolygonLine(obj) &&
+          canvas?.add((obj as any).midpoint)
+
+        canvas?.requestRenderAll()
+      },
+      'mouse:out': (e: fabric.IEvent<MouseEvent>) => {
+        const obj = e.target as fabric.Object
+        if (!obj) return
+
+        const { canvas } = obj
+        setHoverEffectOfEndpoint(obj)
+        if (isPolygonLine(obj)) {
+          const isMoveToMidpoint =
+            (e as any).nextTarget === (obj as any).midpoint
+          if (!isMoveToMidpoint) canvas?.remove((obj as any).midpoint)
+        } else if (obj.type === 'midpoint') canvas?.remove(obj)
+
+        canvas?.requestRenderAll()
+      },
       'mouse:wheel': (event: fabric.IEvent<WheelEvent>) => {
         setViewport(setZoomAndGetNewZoom(event.e))
       },
