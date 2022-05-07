@@ -8,7 +8,7 @@ import { Label } from '../classes/Label'
 import { ImageData, DataState } from '../interfaces/basic'
 import { UseStateStackReturnProps } from './useStateStack'
 
-export interface GeometryAttributes {
+export interface GeometricAttributes {
   // canvasDims: Dimension
   imageDims: Dimension
   imageBoundary: Boundary
@@ -20,7 +20,7 @@ export interface UseDataReturnProps {
   imageObj: fabric.Image | null
   imageLoadingState: DataState
   annosInitState: DataState
-  geometryAttributes: GeometryAttributes
+  geometricAttributes: GeometricAttributes
   prevImg: () => void
   nextImg: () => void
   save: () => Label[]
@@ -98,7 +98,7 @@ export const useData = (
     annos.forEach((anno) => anno.scaleTransform(scale.current, offset.current))
     stateStack.set([annos])
     setAnnosInitState(DataState.Ready)
-  }, [imageData, canvasDims])
+  }, [imageData])
 
   useEffect(() => {
     initIndex && setImageIdx(initIndex)
@@ -108,7 +108,7 @@ export const useData = (
     imageObj: imageObj.current,
     imageLoadingState,
     annosInitState,
-    geometryAttributes: {
+    geometricAttributes: {
       imageDims: imageDims.current,
       imageBoundary: imageBoundary.current,
       scale: scale.current,

@@ -14,7 +14,7 @@ export const useContainer = () => {
   const canvasElm = useRef<HTMLCanvasElement | null>(null)
   const canvasDims = useRef<Dimension | null>(null)
 
-  const initializeCanvas = (resetViewport: boolean = true) => {
+  const updateCanvas = (isInitialize: boolean = false) => {
     const canvas =
       canvasRef.current || new fabric.Canvas(canvasElm.current, CANVAS_CONFIG)
 
@@ -24,17 +24,18 @@ export const useContainer = () => {
 
     if (!canvasRef.current) canvasRef.current = canvas
 
-    // set canvas element and its extend element styles
-    const lowerCanvasElm = canvas.getElement()
-    const upperCanvasElm = lowerCanvasElm.nextElementSibling as Element
-    const extendElm = lowerCanvasElm.parentElement as HTMLElement
-    extendElm.style.position = 'absolute'
-    extendElm.style.top = '0'
-    extendElm.style.touchAction = 'none'
-    extendElm.classList.add('bg-gray-200')
-    lowerCanvasElm.classList.remove('hidden')
-    upperCanvasElm.classList.remove('hidden')
-    resetViewport && canvas.setViewportTransform([1, 0, 0, 1, 0, 0]) // set viewport to the center
+    if (isInitialize) {
+      // set canvas element and its extend element styles
+      const lowerCanvasElm = canvas.getElement()
+      const upperCanvasElm = lowerCanvasElm.nextElementSibling as Element
+      const extendElm = lowerCanvasElm.parentElement as HTMLElement
+      extendElm.style.position = 'absolute'
+      extendElm.style.top = '0'
+      extendElm.style.touchAction = 'none'
+      extendElm.classList.add('bg-gray-200')
+      lowerCanvasElm.classList.remove('hidden')
+      upperCanvasElm.classList.remove('hidden')
+    }
   }
 
   const calcCanvasDims = () => {
@@ -48,12 +49,11 @@ export const useContainer = () => {
   }
 
   useEffect(() => {
-    initializeCanvas()
+    updateCanvas(true)
   }, [canvasElm])
 
   window.onresize = () => {
-    initializeCanvas(false)
-    console.log(canvasDims.current)
+    updateCanvas()
   }
 
   return {

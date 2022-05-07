@@ -54,8 +54,6 @@ export const Annotator = ({
   useKeyboard({ stateStack, focus, nextImg, prevImg, save }) // listeners for keyboard for support shortcuts.
 
   // const { ImageContainer, canvasRef, canvasProps } = useContainer({ imageData }) // get tsx fragment and some variable which calculate after image loaded.
-  // const { imageObj, imageLoadingState } = useImage(imageData)
-  // useCanvas({ imageObj, imageLoadingState, canvasRef })
 
   const nothing = {
     categoryColors,
@@ -72,32 +70,6 @@ export const Annotator = ({
   //   annoColors,
   //   stateStack
   // }) // canvas host canvas' status and responsible for synchronize canvas & focus & stateStack.
-
-  // const mouseListeners = {
-  //   ...useMouseListeners({
-  //     canvasRef,
-  //     canvasProps,
-  //     stateStack,
-  //     focus,
-  //     annoColors
-  //   }), // hanlde mouse & touch board operations logic, includes draw, panning and zoom
-  //   ...useMouseHover({ focus }) // handle hover effect of the points and polygon's lines
-  // }
-
-  // useLayoutEffect(() => {
-  //   console.log('imageDims or canvasDims changed')
-  //   // Initialize state stack
-  //   const imageAnnos = imageData.annotations.map((anno) =>
-  //     anno.scaleTransform(canvasProps.scale, canvasProps.offset)
-  //   )
-  //   annoColors.init({ categoryColors, categories, colors }) // initialize colors
-  //   stateStack.set([imageAnnos])
-  // }, [canvasProps.imageDims, canvasProps.canvasDims])
-
-  // remount mouse listeners when it changed.
-  // useEffect(() => {
-  //   canvasRef.current && loadListeners(mouseListeners) // mount event listeners
-  // }, [mouseListeners])
 
   return isAnnosVisible ? (
     <div className='w-full h-full flex flex-col justify-center items-center relative'>
