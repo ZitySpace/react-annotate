@@ -1,6 +1,7 @@
 import { fabric } from 'fabric'
 import React, { useEffect, useRef } from 'react'
 import { Dimension } from '../classes/Geometry/Dimension'
+import { CANVAS_CONFIG } from '../interfaces/config'
 export interface UseContainerReturnProps {
   Container: JSX.Element // canvas dom
   cavansRef: React.RefObject<fabric.Canvas>
@@ -9,13 +10,13 @@ export interface UseContainerReturnProps {
 export const useContainer = () => {
   const canvasRef = useRef<fabric.Canvas | null>(null)
   const canvasElm = useRef<HTMLCanvasElement | null>(null)
-  const canvasDims = useRef<Dimension>(new Dimension())
+  const canvasDims = useRef<Dimension | null>(null)
 
   const initializeCanvas = (resetViewport: boolean = true) => {
-    calcCanvasDims()
-    const canvas = canvasRef.current || new fabric.Canvas(canvasElm.current)
+    const canvas =
+      canvasRef.current || new fabric.Canvas(canvasElm.current, CANVAS_CONFIG)
 
-    const { w: canvas_w, h: canvas_h } = canvasDims.current
+    const { w: canvas_w, h: canvas_h } = calcCanvasDims()
     canvas.setWidth(canvas_w)
     canvas.setHeight(canvas_h)
 
@@ -39,7 +40,9 @@ export const useContainer = () => {
     const { width: canvas_w, height: _canvas_h } =
       extendElm.getBoundingClientRect() // get canvas extend element dimensions
     const canvas_h = _canvas_h - 36 // minus the buttons bar's height
-    canvasDims.current = new Dimension(canvas_w, canvas_h)
+    const _canvasDims = new Dimension(canvas_w, canvas_h)
+    canvasDims.current = _canvasDims
+    return _canvasDims
   }
 
   useEffect(() => {
@@ -48,6 +51,7 @@ export const useContainer = () => {
 
   window.onresize = () => {
     initializeCanvas(false)
+    console.log(canvasDims.current)
   }
 
   return {
@@ -61,6 +65,6 @@ export const useContainer = () => {
       </div>
     ),
     canvasRef,
-    canvasDims
+    canvasDims: canvasDims.current
   }
 }

@@ -1,5 +1,5 @@
 import { fabric } from 'fabric'
-import { MutableRefObject, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useStateList } from 'react-use'
 import { Boundary } from '../classes/Geometry/Boundary'
 import { Dimension } from '../classes/Geometry/Dimension'
@@ -9,7 +9,7 @@ import { ImageData, DataState } from '../interfaces/basic'
 import { UseStateStackReturnProps } from './useStateStack'
 
 export interface GeometryAttributes {
-  canvasDims: Dimension
+  // canvasDims: Dimension
   imageDims: Dimension
   imageBoundary: Boundary
   scale: number
@@ -29,7 +29,7 @@ export interface UseDataReturnProps {
 export const useData = (
   imagesList: ImageData[],
   stateStack: UseStateStackReturnProps,
-  canvasDims: MutableRefObject<Dimension>,
+  canvasDims: Dimension | null,
   initIndex: number = 0
 ) => {
   // initialize images list
@@ -66,18 +66,19 @@ export const useData = (
   }
 
   useEffect(() => {
+    if (!canvasDims) return
     setImageLoadingState(DataState.Loading)
     setAnnosInitState(DataState.Loading)
 
     // calculate the image dimensions and boundary, its scale and the offset between canvas and image
     const { width: image_w, height: image_h } = imageData
-    const { w: canvas_w, h: canvas_h } = canvasDims.current
+    const { w: canvas_w, h: canvas_h } = canvasDims
     const scale_x = image_w < canvas_w ? 1 : canvas_w / image_w
     const scale_y = image_h < canvas_h ? 1 : canvas_h / image_h
     scale.current = Math.min(scale_x, scale_y)
     imageDims.current = new Dimension(image_w, image_h).zoom(scale.current)
-    imageBoundary.current = imageDims.current.boundaryIn(canvasDims.current)
-    offset.current = imageDims.current.offsetTo(canvasDims.current)
+    imageBoundary.current = imageDims.current.boundaryIn(canvasDims)
+    offset.current = imageDims.current.offsetTo(canvasDims)
 
     const { x: left, y: top } = offset.current
     const [scaleX, scaleY] = [scale.current, scale.current]
@@ -97,7 +98,7 @@ export const useData = (
     annos.forEach((anno) => anno.scaleTransform(scale.current, offset.current))
     stateStack.set([annos])
     setAnnosInitState(DataState.Ready)
-  }, [imageData])
+  }, [imageData, canvasDims])
 
   useEffect(() => {
     initIndex && setImageIdx(initIndex)
@@ -108,7 +109,6 @@ export const useData = (
     imageLoadingState,
     annosInitState,
     geometryAttributes: {
-      canvasDims: canvasDims.current,
       imageDims: imageDims.current,
       imageBoundary: imageBoundary.current,
       scale: scale.current,

@@ -4,6 +4,7 @@ import { useColors } from '../hooks/useColor'
 import { useContainer } from '../hooks/useContainer'
 import { useData } from '../hooks/useData'
 import { useFocus } from '../hooks/useFocus'
+import { useMouseListeners } from '../hooks/useMouseListeners'
 import { useStateStack } from '../hooks/useStateStack'
 import { ImageData } from '../interfaces/basic'
 import '../tailwind.css'
@@ -42,7 +43,13 @@ export const Annotator = ({
     nextImg,
     save
   } = useData(imagesList, stateStack, canvasDims, index)
-  useCanvas({ canvasRef, imageObj, imageLoadingState, annosInitState })
+  const { loadListeners } = useCanvas({
+    canvasRef,
+    imageObj,
+    imageLoadingState,
+    annosInitState
+  })
+  useMouseListeners({ canvasRef, canvasDims, focus, loadListeners })
 
   // const { ImageContainer, canvasRef, canvasProps } = useContainer({ imageData }) // get tsx fragment and some variable which calculate after image loaded.
   // const { imageObj, imageLoadingState } = useImage(imageData)
