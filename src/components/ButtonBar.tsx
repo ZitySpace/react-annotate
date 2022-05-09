@@ -1,5 +1,6 @@
 import React from 'react'
-import { Label, LabelType } from '../classes/Label'
+import { LabelType } from '../classes/Label'
+import { DataOperation } from '../hooks/useData'
 import { UseFocusReturnProps } from '../hooks/useFocus'
 import { UseStateStackReturnProps } from '../hooks/useStateStack'
 import { Button } from './Button'
@@ -22,15 +23,11 @@ import {
 export const ButtonBar = ({
   focus,
   stateStack,
-  nextImg,
-  prevImg,
-  save
+  dataOperation
 }: {
   focus: UseFocusReturnProps
   stateStack: UseStateStackReturnProps
-  nextImg: (event: any) => void
-  prevImg: (event: any) => void
-  save: () => Label[]
+  dataOperation: DataOperation
 }) => {
   const { can, prev: undo, next: redo, reset, deleteObjects } = stateStack
 
@@ -39,6 +36,7 @@ export const ButtonBar = ({
     nowFocus: { drawingType, objects },
     setDrawingType
   } = focus
+  const { prevImg, nextImg, save } = dataOperation
 
   const deleteObj = () => deleteObjects(objects.map(({ id }) => id))
 

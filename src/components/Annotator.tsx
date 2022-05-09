@@ -36,30 +36,24 @@ export const Annotator = ({
   const annoColors = useColors() // handle colors' stuff.
 
   const { Container, canvas, canvasDims } = useContainer()
-  const {
-    imageObj,
-    imageLoadingState,
-    annosInitState,
-    geometricAttributes,
-    prevImg,
-    nextImg,
-    save
-  } = useData(imagesList, stateStack, canvasDims, index)
+  const data = useData(imagesList, stateStack, canvasDims, index)
   const { loadListeners } = useCanvas({
     canvas,
-    imageObj,
-    imageLoadingState,
-    annosInitState,
+    data,
     stateStack,
-    geometricAttributes,
     annoColors,
     focus,
     isAnnosVisible
   })
-  useMouse({ canvas, canvasDims, focus, loadListeners })
-  useKeyboard({ stateStack, focus, nextImg, prevImg, save }) // listeners for keyboard for support shortcuts.
-
-  // const { ImageContainer, canvasRef, canvasProps } = useContainer({ imageData }) // get tsx fragment and some variable which calculate after image loaded.
+  useMouse({
+    canvas,
+    geometricAttributes: data.geometricAttributes,
+    focus,
+    stateStack,
+    annoColors,
+    loadListeners
+  })
+  useKeyboard({ stateStack, focus, dataOperation: data.operation }) // listeners for keyboard for support shortcuts.
 
   const nothing = {
     categoryColors,
@@ -67,15 +61,6 @@ export const Annotator = ({
     colors
   }
   !nothing
-
-  // const { loadListeners } = useCanvas({
-  //   canvasRef,
-  //   canvasProps,
-  //   focus,
-  //   isAnnosVisible,
-  //   annoColors,
-  //   stateStack
-  // }) // canvas host canvas' status and responsible for synchronize canvas & focus & stateStack.
 
   return isAnnosVisible ? (
     <div className='w-full h-full flex flex-col justify-center items-center relative'>
@@ -88,9 +73,7 @@ export const Annotator = ({
       <ButtonBar
         stateStack={stateStack}
         focus={focus}
-        nextImg={nextImg}
-        prevImg={prevImg}
-        save={save}
+        dataOperation={data.operation}
       />
     </div>
   ) : null

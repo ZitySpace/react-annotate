@@ -9,11 +9,17 @@ import { ImageData, DataState } from '../interfaces/basic'
 import { UseStateStackReturnProps } from './useStateStack'
 
 export interface GeometricAttributes {
-  // canvasDims: Dimension
+  canvasDims: Dimension | null
   imageDims: Dimension
   imageBoundary: Boundary
   scale: number
   offset: Point
+}
+
+export interface DataOperation {
+  prevImg: () => void
+  nextImg: () => void
+  save: () => Label[]
 }
 
 export interface UseDataReturnProps {
@@ -21,9 +27,7 @@ export interface UseDataReturnProps {
   imageLoadingState: DataState
   annosInitState: DataState
   geometricAttributes: GeometricAttributes
-  prevImg: () => void
-  nextImg: () => void
-  save: () => Label[]
+  operation: DataOperation
 }
 
 export const useData = (
@@ -55,14 +59,14 @@ export const useData = (
   )
   const imageObj = useRef<fabric.Image | null>(null)
 
-  const methods = {
+  const operation = {
     save: () => {
       console.log('save called')
       return nowState
     },
 
-    prevImg: () => (prev() as undefined) || methods.save(),
-    nextImg: () => (next() as undefined) || methods.save()
+    prevImg: () => (prev() as undefined) || operation.save(),
+    nextImg: () => (next() as undefined) || operation.save()
   }
 
   useEffect(() => {
@@ -109,11 +113,12 @@ export const useData = (
     imageLoadingState,
     annosInitState,
     geometricAttributes: {
+      canvasDims,
       imageDims: imageDims.current,
       imageBoundary: imageBoundary.current,
       scale: scale.current,
       offset: offset.current
     },
-    ...methods
+    operation
   }
 }

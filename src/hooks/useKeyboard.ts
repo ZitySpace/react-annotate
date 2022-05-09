@@ -1,19 +1,16 @@
-import { Label, LabelType } from '../classes/Label'
+import { LabelType } from '../classes/Label'
+import { DataOperation } from './useData'
 import { UseFocusReturnProps } from './useFocus'
 import { UseStateStackReturnProps } from './useStateStack'
 
 export const useKeyboard = ({
   stateStack,
   focus,
-  prevImg,
-  nextImg,
-  save
+  dataOperation
 }: {
   stateStack: UseStateStackReturnProps
   focus: UseFocusReturnProps
-  prevImg: () => void
-  nextImg: () => void
-  save: () => Label[]
+  dataOperation: DataOperation
 }) => {
   const {
     can,
@@ -25,6 +22,7 @@ export const useKeyboard = ({
   const { undo: canUndo, redo: canRedo, reset: canReset, save: canSave } = can
   const { setDrawingType } = focus
   const { drawingType, objects } = focus.nowFocus
+  const { prevImg, nextImg, save } = dataOperation
 
   const deleteObj = () => deleteObjects(objects.map(({ id }) => id))
 

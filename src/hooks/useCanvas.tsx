@@ -4,27 +4,21 @@ import { Label } from '../classes/Label'
 import { DataState } from '../interfaces/basic'
 import { isLabel, newLabel } from '../utils/label'
 import { UseColorsReturnProps } from './useColor'
-import { GeometricAttributes } from './useData'
+import { UseDataReturnProps } from './useData'
 import { UseFocusReturnProps } from './useFocus'
 import { State, UseStateStackReturnProps } from './useStateStack'
 
 export const useCanvas = ({
   canvas,
-  imageObj,
-  imageLoadingState,
-  annosInitState,
+  data,
   stateStack,
-  geometricAttributes,
   annoColors,
   focus,
   isAnnosVisible
 }: {
   canvas: fabric.Canvas | null
-  imageObj: fabric.Image | null
-  imageLoadingState: DataState
-  annosInitState: DataState
+  data: UseDataReturnProps
   stateStack: UseStateStackReturnProps
-  geometricAttributes: GeometricAttributes
   annoColors: UseColorsReturnProps
   focus: UseFocusReturnProps
   isAnnosVisible: boolean
@@ -32,6 +26,8 @@ export const useCanvas = ({
   const listenersRef = useRef<object>({})
   const listeners = listenersRef.current
 
+  const { imageObj, imageLoadingState, annosInitState, geometricAttributes } =
+    data
   const isDataReady =
     imageLoadingState === DataState.Ready && annosInitState === DataState.Ready
   const { nowState, push: pushState } = stateStack
