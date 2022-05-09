@@ -139,13 +139,6 @@ export const useCanvas = ({
 
   // Initialize image
   useEffect(() => {
-    console.log(
-      'useCanvas',
-      'initialize background image',
-      isDataReady,
-      imageObj
-    ) // TODO: remove
-
     if (!canvas) return
     if (isDataReady && imageObj)
       canvas
@@ -241,6 +234,5 @@ export const useCanvas = ({
   })
 
   canvas && methods.loadListeners(listeners) // If canvas no null, mount listeners
-
   return { loadListeners: methods.loadListeners }
 }
