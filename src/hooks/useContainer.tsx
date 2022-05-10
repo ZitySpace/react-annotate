@@ -2,6 +2,7 @@ import { fabric } from 'fabric'
 import React, { useEffect, useRef } from 'react'
 import { Dimension } from '../classes/Geometry/Dimension'
 import { CANVAS_CONFIG } from '../interfaces/config'
+import { useUpdate } from 'react-use'
 
 export interface UseContainerReturnProps {
   Container: JSX.Element // canvas dom
@@ -14,20 +15,20 @@ export const useContainer = () => {
   const canvasElm = useRef<HTMLCanvasElement | null>(null)
   const canvasDims = useRef<Dimension | null>(null)
 
-  const updateCanvas = (isInitialize: boolean = false) => {
-    console.log('updateCanvas', isInitialize)
+  const initWidthRef = useRef<number>(0)
+  const update = useUpdate()
 
-    const canvas =
+  const updateCanvas = (isInitialize: boolean = false) => {
+    canvasRef.current =
       canvasRef.current || new fabric.Canvas(canvasElm.current, CANVAS_CONFIG)
+
+    const canvas = canvasRef.current
 
     const { w: canvas_w, h: canvas_h } = calcCanvasDims()
     canvas.setWidth(canvas_w)
     canvas.setHeight(canvas_h)
 
-    if (!canvasRef.current) canvasRef.current = canvas
-
     if (isInitialize) {
-      console.log(canvasRef)
       // set canvas element and its extend element styles
       const lowerCanvasElm = canvas.getElement()
       const upperCanvasElm = lowerCanvasElm.nextElementSibling as Element
@@ -38,6 +39,8 @@ export const useContainer = () => {
       extendElm.classList.add('bg-gray-200')
       lowerCanvasElm.classList.remove('hidden')
       upperCanvasElm.classList.remove('hidden')
+
+      initWidthRef.current = canvas_w
     }
   }
 
@@ -57,6 +60,7 @@ export const useContainer = () => {
 
   window.onresize = () => {
     updateCanvas()
+    update()
   }
 
   return {
@@ -70,6 +74,7 @@ export const useContainer = () => {
       </div>
     ),
     canvas: canvasRef.current,
-    canvasDims: canvasDims.current
+    canvasDims: canvasDims.current,
+    initWidthRef
   }
 }

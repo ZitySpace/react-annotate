@@ -35,8 +35,16 @@ export const Annotator = ({
   const stateStack = useStateStack() // handle canvas's state history stack and the buttons bar limits.
   const annoColors = useColors() // handle colors' stuff.
 
-  const { Container, canvas, canvasDims } = useContainer()
-  const data = useData(imagesList, stateStack, canvasDims, index)
+  const { Container, canvas, canvasDims, initWidthRef } = useContainer()
+  const data = useData(
+    imagesList,
+    stateStack,
+    canvasDims,
+    canvas,
+    initWidthRef,
+    index
+  )
+
   const { loadListeners } = useCanvas({
     canvas,
     data,
@@ -45,13 +53,15 @@ export const Annotator = ({
     focus,
     isAnnosVisible
   })
+
   useMouse({
     canvas,
     geometricAttributes: data.geometricAttributes,
     focus,
     stateStack,
     annoColors,
-    loadListeners
+    loadListeners,
+    initWidthRef
   })
   useKeyboard({ stateStack, focus, dataOperation: data.operation }) // listeners for keyboard for support shortcuts.
 
