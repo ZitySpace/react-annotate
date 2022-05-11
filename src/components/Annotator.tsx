@@ -36,14 +36,8 @@ export const Annotator = ({
   const annoColors = useColors() // handle colors' stuff.
 
   const { Container, canvas, canvasDims, initWidthRef } = useContainer()
-  const data = useData(
-    imagesList,
-    stateStack,
-    canvasDims,
-    canvas,
-    initWidthRef,
-    index
-  )
+
+  const data = useData(imagesList, stateStack, canvasDims, initWidthRef, index)
 
   const { loadListeners } = useCanvas({
     canvas,

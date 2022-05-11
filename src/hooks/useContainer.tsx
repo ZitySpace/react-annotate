@@ -13,7 +13,7 @@ export interface UseContainerReturnProps {
 export const useContainer = () => {
   const canvasRef = useRef<fabric.Canvas | null>(null)
   const canvasElm = useRef<HTMLCanvasElement | null>(null)
-  const canvasDims = useRef<Dimension | null>(null)
+  const canvasDimsRef = useRef<Dimension | null>(null)
 
   const initWidthRef = useRef<number>(0)
   const update = useUpdate()
@@ -50,13 +50,29 @@ export const useContainer = () => {
       extendElm.getBoundingClientRect() // get canvas extend element dimensions
     const canvas_h = _canvas_h - 36 // minus the buttons bar's height
     const _canvasDims = new Dimension(canvas_w, canvas_h)
-    canvasDims.current = _canvasDims
+    canvasDimsRef.current = _canvasDims
     return _canvasDims
   }
 
   useEffect(() => {
     updateCanvas(true)
   }, [canvasElm])
+
+  useEffect(() => {
+    const canvas = canvasRef.current
+    const canvasDims = canvasDimsRef.current
+
+    if (!canvasDims || !canvas) return
+
+    const vpt = canvas.viewportTransform as number[]
+    const { w: canvas_w } = canvasDims
+    const zoom = canvas.getZoom()
+    if (canvas_w >= initWidthRef.current * zoom) {
+      vpt[4] = (canvas_w - initWidthRef.current * zoom) / 2
+    }
+
+    canvas.setViewportTransform(vpt)
+  }, [canvasDimsRef.current])
 
   window.onresize = () => {
     updateCanvas()
@@ -74,7 +90,7 @@ export const useContainer = () => {
       </div>
     ),
     canvas: canvasRef.current,
-    canvasDims: canvasDims.current,
+    canvasDims: canvasDimsRef.current,
     initWidthRef
   }
 }

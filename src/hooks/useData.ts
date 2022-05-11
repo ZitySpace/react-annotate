@@ -34,7 +34,6 @@ export const useData = (
   imagesList: ImageData[],
   stateStack: UseStateStackReturnProps,
   canvasDims: Dimension | null,
-  canvas: fabric.Canvas | null,
   initWidthRef: React.MutableRefObject<number>,
   initIndex: number = 0
 ) => {
@@ -107,17 +106,6 @@ export const useData = (
 
     initWidthRef.current = canvas_w
   }, [imageData])
-
-  useEffect(() => {
-    if (!canvasDims || !canvas) return
-
-    const vpt = canvas.viewportTransform as number[]
-    const { w: canvas_w } = canvasDims
-    const zoom = canvas.getZoom()
-    if (canvas_w >= initWidthRef.current * zoom) {
-      vpt[4] = (canvas_w - initWidthRef.current * zoom) / 2
-    }
-  }, [canvasDims])
 
   useEffect(() => {
     initIndex && setImageIdx(initIndex)
