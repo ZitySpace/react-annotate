@@ -32,6 +32,7 @@ export const useMouse = ({
   canvas,
   geometricAttributes,
   stateStack,
+  initWidthRef,
   focus,
   annoColors,
   loadListeners
@@ -39,6 +40,7 @@ export const useMouse = ({
   canvas: fabric.Canvas | null
   geometricAttributes: GeometricAttributes
   stateStack: UseStateStackReturnProps
+  initWidthRef: React.MutableRefObject<number>
   focus: UseFocusReturnProps
   annoColors: UseColorsReturnProps
   loadListeners: (newListeners: object) => void
@@ -94,9 +96,11 @@ export const useMouse = ({
     const { w, h } = canvasDims! || new Point()
     const { x, y } = offset
     const vpt = canvas.viewportTransform as number[]
-    const offsetX = w * (1 - zoom)
+    // const offsetX = w * (1 - zoom)
+    const offsetX = w - initWidthRef.current * zoom
     const offsetY = h * (1 - zoom)
-    vpt[4] = zoom < 1 ? offsetX / 2 : getBetween(vpt[4] + x, offsetX, 0)
+    // vpt[4] = zoom < 1 ? offsetX / 2 : getBetween(vpt[4] + x, offsetX, 0)
+    vpt[4] = offsetX > 0 ? offsetX / 2 : getBetween(vpt[4] + x, offsetX, 0)
     vpt[5] = zoom < 1 ? offsetY / 2 : getBetween(vpt[5] + y, offsetY, 0)
     canvas.requestRenderAll()
   }
@@ -150,7 +154,6 @@ export const useMouse = ({
       updateEndpointAssociatedLinesPosition(lastEndpoint)
       if (points) points[points.length - 1] = new Point(left, top)
     }
-
     canvas.requestRenderAll()
   }
 
@@ -223,7 +226,6 @@ export const useMouse = ({
           : obj
       )
     }
-
     isDrawingStarted.current = false
     onDrawObj.current = null
     setDrawingType()

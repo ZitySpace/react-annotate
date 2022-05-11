@@ -2,6 +2,7 @@ import { fabric } from 'fabric'
 import React, { useEffect, useRef } from 'react'
 import { Dimension } from '../classes/Geometry/Dimension'
 import { CANVAS_CONFIG } from '../interfaces/config'
+import { useUpdate } from 'react-use'
 
 export interface UseContainerReturnProps {
   Container: JSX.Element // canvas dom
@@ -12,22 +13,22 @@ export interface UseContainerReturnProps {
 export const useContainer = () => {
   const canvasRef = useRef<fabric.Canvas | null>(null)
   const canvasElm = useRef<HTMLCanvasElement | null>(null)
-  const canvasDims = useRef<Dimension | null>(null)
+  const canvasDimsRef = useRef<Dimension | null>(null)
+
+  const initWidthRef = useRef<number>(0)
+  const update = useUpdate()
 
   const updateCanvas = (isInitialize: boolean = false) => {
-    console.log('updateCanvas', isInitialize)
-
-    const canvas =
+    canvasRef.current =
       canvasRef.current || new fabric.Canvas(canvasElm.current, CANVAS_CONFIG)
+
+    const canvas = canvasRef.current
 
     const { w: canvas_w, h: canvas_h } = calcCanvasDims()
     canvas.setWidth(canvas_w)
     canvas.setHeight(canvas_h)
 
-    if (!canvasRef.current) canvasRef.current = canvas
-
     if (isInitialize) {
-      console.log(canvasRef)
       // set canvas element and its extend element styles
       const lowerCanvasElm = canvas.getElement()
       const upperCanvasElm = lowerCanvasElm.nextElementSibling as Element
@@ -38,6 +39,8 @@ export const useContainer = () => {
       extendElm.classList.add('bg-gray-200')
       lowerCanvasElm.classList.remove('hidden')
       upperCanvasElm.classList.remove('hidden')
+
+      initWidthRef.current = canvas_w
     }
   }
 
@@ -47,7 +50,7 @@ export const useContainer = () => {
       extendElm.getBoundingClientRect() // get canvas extend element dimensions
     const canvas_h = _canvas_h - 36 // minus the buttons bar's height
     const _canvasDims = new Dimension(canvas_w, canvas_h)
-    canvasDims.current = _canvasDims
+    canvasDimsRef.current = _canvasDims
     return _canvasDims
   }
 
@@ -55,8 +58,25 @@ export const useContainer = () => {
     updateCanvas(true)
   }, [canvasElm])
 
+  useEffect(() => {
+    const canvas = canvasRef.current
+    const canvasDims = canvasDimsRef.current
+
+    if (!canvasDims || !canvas) return
+
+    const vpt = canvas.viewportTransform as number[]
+    const { w: canvas_w } = canvasDims
+    const zoom = canvas.getZoom()
+    if (canvas_w >= initWidthRef.current * zoom) {
+      vpt[4] = (canvas_w - initWidthRef.current * zoom) / 2
+    }
+
+    canvas.setViewportTransform(vpt)
+  }, [canvasDimsRef.current])
+
   window.onresize = () => {
     updateCanvas()
+    update()
   }
 
   return {
@@ -70,6 +90,7 @@ export const useContainer = () => {
       </div>
     ),
     canvas: canvasRef.current,
-    canvasDims: canvasDims.current
+    canvasDims: canvasDimsRef.current,
+    initWidthRef
   }
 }

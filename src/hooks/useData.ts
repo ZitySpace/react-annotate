@@ -34,6 +34,7 @@ export const useData = (
   imagesList: ImageData[],
   stateStack: UseStateStackReturnProps,
   canvasDims: Dimension | null,
+  initWidthRef: React.MutableRefObject<number>,
   initIndex: number = 0
 ) => {
   // initialize images list
@@ -102,6 +103,8 @@ export const useData = (
     annos.forEach((anno) => anno.scaleTransform(scale.current, offset.current))
     stateStack.set([annos])
     setAnnosInitState(DataState.Ready)
+
+    initWidthRef.current = canvas_w
   }, [imageData])
 
   useEffect(() => {
