@@ -68,6 +68,8 @@ export class PolygonLabel extends Label {
     this.scale = scale
     this.offset = offset
     this.points.forEach((p) => p.zoom(scale).translate(offset))
+    const { x: left, y: top, w, h } = boundaryOfPolygon(this.points)
+    this.boundary = new Rect(left, top, w, h)
     return this
   }
 
