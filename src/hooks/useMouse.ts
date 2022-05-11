@@ -226,7 +226,6 @@ export const useMouse = ({
           : obj
       )
     }
-
     isDrawingStarted.current = false
     onDrawObj.current = null
     setDrawingType()
