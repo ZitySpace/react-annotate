@@ -34,7 +34,6 @@ export const useCanvas = ({
 }) => {
   const listenersRef = useRef<object>({})
   const listeners = listenersRef.current
-  const canvasLabelsCount = canvas?.getObjects().filter(isLabel).length || 0
 
   const { imageObj, imageLoadingState, annosInitState, geometricAttributes } =
     data
@@ -108,11 +107,6 @@ export const useCanvas = ({
     methods.syncCanvasToState()
     canvas.remove(...oldObjs).add(...newObjs)
   }
-
-  // Sync Canvas to state when the number of Objects in Canvas changes(mostly incrase) and not equal to state's label's count.
-  useEffect(() => {
-    canvasLabelsCount !== nowState.length && methods.syncCanvasToState()
-  }, [canvasLabelsCount])
 
   // Sync state to canvas & focus if state changed
   useEffect(() => {
@@ -234,5 +228,5 @@ export const useCanvas = ({
   })
 
   canvas && methods.loadListeners(listeners) // If canvas no null, mount listeners
-  return { loadListeners: methods.loadListeners }
+  return { ...methods }
 }

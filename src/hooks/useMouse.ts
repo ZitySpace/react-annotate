@@ -35,7 +35,8 @@ export const useMouse = ({
   initWidthRef,
   focus,
   annoColors,
-  loadListeners
+  loadListeners,
+  syncCanvasToState
 }: {
   canvas: fabric.Canvas | null
   geometricAttributes: GeometricAttributes
@@ -44,6 +45,7 @@ export const useMouse = ({
   focus: UseFocusReturnProps
   annoColors: UseColorsReturnProps
   loadListeners: (newListeners: object) => void
+  syncCanvasToState: () => void
 }) => {
   const lastPosition = useRef<Point>(new Point())
   const isPanning = useRef<boolean>(false)
@@ -230,6 +232,7 @@ export const useMouse = ({
     onDrawObj.current = null
     setDrawingType()
     canvas.renderAll()
+    syncCanvasToState()
   }
 
   const listeners = {

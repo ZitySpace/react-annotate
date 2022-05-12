@@ -36,10 +36,8 @@ export const Annotator = ({
   const annoColors = useColors() // handle colors' stuff.
 
   const { Container, canvas, canvasDims, initWidthRef } = useContainer()
-
   const data = useData(imagesList, stateStack, canvasDims, initWidthRef, index)
-
-  const { loadListeners } = useCanvas({
+  const { loadListeners, syncCanvasToState } = useCanvas({
     canvas,
     data,
     stateStack,
@@ -55,6 +53,7 @@ export const Annotator = ({
     stateStack,
     annoColors,
     loadListeners,
+    syncCanvasToState,
     initWidthRef
   })
   useKeyboard({ stateStack, focus, dataOperation: data.operation }) // listeners for keyboard for support shortcuts.
