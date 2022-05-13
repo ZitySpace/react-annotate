@@ -78,15 +78,10 @@ export class RectLabel extends Label {
   /**
    * generate fabric objects from the label
    * @param color the color of the category
-   * @param visible
    * @param needText is it need to show the text
    * @returns
    */
-  getFabricObjects(
-    color: string,
-    visible: boolean = true,
-    needText: boolean = true
-  ) {
+  getFabricObjects(color: string, needText: boolean = true) {
     const {
       rect: { x, y, w, h },
       labelType,
@@ -99,8 +94,7 @@ export class RectLabel extends Label {
       top: y,
       width: w - STROKE_WIDTH,
       height: h - STROKE_WIDTH,
-      stroke: color,
-      visible
+      stroke: color
     })
 
     const textbox = new fabric.Textbox(id.toString(), {
@@ -108,8 +102,7 @@ export class RectLabel extends Label {
       left: x + STROKE_WIDTH,
       top: y + STROKE_WIDTH,
       backgroundColor: color,
-      fontSize: getFontSize(w, h),
-      visible
+      fontSize: getFontSize(w, h)
     })
 
     const products = needText ? [textbox, rect] : [rect]

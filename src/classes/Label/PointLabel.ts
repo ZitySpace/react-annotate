@@ -70,15 +70,10 @@ export class PointLabel extends Label {
   /**
    * generate fabric objects from the label
    * @param color the color of the category
-   * @param visible
    * @param needText is it need to show the text
    * @returns
    */
-  getFabricObjects(
-    color: string,
-    visible: boolean = true,
-    needText: boolean = true
-  ) {
+  getFabricObjects(color: string, needText: boolean = true) {
     const {
       point: { x, y },
       id,
@@ -90,8 +85,7 @@ export class PointLabel extends Label {
       left: x,
       top: y,
       fill: color,
-      stroke: TRANSPARENT,
-      visible
+      stroke: TRANSPARENT
     })
 
     const textbox = new fabric.Textbox(id.toString(), {
@@ -99,8 +93,7 @@ export class PointLabel extends Label {
       left: x + RADIUS - STROKE_WIDTH / 2,
       top: y - RADIUS + STROKE_WIDTH / 2,
       originY: 'bottom',
-      backgroundColor: color,
-      visible
+      backgroundColor: color
     })
 
     const products = needText ? [textbox, point] : [point]

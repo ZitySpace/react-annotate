@@ -38,9 +38,5 @@ export abstract class Label {
   abstract scaleTransform(scale: number, offset: Point): this
   abstract origin(): this
   abstract getAnnotation(): this
-  abstract getFabricObjects(
-    color: string,
-    visible?: boolean,
-    needText?: boolean
-  ): fabric.Object[]
+  abstract getFabricObjects(color: string, needText?: boolean): fabric.Object[]
 }

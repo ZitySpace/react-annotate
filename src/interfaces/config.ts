@@ -27,8 +27,6 @@ export const POINT_DEFAULT_CONFIG: fabric.ICircleOptions = {
   selectable: !IS_TOUCH_SCREEN,
   hasControls: false,
   hasBorders: false,
-  // hoverCursor: 'crosshair',
-  // moveCursor: 'crosshair',
   strokeWidth: STROKE_WIDTH,
   fill: TRANSPARENT,
   radius: RADIUS,

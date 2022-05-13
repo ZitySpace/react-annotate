@@ -95,15 +95,10 @@ export class PolygonLabel extends Label {
   /**
    * generate fabric objects from the label
    * @param color the color of the category
-   * @param visible
    * @param needText is it need to show the text
    * @returns
    */
-  getFabricObjects(
-    color: string,
-    visible: boolean = true,
-    needText: boolean = true
-  ) {
+  getFabricObjects(color: string, needText: boolean = true) {
     const { boundary, points, id, category, labelType } = this
     const isPolygonClosed = points.length > 2
 
@@ -123,8 +118,7 @@ export class PolygonLabel extends Label {
         top: y,
         fill: color,
         stroke: TRANSPARENT,
-        selectable: isPolygonClosed,
-        visible
+        selectable: isPolygonClosed
       })
 
       endpoint.setOptions({ _id, lines: [], polygon })
@@ -138,8 +132,7 @@ export class PolygonLabel extends Label {
       .map(([{ x, y }, { x: _x, y: _y }], _id) => {
         const line = new fabric.Line([x, y, _x, _y], {
           ...LINE_DEFAULT_CONFIG,
-          stroke: color,
-          visible
+          stroke: color
         })
 
         const { x: left, y: top } = line.getCenterPoint()
@@ -180,8 +173,7 @@ export class PolygonLabel extends Label {
       top: topPoint.y - RADIUS,
       originX: 'center',
       originY: 'bottom',
-      backgroundColor: color,
-      visible
+      backgroundColor: color
     })
 
     const products = needText

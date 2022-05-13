@@ -122,7 +122,7 @@ export const useMouse = ({
       id,
       scale,
       offset
-    }).getFabricObjects(color, true, false)
+    }).getFabricObjects(color, false)
 
     canvas.add(...fabricObjects)
     onDrawObj.current = fabricObjects[0]
@@ -178,7 +178,7 @@ export const useMouse = ({
           obj,
           scale,
           offset
-        }).getFabricObjects(color, true, false)
+        }).getFabricObjects(color, false)
         canvas.remove(obj, ...endpoints, ...lines).add(...newFabricObjs)
         drawingStop()
       } else {

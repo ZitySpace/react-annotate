@@ -22,15 +22,13 @@ export const useCanvas = ({
   data,
   stateStack,
   annoColors,
-  focus,
-  isAnnosVisible
+  focus
 }: {
   canvas: fabric.Canvas | null
   data: UseDataReturnProps
   stateStack: UseStateStackReturnProps
   annoColors: UseColorsReturnProps
   focus: UseFocusReturnProps
-  isAnnosVisible: boolean
 }) => {
   const listenersRef = useRef<object>({})
   const listeners = listenersRef.current
@@ -91,7 +89,7 @@ export const useCanvas = ({
       obj: polygon,
       scale,
       offset
-    }).getFabricObjects(annoColors.get(polygon.category), true, false)
+    }).getFabricObjects(annoColors.get(polygon.category), false)
 
     const theEndpoint = newObjs.find(
       (o: any) => o._id === _id + 1 && o.type === 'circle'
@@ -154,7 +152,7 @@ export const useCanvas = ({
         setRenderLock() // avoid useEffect hook invoke syncStateToCanvas method
       },
 
-      syncStateToCanvas: (nowState: State, forceVisable: boolean = false) => {
+      syncStateToCanvas: (nowState: State) => {
         if (!canvas || getRenderLock()) return
         console.log('syncStateToCanvas called') // TODO: remove
 
@@ -163,8 +161,7 @@ export const useCanvas = ({
           const { category } = anno
           const currentColor = annoColors.get(category!)
           // TODO: ensure visible
-          const visible = forceVisable || isAnnosVisible // && isFocused(categoryName, id))
-          const fabricObjects = anno.getFabricObjects(currentColor, visible)
+          const fabricObjects = anno.getFabricObjects(currentColor)
           canvas.add(...fabricObjects)
         })
         canvas.requestRenderAll()

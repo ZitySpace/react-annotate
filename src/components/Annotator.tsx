@@ -42,8 +42,7 @@ export const Annotator = ({
     data,
     stateStack,
     annoColors,
-    focus,
-    isAnnosVisible
+    focus
   })
 
   useMouse({

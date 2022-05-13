@@ -77,15 +77,10 @@ export class LineLabel extends Label {
   /**
    * generate fabric objects from the label
    * @param color the color of the category
-   * @param visible
    * @param needText is it need to show the text
    * @returns
    */
-  getFabricObjects(
-    color: string,
-    visible: boolean = true,
-    needText: boolean = true
-  ) {
+  getFabricObjects(color: string, needText: boolean = true) {
     const {
       line: { x, y, _x, _y },
       id,
@@ -95,8 +90,7 @@ export class LineLabel extends Label {
 
     const line = new fabric.Line([x, y, _x, _y], {
       ...LINE_DEFAULT_CONFIG,
-      stroke: color,
-      visible
+      stroke: color
     })
 
     const endpoints = [
@@ -108,8 +102,7 @@ export class LineLabel extends Label {
         left: x,
         top: y,
         fill: color,
-        stroke: TRANSPARENT,
-        visible
+        stroke: TRANSPARENT
       })
       endpoint.setOptions({ _id, lines: [line] })
       return endpoint
@@ -124,8 +117,7 @@ export class LineLabel extends Label {
       top: topPoint.top! - RADIUS,
       originX: 'center',
       originY: 'bottom',
-      backgroundColor: color,
-      visible
+      backgroundColor: color
     })
 
     const products = needText
