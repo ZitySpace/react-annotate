@@ -78,7 +78,7 @@ export const POLYGON_DEFAULT_CONFIG: fabric.IPolylineOptions = {
   strokeWidth: STROKE_WIDTH,
   strokeUniform: true,
   noScaleCache: false,
-  opacity: 0.3,
+  opacity: 1,
   perPixelTargetFind: true
 }
 
