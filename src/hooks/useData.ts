@@ -58,7 +58,8 @@ export const useData = (
   const [imageLoadingState, setImageLoadingState] = useState<DataState>(
     DataState.Loading
   )
-  const imageObj = useRef<fabric.Image | null>(null)
+  const [imageObj, setImageObj] = useState<fabric.Image | null>(null)
+  const theLastLoadImageUrl = useRef<string>()
 
   const operation = {
     save: () => {
@@ -72,6 +73,7 @@ export const useData = (
 
   useEffect(() => {
     if (!canvasDims) return
+    theLastLoadImageUrl.current = imageData.url
     setImageLoadingState(DataState.Loading)
     setAnnosInitState(DataState.Loading)
 
@@ -92,11 +94,13 @@ export const useData = (
       (img: fabric.Image) => {
         const { width, height } = img
         if (width && height) {
-          imageObj.current = img
-          setImageLoadingState(DataState.Ready)
+          if (theLastLoadImageUrl.current === imageData.url) {
+            setImageObj(img)
+            setImageLoadingState(DataState.Ready)
+          }
         } else setImageLoadingState(DataState.Error)
       },
-      { left, top, scaleX, scaleY }
+      { left, top, scaleX, scaleY, url: imageData.url } as any
     )
 
     const annos = imageData.annotations
@@ -112,7 +116,7 @@ export const useData = (
   }, [])
 
   return {
-    imageObj: imageObj.current,
+    imageObj,
     imageLoadingState,
     annosInitState,
     geometricAttributes: {
