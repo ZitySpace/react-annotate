@@ -1,37 +1,50 @@
-import { LabelType } from '../classes/Label'
-import { DataOperation } from './useData'
-import { UseFocusReturnProps } from './useFocus'
-import { UseStateStackReturnProps } from './useStateStack'
+import { LabelType } from '../classes/Label';
+import { DataOperation } from './useData';
+import { UseFocusReturnProps } from './useFocus';
+import { useStore } from 'zustand';
+import { CanvasStore, CanvasStoreProps } from '../stores/CanvasStore';
 
 export const useKeyboard = ({
-  stateStack,
   focus,
-  dataOperation
+  dataOperation,
 }: {
-  stateStack: UseStateStackReturnProps
-  focus: UseFocusReturnProps
-  dataOperation: DataOperation
+  focus: UseFocusReturnProps;
+  dataOperation: DataOperation;
 }) => {
-  const {
-    can,
-    prev: prevState,
-    next: nextState,
+  const [
+    undo,
+    redo,
     reset,
-    deleteObjects
-  } = stateStack
-  const { undo: canUndo, redo: canRedo, reset: canReset, save: canSave } = can
-  const { setDrawingType } = focus
-  const { drawingType, objects } = focus.nowFocus
-  const { prevImg, nextImg, save } = dataOperation
+    canUndo,
+    canRedo,
+    canReset,
+    canSave,
+    deleteObjects,
+  ] = useStore(CanvasStore, (s: CanvasStoreProps) => {
+    return [
+      s.undo,
+      s.redo,
+      s.reset,
+      s.canUndo(),
+      s.canRedo(),
+      s.canReset(),
+      s.canSave(),
+      s.deleteObjects,
+    ];
+  });
 
-  const deleteObj = () => deleteObjects(objects.map(({ id }) => id))
+  const { setDrawingType } = focus;
+  const { drawingType, objects } = focus.nowFocus;
+  const { prevImg, nextImg, save } = dataOperation;
+
+  const deleteObj = () => deleteObjects(objects.map(({ id }) => id));
 
   const draw = (labelType: LabelType) => () =>
-    setDrawingType(drawingType === labelType ? LabelType.None : labelType)
+    setDrawingType(drawingType === labelType ? LabelType.None : labelType);
 
-  const drawPoint = draw(LabelType.Point)
-  const drawLine = draw(LabelType.Line)
-  const drawRect = draw(LabelType.Rect)
+  const drawPoint = draw(LabelType.Point);
+  const drawLine = draw(LabelType.Line);
+  const drawRect = draw(LabelType.Rect);
 
   const plainShortcutMap = {
     Backspace: deleteObj,
@@ -42,45 +55,45 @@ export const useKeyboard = ({
     Period: nextImg,
     ArrowRight: nextImg,
     Comma: prevImg,
-    ArrowLeft: prevImg
-  }
+    ArrowLeft: prevImg,
+  };
 
   const keyboardEventRouter = (event: KeyboardEvent) => {
-    if (event['path'][0] instanceof HTMLInputElement) return // prevent interfere keyboard input
+    if (event['path'][0] instanceof HTMLInputElement) return; // prevent interfere keyboard input
 
-    const { code, ctrlKey, metaKey, shiftKey, altKey } = event
-    const controlKey = ctrlKey || metaKey
-    const auxiliaryKey = shiftKey || altKey
+    const { code, ctrlKey, metaKey, shiftKey, altKey } = event;
+    const controlKey = ctrlKey || metaKey;
+    const auxiliaryKey = shiftKey || altKey;
 
     const combinedShortcutMap = {
       KeyR: () => {
-        if (!controlKey || auxiliaryKey) return
-        else if (canReset) reset()
-        else throw new Error('Cannot reset.')
+        if (!controlKey || auxiliaryKey) return;
+        else if (canReset) reset();
+        else throw new Error('Cannot reset.');
       },
       KeyZ: () => {
-        if (!controlKey || altKey) return
+        if (!controlKey || altKey) return;
 
-        if (!shiftKey && canUndo) prevState()
-        else if (!shiftKey && !canUndo) throw new Error('Cannot undo.')
-        else if (shiftKey && canRedo) nextState()
-        else throw new Error('Cannot redo.')
+        if (!shiftKey && canUndo) undo();
+        else if (!shiftKey && !canUndo) throw new Error('Cannot undo.');
+        else if (shiftKey && canRedo) redo();
+        else throw new Error('Cannot redo.');
       },
       KeyS: () => {
-        if (!controlKey || auxiliaryKey) return
-        else if (canSave) save()
-        else throw new Error('Cannot save.')
-      }
-    }
+        if (!controlKey || auxiliaryKey) return;
+        else if (canSave) save();
+        else throw new Error('Cannot save.');
+      },
+    };
 
     try {
-      if (controlKey || auxiliaryKey) combinedShortcutMap[code]()
-      else plainShortcutMap[code]()
-      event.preventDefault() // prevent default event after execute such as save html
+      if (controlKey || auxiliaryKey) combinedShortcutMap[code]();
+      else plainShortcutMap[code]();
+      event.preventDefault(); // prevent default event after execute such as save html
     } catch (error) {
-      if (!(error instanceof TypeError)) console.log(error)
+      if (!(error instanceof TypeError)) console.log(error);
     }
-  }
+  };
 
-  window.onkeydown = keyboardEventRouter
-}
+  window.onkeydown = keyboardEventRouter;
+};

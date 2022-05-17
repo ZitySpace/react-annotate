@@ -1,50 +1,53 @@
-import React, { MouseEvent } from 'react'
-import Draggable from 'react-draggable'
-import { Label } from '../../classes/Label'
-import { UseColorsReturnProps } from '../../hooks/useColor'
-import { UseFocusReturnProps } from '../../hooks/useFocus'
-import { UseStateStackReturnProps } from '../../hooks/useStateStack'
-import { MultipleSelectIcon } from '../Icons'
-import { AnnotationsGrid } from './AnnotationsGrid'
-import { CategoryName } from './CategoryName'
+import React, { MouseEvent } from 'react';
+import Draggable from 'react-draggable';
+import { Label } from '../../classes/Label';
+import { UseColorsReturnProps } from '../../hooks/useColor';
+import { UseFocusReturnProps } from '../../hooks/useFocus';
+import { MultipleSelectIcon } from '../Icons';
+import { AnnotationsGrid } from './AnnotationsGrid';
+import { CategoryName } from './CategoryName';
+import { groupBy } from '../../utils';
+import { useStore } from 'zustand';
+import { CanvasStore, CanvasStoreProps } from '../../stores/CanvasStore';
 
 export const OperationPanel = ({
-  stateStack,
   focus,
-  annoColors
+  annoColors,
 }: {
-  stateStack: UseStateStackReturnProps
-  focus: UseFocusReturnProps
-  annoColors: UseColorsReturnProps
+  focus: UseFocusReturnProps;
+  annoColors: UseColorsReturnProps;
 }) => {
   const {
     nowFocus: { isMultipleSelectionMode, objects },
     isFocused,
     setObjects,
-    toggleSelectionMode
-  } = focus
+    toggleSelectionMode,
+  } = focus;
 
-  const { groupedState } = stateStack
-  const labels = groupedState
-
-  const renameCategory = (originalName: string, newName: string) => {
-    stateStack.renameCategory(originalName, newName)
-    annoColors.rename(originalName, newName)
-  }
+  const [labels, renameCategory] = useStore(
+    CanvasStore,
+    (s: CanvasStoreProps) => [
+      s.curState() ? groupBy(s.curState(), 'category') : [],
+      (oldName: string, newName: string) => {
+        s.renameCategory(oldName, newName);
+        annoColors.rename(oldName, newName);
+      },
+    ]
+  );
 
   const handleClick = (e: MouseEvent) => {
     const annotations: Label[] = JSON.parse(
       e.currentTarget['dataset']['annotations']
-    )
+    );
 
-    const isAllFocused = annotations.every(isFocused)
+    const isAllFocused = annotations.every(isFocused);
     const newObjects = isMultipleSelectionMode
       ? objects.filter(
           ({ id }) => !annotations.map(({ id }) => id).includes(id)
         )
-      : []
-    setObjects(newObjects.concat(isAllFocused ? [] : annotations))
-  }
+      : [];
+    setObjects(newObjects.concat(isAllFocused ? [] : annotations));
+  };
 
   return (
     <div className='absolute w-full h-full pb-7 md:pb-9 invisible'>
@@ -71,7 +74,7 @@ export const OperationPanel = ({
                   <div
                     className='w-28 p-2 flex flex-col items-end border-indigo-600'
                     style={{
-                      backgroundColor: annoColors.get(categoryName)
+                      backgroundColor: annoColors.get(categoryName),
                     }}
                     data-annotations={JSON.stringify(annotations)}
                     onClick={handleClick}
@@ -85,7 +88,7 @@ export const OperationPanel = ({
                   </div>
                 </div>
               ))}
-              {/* <div 
+              {/* <div
                 onClick={addCategory}
                 className='text-gray-700 hover:bg-indigo-600 hover:text-white'
               >
@@ -96,5 +99,5 @@ export const OperationPanel = ({
         </Draggable>
       </div>
     </div>
-  )
-}
+  );
+};

@@ -15,18 +15,21 @@ import {
 import { UseColorsReturnProps } from './useColor'
 import { UseDataReturnProps } from './useData'
 import { UseFocusReturnProps } from './useFocus'
-import { State, UseStateStackReturnProps } from './useStateStack'
+import { useStore } from 'zustand'
+import {
+  CanvasStore,
+  CanvasStoreProps,
+  CanvasState
+} from '../stores/CanvasStore'
 
 export const useCanvas = ({
   canvas,
   data,
-  stateStack,
   annoColors,
   focus
 }: {
   canvas: fabric.Canvas | null
   data: UseDataReturnProps
-  stateStack: UseStateStackReturnProps
   annoColors: UseColorsReturnProps
   focus: UseFocusReturnProps
 }) => {
@@ -37,7 +40,12 @@ export const useCanvas = ({
     data
   const isDataReady =
     imageLoadingState === DataState.Ready && annosInitState === DataState.Ready
-  const { nowState, push: pushState } = stateStack
+
+  const [curState, pushState] = useStore(CanvasStore, (s: CanvasStoreProps) => [
+    s.curState(),
+    s.pushState
+  ])
+
   const { imageBoundary, scale, offset } = geometricAttributes
   const {
     nowFocus: { drawingType, objects: focusObjs, category: focusCate },
@@ -109,9 +117,9 @@ export const useCanvas = ({
   // Sync state to canvas & focus if state changed
   useEffect(() => {
     if (!isDataReady) return
-    methods.syncStateToCanvas(nowState) // sync state
-    setObjects(nowState.filter(isFocused)) // sync focus
-  }, [JSON.stringify(nowState), isDataReady]) // Deep compare
+    methods.syncStateToCanvas(curState) // sync state
+    setObjects(curState.filter(isFocused)) // sync focus
+  }, [JSON.stringify(curState), isDataReady]) // Deep compare
 
   // Set objects' visibale attribute in canvas when drawingType or focus changed
   useEffect(() => {
@@ -152,12 +160,12 @@ export const useCanvas = ({
         setRenderLock() // avoid useEffect hook invoke syncStateToCanvas method
       },
 
-      syncStateToCanvas: (nowState: State) => {
+      syncStateToCanvas: (state: CanvasState) => {
         if (!canvas || getRenderLock()) return
         console.log('syncStateToCanvas called') // TODO: remove
 
         canvas.remove(...canvas.getObjects())
-        nowState.forEach((anno: Label) => {
+        state.forEach((anno: Label) => {
           const { category } = anno
           const currentColor = annoColors.get(category!)
           // TODO: ensure visible

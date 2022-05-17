@@ -1,7 +1,6 @@
-export const IS_TOUCH_SCREEN =
-  'ontouchstart' in window ||
-  (navigator as any).maxTouchPoints > 0 ||
-  (navigator as any).msMaxTouchPoints > 0
+export const IS_TOUCH_SCREEN = 'ontouchstart' in window
+// || (navigator as any).maxTouchPoints > 0
+// || (navigator as any).msMaxTouchPoints > 0
 
 export const STROKE_WIDTH = 2
 

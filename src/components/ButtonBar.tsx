@@ -2,7 +2,6 @@ import React from 'react'
 import { LabelType } from '../classes/Label'
 import { DataOperation } from '../hooks/useData'
 import { UseFocusReturnProps } from '../hooks/useFocus'
-import { UseStateStackReturnProps } from '../hooks/useStateStack'
 import { Button } from './Button'
 import {
   CloseIcon,
@@ -19,19 +18,38 @@ import {
   UndoIcon,
   VisibleIcon
 } from './Icons'
+import { useStore } from 'zustand'
+import { CanvasStore, CanvasStoreProps } from '../stores/CanvasStore'
 
 export const ButtonBar = ({
   focus,
-  stateStack,
   dataOperation
 }: {
   focus: UseFocusReturnProps
-  stateStack: UseStateStackReturnProps
   dataOperation: DataOperation
 }) => {
-  const { can, prev: undo, next: redo, reset, deleteObjects } = stateStack
+  const [
+    undo,
+    redo,
+    reset,
+    canUndo,
+    canRedo,
+    canReset,
+    canSave,
+    deleteObjects
+  ] = useStore(CanvasStore, (s: CanvasStoreProps) => {
+    return [
+      s.undo,
+      s.redo,
+      s.reset,
+      s.canUndo(),
+      s.canRedo(),
+      s.canReset(),
+      s.canSave(),
+      s.deleteObjects
+    ]
+  })
 
-  const { redo: canRedo, undo: canUndo, reset: canReset, save: canSave } = can
   const {
     nowFocus: { drawingType, objects },
     setDrawingType

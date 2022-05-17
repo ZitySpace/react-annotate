@@ -6,7 +6,8 @@ import { Dimension } from '../classes/Geometry/Dimension'
 import { Point } from '../classes/Geometry/Point'
 import { Label } from '../classes/Label'
 import { ImageData, DataState } from '../interfaces/basic'
-import { UseStateStackReturnProps } from './useStateStack'
+import { useStore } from 'zustand'
+import { CanvasStore, CanvasStoreProps } from '../stores/CanvasStore'
 
 export interface GeometricAttributes {
   canvasDims: Dimension | null
@@ -19,7 +20,7 @@ export interface GeometricAttributes {
 export interface DataOperation {
   prevImg: () => void
   nextImg: () => void
-  save: () => Label[]
+  save: () => void
 }
 
 export interface UseDataReturnProps {
@@ -32,7 +33,6 @@ export interface UseDataReturnProps {
 
 export const useData = (
   imagesList: ImageData[],
-  stateStack: UseStateStackReturnProps,
   canvasDims: Dimension | null,
   initWidthRef: React.MutableRefObject<number>,
   initIndex: number = 0
@@ -45,7 +45,7 @@ export const useData = (
     next
   } = useStateList<ImageData>(imagesList) // refer: https://github.com/streamich/react-use/blob/master/docs/useStateList.md
 
-  const { nowState } = stateStack
+  const setStack = useStore(CanvasStore, (s: CanvasStoreProps) => s.setStack)
 
   const imageDims = useRef<Dimension>(new Dimension())
   const imageBoundary = useRef<Boundary>(new Boundary())
@@ -63,8 +63,7 @@ export const useData = (
 
   const operation = {
     save: () => {
-      console.log('save called')
-      return nowState
+      console.log('Save called but not Implemented')
     },
 
     prevImg: () => (prev() as undefined) || operation.save(),
@@ -105,7 +104,7 @@ export const useData = (
 
     const annos = imageData.annotations
     annos.forEach((anno) => anno.scaleTransform(scale.current, offset.current))
-    stateStack.set([annos])
+    setStack([annos])
     setAnnosInitState(DataState.Ready)
 
     initWidthRef.current = canvas_w
