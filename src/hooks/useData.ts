@@ -1,118 +1,118 @@
-import { fabric } from 'fabric'
-import { useEffect, useRef, useState } from 'react'
-import { useStateList } from 'react-use'
-import { Boundary } from '../classes/Geometry/Boundary'
-import { Dimension } from '../classes/Geometry/Dimension'
-import { Point } from '../classes/Geometry/Point'
-import { Label } from '../classes/Label'
-import { ImageData, DataState } from '../interfaces/basic'
-import { useStore } from 'zustand'
-import { CanvasStore, CanvasStoreProps } from '../stores/CanvasStore'
+import { fabric } from 'fabric';
+import { useEffect, useRef, useState } from 'react';
+import { useStateList } from 'react-use';
+import { Boundary } from '../classes/Geometry/Boundary';
+import { Dimension } from '../classes/Geometry/Dimension';
+import { Point } from '../classes/Geometry/Point';
+import { Label } from '../classes/Label';
+import { ImageData, DataState } from '../interfaces/basic';
+import { useStore } from 'zustand';
+import { CanvasStore, CanvasStoreProps } from '../stores/CanvasStore';
+import {
+  CanvasMetaStore,
+  CanvasMetaStoreProps,
+} from '../stores/CanvasMetaStore';
 
 export interface GeometricAttributes {
-  canvasDims: Dimension | null
-  imageDims: Dimension
-  imageBoundary: Boundary
-  scale: number
-  offset: Point
+  imageDims: Dimension;
+  imageBoundary: Boundary;
+  scale: number;
+  offset: Point;
 }
 
 export interface DataOperation {
-  prevImg: () => void
-  nextImg: () => void
-  save: () => void
+  prevImg: () => void;
+  nextImg: () => void;
+  save: () => void;
 }
 
 export interface UseDataReturnProps {
-  imageObj: fabric.Image | null
-  imageLoadingState: DataState
-  annosInitState: DataState
-  geometricAttributes: GeometricAttributes
-  operation: DataOperation
+  imageObj: fabric.Image | null;
+  imageLoadingState: DataState;
+  annosInitState: DataState;
+  geometricAttributes: GeometricAttributes;
+  operation: DataOperation;
 }
 
-export const useData = (
-  imagesList: ImageData[],
-  canvasDims: Dimension | null,
-  initWidthRef: React.MutableRefObject<number>,
-  initIndex: number = 0
-) => {
+export const useData = (imagesList: ImageData[], initIndex: number = 0) => {
   // initialize images list
   const {
     state: imageData,
     setStateAt: setImageIdx,
     prev,
-    next
-  } = useStateList<ImageData>(imagesList) // refer: https://github.com/streamich/react-use/blob/master/docs/useStateList.md
+    next,
+  } = useStateList<ImageData>(imagesList); // refer: https://github.com/streamich/react-use/blob/master/docs/useStateList.md
 
-  const setStack = useStore(CanvasStore, (s: CanvasStoreProps) => s.setStack)
+  const setStack = useStore(CanvasStore, (s: CanvasStoreProps) => s.setStack);
 
-  const imageDims = useRef<Dimension>(new Dimension())
-  const imageBoundary = useRef<Boundary>(new Boundary())
-  const scale = useRef<number>(1)
-  const offset = useRef<Point>(new Point())
+  const { canvas, initSize } = useStore(CanvasMetaStore);
+
+  const imageDims = useRef<Dimension>(new Dimension());
+  const imageBoundary = useRef<Boundary>(new Boundary());
+  const scale = useRef<number>(1);
+  const offset = useRef<Point>(new Point());
 
   const [annosInitState, setAnnosInitState] = useState<DataState>(
     DataState.Loading
-  )
+  );
   const [imageLoadingState, setImageLoadingState] = useState<DataState>(
     DataState.Loading
-  )
-  const [imageObj, setImageObj] = useState<fabric.Image | null>(null)
-  const theLastLoadImageUrl = useRef<string>()
+  );
+  const [imageObj, setImageObj] = useState<fabric.Image | null>(null);
+  const theLastLoadImageUrl = useRef<string>();
 
   const operation = {
     save: () => {
-      console.log('Save called but not Implemented')
+      console.log('Save called but not Implemented');
     },
 
     prevImg: () => (prev() as undefined) || operation.save(),
-    nextImg: () => (next() as undefined) || operation.save()
-  }
+    nextImg: () => (next() as undefined) || operation.save(),
+  };
 
   useEffect(() => {
-    if (!canvasDims) return
-    theLastLoadImageUrl.current = imageData.url
-    setImageLoadingState(DataState.Loading)
-    setAnnosInitState(DataState.Loading)
+    if (!canvasDims) return;
+    theLastLoadImageUrl.current = imageData.url;
+    setImageLoadingState(DataState.Loading);
+    setAnnosInitState(DataState.Loading);
 
     // calculate the image dimensions and boundary, its scale and the offset between canvas and image
-    const { width: image_w, height: image_h } = imageData
-    const { w: canvas_w, h: canvas_h } = canvasDims
-    const scale_x = image_w < canvas_w ? 1 : canvas_w / image_w
-    const scale_y = image_h < canvas_h ? 1 : canvas_h / image_h
-    scale.current = Math.min(scale_x, scale_y)
-    imageDims.current = new Dimension(image_w, image_h).zoom(scale.current)
-    imageBoundary.current = imageDims.current.boundaryIn(canvasDims)
-    offset.current = imageDims.current.offsetTo(canvasDims)
+    const { width: image_w, height: image_h } = imageData;
+    const { w: canvas_w, h: canvas_h } = canvasDims;
+    const scale_x = image_w < canvas_w ? 1 : canvas_w / image_w;
+    const scale_y = image_h < canvas_h ? 1 : canvas_h / image_h;
+    scale.current = Math.min(scale_x, scale_y);
+    imageDims.current = new Dimension(image_w, image_h).zoom(scale.current);
+    imageBoundary.current = imageDims.current.boundaryIn(canvasDims);
+    offset.current = imageDims.current.offsetTo(canvasDims);
 
-    const { x: left, y: top } = offset.current
-    const [scaleX, scaleY] = [scale.current, scale.current]
+    const { x: left, y: top } = offset.current;
+    const [scaleX, scaleY] = [scale.current, scale.current];
     fabric.Image.fromURL(
       imageData.url,
       (img: fabric.Image) => {
-        const { width, height } = img
+        const { width, height } = img;
         if (width && height) {
           if (theLastLoadImageUrl.current === imageData.url) {
-            setImageObj(img)
-            setImageLoadingState(DataState.Ready)
+            setImageObj(img);
+            setImageLoadingState(DataState.Ready);
           }
-        } else setImageLoadingState(DataState.Error)
+        } else setImageLoadingState(DataState.Error);
       },
       { left, top, scaleX, scaleY, url: imageData.url } as any
-    )
+    );
 
-    const annos = imageData.annotations
-    annos.forEach((anno) => anno.scaleTransform(scale.current, offset.current))
-    setStack([annos])
-    setAnnosInitState(DataState.Ready)
+    const annos = imageData.annotations;
+    annos.forEach((anno) => anno.scaleTransform(scale.current, offset.current));
+    setStack([annos]);
+    setAnnosInitState(DataState.Ready);
 
-    initWidthRef.current = canvas_w
-  }, [imageData])
+    initWidthRef.current = canvas_w;
+  }, [imageData]);
 
   useEffect(() => {
-    initIndex && setImageIdx(initIndex)
-  }, [])
+    initIndex && setImageIdx(initIndex);
+  }, []);
 
   return {
     imageObj,
@@ -123,8 +123,8 @@ export const useData = (
       imageDims: imageDims.current,
       imageBoundary: imageBoundary.current,
       scale: scale.current,
-      offset: offset.current
+      offset: offset.current,
     },
-    operation
-  }
-}
+    operation,
+  };
+};

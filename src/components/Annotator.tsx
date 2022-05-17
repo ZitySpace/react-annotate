@@ -33,7 +33,7 @@ export const Annotator = ({
   const focus = useFocus(); // variables shared between canvas and category panel to show user interest in the other one.
   const annoColors = useColors(); // handle colors' stuff.
 
-  const { Container, canvas, canvasDims, initWidthRef } = useContainer();
+  const Container = useContainer();
   const data = useData(imagesList, canvasDims, initWidthRef, index);
   const { loadListeners, syncCanvasToState } = useCanvas({
     canvas,

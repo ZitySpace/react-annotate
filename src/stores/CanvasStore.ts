@@ -5,7 +5,7 @@ import produce from 'immer';
 
 interface CanvasState extends Array<Label> {}
 
-interface StoreCore extends State {
+interface StoreData extends State {
   stack: CanvasState[];
   index: number;
 }
@@ -15,7 +15,7 @@ const StoreCoreDefault = {
   index: 1,
 };
 
-interface Store extends StoreCore {
+interface Store extends StoreData {
   canRedo: () => boolean;
   canUndo: () => boolean;
   canReset: () => boolean;
