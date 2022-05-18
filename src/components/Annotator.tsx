@@ -30,7 +30,6 @@ export const Annotator = ({
   const [isAnnosVisible] = useState(isAnnotationsVisible); // TODO: remove this global state or add setter and bind to button
 
   // Initialize the main variables
-  const focus = useFocus(); // variables shared between canvas and category panel to show user interest in the other one.
   const annoColors = useColors(); // handle colors' stuff.
 
   const Container = useContainer();
@@ -38,23 +37,21 @@ export const Annotator = ({
   const { loadListeners, syncCanvasToState } = useCanvas({
     dataReady,
     annoColors,
-    focus,
   });
 
   useMouse({
-    focus,
     annoColors,
     loadListeners,
     syncCanvasToState,
   });
 
-  useKeyboard({ focus, dataOperation: dataOperation }); // listeners for keyboard for support shortcuts.
+  useKeyboard(dataOperation); // listeners for keyboard for support shortcuts.
 
   return isAnnosVisible ? (
     <div className='w-full h-full flex flex-col justify-center items-center relative'>
       {Container}
-      <OperationPanel focus={focus} annoColors={annoColors} />
-      <ButtonBar focus={focus} dataOperation={dataOperation} />
+      <OperationPanel annoColors={annoColors} />
+      <ButtonBar dataOperation={dataOperation} />
     </div>
   ) : null;
 };

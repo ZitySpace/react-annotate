@@ -12,7 +12,6 @@ import {
   updateEndpointAssociatedLinesPosition,
 } from '../utils/label';
 import { UseColorsReturnProps } from './useColor';
-import { UseFocusReturnProps } from './useFocus';
 import { useStore } from 'zustand';
 import {
   CanvasStore,
@@ -24,19 +23,15 @@ import {
   CanvasMetaStoreProps,
 } from '../stores/CanvasMetaStore';
 import { ImageMetaStore, ImageMetaStoreProps } from '../stores/ImageMetaStore';
+import { SelectionStore, SelectionStoreProps } from '../stores/SelectionStore';
 
 export const useCanvas = ({
   dataReady,
   annoColors,
-  focus,
 }: {
   dataReady: boolean;
   annoColors: UseColorsReturnProps;
-  focus: UseFocusReturnProps;
 }) => {
-  const listenersRef = useRef<object>({});
-  const listeners = listenersRef.current;
-
   const [curState, pushState] = useStore(CanvasStore, (s: CanvasStoreProps) => [
     s.curState(),
     s.pushState,
@@ -55,11 +50,16 @@ export const useCanvas = ({
   } = useStore(ImageMetaStore, (s: ImageMetaStoreProps) => s);
 
   const {
-    nowFocus: { drawingType, objects: focusObjs, category: focusCate },
-    isFocused,
-    setObjects,
-    canObjectShow,
-  } = focus;
+    drawType,
+    objects: selectedObjects,
+    category: selectedCategory,
+    isSelected,
+    selectObjects,
+    isVisible,
+  } = useStore(SelectionStore, (s: SelectionStoreProps) => s);
+
+  const listenersRef = useRef<object>({});
+  const listeners = listenersRef.current;
 
   // render lock used to avoid whole cycle callback caused by canvas changed which will ruin the canvas
   const renderLock = useRef<boolean>(false);
@@ -126,24 +126,29 @@ export const useCanvas = ({
     if (!dataReady) return;
 
     methods.syncStateToCanvas(curState); // sync state
-    setObjects(curState.filter(isFocused)); // sync focus
+    selectObjects(curState.filter((label) => isSelected(label.id))); // sync focus
   }, [JSON.stringify(curState), dataReady]); // Deep compare
 
   // Set objects' visibale attribute in canvas when drawingType or focus changed
   useEffect(() => {
     if (!canvas) return;
-    const adjustMode = focusObjs.length === 1;
 
-    !(drawingType || focusObjs.length || focusCate) &&
+    const adjustMode = selectedObjects.length === 1;
+
+    !(drawType || selectedObjects.length || selectedCategory) &&
       updateAllTextboxPosition();
-    if (drawingType || !adjustMode) canvas.discardActiveObject();
+
+    if (drawType || !adjustMode) canvas.discardActiveObject();
+
     canvas.forEachObject((obj: any) => {
-      obj.visible = canObjectShow(obj, !(drawingType || adjustMode));
-      if ((drawingType || adjustMode) && isFocused(obj) && isRect(obj))
+      obj.visible = isVisible(obj.type, obj.id, !(drawType || adjustMode));
+
+      if ((drawType || adjustMode) && isSelected(obj.id) && isRect(obj))
         canvas.setActiveObject(obj);
     });
+
     canvas.requestRenderAll();
-  }, [drawingType, focusObjs, focusCate]);
+  }, [drawType, selectedObjects, selectedCategory]);
 
   // Initialize image
   useEffect(() => {
@@ -230,6 +235,7 @@ export const useCanvas = ({
       if (target.type === 'midpoint')
         addPointToPolygon(target as fabric.Circle);
     },
+
     'selection:created': (e: any) => {
       const target = e.selected[0];
       if (target.type === 'midpoint')
@@ -237,10 +243,11 @@ export const useCanvas = ({
       else {
         const obj = target?.polygon || target;
         const anno = newLabel({ obj, offset, scale });
-        setObjects([anno]);
+        selectObjects([anno]);
       }
     },
-    'selection:cleared': (e: any) => e.e && setObjects(),
+
+    'selection:cleared': (e: any) => e.e && selectObjects(),
   });
 
   canvas && methods.loadListeners(listeners); // If canvas no null, mount listeners

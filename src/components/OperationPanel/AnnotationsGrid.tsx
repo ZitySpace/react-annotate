@@ -1,32 +1,31 @@
-import React from 'react'
-import { Label } from '../../classes/Label'
-import { UseFocusReturnProps } from '../../hooks/useFocus'
+import React from 'react';
+import { useStore } from 'zustand';
+import { Label } from '../../classes/Label';
+import {
+  SelectionStore,
+  SelectionStoreProps,
+} from '../../stores/SelectionStore';
 
-export const AnnotationsGrid = ({
-  annotations,
-  focus
-}: {
-  annotations: Label[]
-  focus: UseFocusReturnProps
-}) => {
+export const AnnotationsGrid = ({ annotations }: { annotations: Label[] }) => {
   const {
-    nowFocus: { isMultipleSelectionMode, objects },
-    isFocused,
-    setObjects
-  } = focus
+    multi,
+    objects: selectedObjects,
+    isSelected,
+    selectObjects,
+  } = useStore(SelectionStore, (s: SelectionStoreProps) => s);
 
   const handleClick = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    const annoIndex = e.currentTarget['dataset']['annoIndex']
-    const anno = annotations[annoIndex]
-    const doesFocused = isFocused(anno)
-    const newObjects = isMultipleSelectionMode
-      ? objects.filter(({ id }) => id !== anno.id)
-      : []
+    e.stopPropagation();
+    const annoIndex = e.currentTarget['dataset']['annoIndex'];
+    const anno = annotations[annoIndex];
+    const doesFocused = isSelected(anno.id);
+    const newObjects = multi
+      ? selectedObjects.filter(({ id }) => id !== anno.id)
+      : [];
 
-    if (doesFocused) setObjects(newObjects)
-    else setObjects([...newObjects, anno])
-  }
+    if (doesFocused) selectObjects(newObjects);
+    else selectObjects([...newObjects, anno]);
+  };
 
   return (
     <div className='grid grid-cols-4 gap-1 mr-0.5 flex-row-reverse'>
@@ -34,7 +33,11 @@ export const AnnotationsGrid = ({
         <div
           key={anno.id}
           className={`h-5 w-5 rounded-md flex justify-center items-center border border-transparent hover:border-indigo-600
-            ${isFocused(anno) ? 'bg-indigo-600 text-gray-100' : 'bg-gray-200'}`}
+            ${
+              isSelected(anno.id)
+                ? 'bg-indigo-600 text-gray-100'
+                : 'bg-gray-200'
+            }`}
           data-anno-index={index}
           onClick={handleClick}
         >
@@ -42,5 +45,5 @@ export const AnnotationsGrid = ({
         </div>
       ))}
     </div>
-  )
-}
+  );
+};

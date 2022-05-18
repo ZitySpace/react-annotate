@@ -2,27 +2,29 @@ import React, { MouseEvent } from 'react';
 import Draggable from 'react-draggable';
 import { Label } from '../../classes/Label';
 import { UseColorsReturnProps } from '../../hooks/useColor';
-import { UseFocusReturnProps } from '../../hooks/useFocus';
 import { MultipleSelectIcon } from '../Icons';
 import { AnnotationsGrid } from './AnnotationsGrid';
 import { CategoryName } from './CategoryName';
 import { groupBy } from '../../utils';
 import { useStore } from 'zustand';
 import { CanvasStore, CanvasStoreProps } from '../../stores/CanvasStore';
+import {
+  SelectionStore,
+  SelectionStoreProps,
+} from '../../stores/SelectionStore';
 
 export const OperationPanel = ({
-  focus,
   annoColors,
 }: {
-  focus: UseFocusReturnProps;
   annoColors: UseColorsReturnProps;
 }) => {
   const {
-    nowFocus: { isMultipleSelectionMode, objects },
-    isFocused,
-    setObjects,
-    toggleSelectionMode,
-  } = focus;
+    multi,
+    objects: selectedObjects,
+    isSelected,
+    selectObjects,
+    toggleMulti,
+  } = useStore(SelectionStore, (s: SelectionStoreProps) => s);
 
   const [labels, renameCategory] = useStore(
     CanvasStore,
@@ -40,13 +42,14 @@ export const OperationPanel = ({
       e.currentTarget['dataset']['annotations']
     );
 
-    const isAllFocused = annotations.every(isFocused);
-    const newObjects = isMultipleSelectionMode
-      ? objects.filter(
-          ({ id }) => !annotations.map(({ id }) => id).includes(id)
+    const isAllFocused = annotations.every((label) => isSelected(label.id));
+    const newObjects = multi
+      ? selectedObjects.filter(
+          ({ id }: { id: number }) =>
+            !annotations.map(({ id }) => id).includes(id)
         )
       : [];
-    setObjects(newObjects.concat(isAllFocused ? [] : annotations));
+    selectObjects(newObjects.concat(isAllFocused ? [] : annotations));
   };
 
   return (
@@ -61,10 +64,8 @@ export const OperationPanel = ({
             <div className='bg-indigo-400 py-2 px-2 w-28 rounded-t-md flex justify-between cate_handle'>
               <span className='mx-auto'> Category </span>
               <MultipleSelectIcon
-                className={`text-indigo-200 ${
-                  isMultipleSelectionMode ? 'text-indigo-600' : ''
-                }`}
-                onClick={toggleSelectionMode}
+                className={`text-indigo-200 ${multi ? 'text-indigo-600' : ''}`}
+                onClick={toggleMulti}
               />
             </div>
 
@@ -81,10 +82,9 @@ export const OperationPanel = ({
                   >
                     <CategoryName
                       categoryName={categoryName}
-                      focus={focus}
                       renameCategory={renameCategory}
                     />
-                    <AnnotationsGrid annotations={annotations} focus={focus} />
+                    <AnnotationsGrid annotations={annotations} />
                   </div>
                 </div>
               ))}

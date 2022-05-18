@@ -1,8 +1,7 @@
-import React from 'react'
-import { LabelType } from '../classes/Label'
-import { DataOperation } from '../hooks/useData'
-import { UseFocusReturnProps } from '../hooks/useFocus'
-import { Button } from './Button'
+import React from 'react';
+import { LabelType } from '../classes/Label';
+import { DataOperation } from '../hooks/useData';
+import { Button } from './Button';
 import {
   CloseIcon,
   LineIcon,
@@ -16,17 +15,16 @@ import {
   SaveIcon,
   TrashIcon,
   UndoIcon,
-  VisibleIcon
-} from './Icons'
-import { useStore } from 'zustand'
-import { CanvasStore, CanvasStoreProps } from '../stores/CanvasStore'
+  VisibleIcon,
+} from './Icons';
+import { useStore } from 'zustand';
+import { CanvasStore, CanvasStoreProps } from '../stores/CanvasStore';
+import { SelectionStore, SelectionStoreProps } from '../stores/SelectionStore';
 
 export const ButtonBar = ({
-  focus,
-  dataOperation
+  dataOperation,
 }: {
-  focus: UseFocusReturnProps
-  dataOperation: DataOperation
+  dataOperation: DataOperation;
 }) => {
   const [
     undo,
@@ -36,48 +34,48 @@ export const ButtonBar = ({
     canRedo,
     canReset,
     canSave,
-    deleteObjects
-  ] = useStore(CanvasStore, (s: CanvasStoreProps) => {
-    return [
-      s.undo,
-      s.redo,
-      s.reset,
-      s.canUndo(),
-      s.canRedo(),
-      s.canReset(),
-      s.canSave(),
-      s.deleteObjects
-    ]
-  })
+    deleteObjects,
+  ] = useStore(CanvasStore, (s: CanvasStoreProps) => [
+    s.undo,
+    s.redo,
+    s.reset,
+    s.canUndo(),
+    s.canRedo(),
+    s.canReset(),
+    s.canSave(),
+    s.deleteObjects,
+  ]);
 
   const {
-    nowFocus: { drawingType, objects },
-    setDrawingType
-  } = focus
-  const { prevImg, nextImg, save } = dataOperation
+    drawType,
+    setDrawType,
+    objects: selectedObjects,
+  } = useStore(SelectionStore, (s: SelectionStoreProps) => s);
 
-  const deleteObj = () => deleteObjects(objects.map(({ id }) => id))
+  const { prevImg, nextImg, save } = dataOperation;
+
+  const deleteObj = () => deleteObjects(selectedObjects.map(({ id }) => id));
 
   const draw = (labelType: LabelType) => () =>
-    setDrawingType(drawingType === labelType ? LabelType.None : labelType)
+    setDrawType(drawType === labelType ? LabelType.None : labelType);
 
-  const drawPoint = draw(LabelType.Point)
-  const drawLine = draw(LabelType.Line)
-  const drawRect = draw(LabelType.Rect)
-  const drawPolygon = draw(LabelType.Polygon)
+  const drawPoint = draw(LabelType.Point);
+  const drawLine = draw(LabelType.Line);
+  const drawRect = draw(LabelType.Rect);
+  const drawPolygon = draw(LabelType.Polygon);
 
-  const isDrawingMe = (labelType: LabelType | null) => drawingType === labelType
-  const isDrawingPoint = isDrawingMe(LabelType.Point)
-  const isDrawingLine = isDrawingMe(LabelType.Line)
-  const isDrawingRect = isDrawingMe(LabelType.Rect)
-  const isDrawingPolygon = isDrawingMe(LabelType.Polygon)
+  const isDrawingMe = (labelType: LabelType | null) => drawType === labelType;
+  const isDrawingPoint = isDrawingMe(LabelType.Point);
+  const isDrawingLine = isDrawingMe(LabelType.Line);
+  const isDrawingRect = isDrawingMe(LabelType.Rect);
+  const isDrawingPolygon = isDrawingMe(LabelType.Polygon);
 
   return (
     <div className='h-9 flex justify-center space-x-8 items-center absolute bottom-0'>
       <div className='flex justify-center space-x-1'>
         <Button
           onClick={() => {
-            console.log('close clicked')
+            console.log('close clicked');
           }}
         >
           <CloseIcon />
@@ -89,7 +87,7 @@ export const ButtonBar = ({
       </div>
 
       <div className='flex justify-center space-x-1'>
-        <Button canUse={!!objects.length} onClick={deleteObj}>
+        <Button canUse={!!selectedObjects.length} onClick={deleteObj}>
           <TrashIcon />
         </Button>
 
@@ -136,5 +134,5 @@ export const ButtonBar = ({
         </Button>
       </div>
     </div>
-  )
-}
+  );
+};

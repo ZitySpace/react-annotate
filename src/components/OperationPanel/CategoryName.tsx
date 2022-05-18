@@ -1,28 +1,33 @@
-import React, { useState } from 'react'
-import { UseFocusReturnProps } from '../../hooks/useFocus'
+import React, { useState } from 'react';
+import { useStore } from 'zustand';
+import {
+  SelectionStore,
+  SelectionStoreProps,
+} from '../../stores/SelectionStore';
 
 export const CategoryName = ({
   categoryName,
-  focus,
-  renameCategory
+  renameCategory,
 }: {
-  categoryName: string
-  focus: UseFocusReturnProps
-  renameCategory: Function
+  categoryName: string;
+  renameCategory: Function;
 }) => {
-  const { isFocused } = focus
+  const isSelected = useStore(
+    SelectionStore,
+    (s: SelectionStoreProps) => s.isSelected
+  );
 
-  const [inputValue, setInputValue] = useState<string>(categoryName)
+  const [inputValue, setInputValue] = useState<string>(categoryName);
   const handleInput = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setInputValue(event.target.value)
-  }
+    setInputValue(event.target.value);
+  };
   const rename = () => {
-    if (!inputValue || inputValue === categoryName) setInputValue(categoryName)
-    else renameCategory(categoryName, inputValue)
-  }
+    if (!inputValue || inputValue === categoryName) setInputValue(categoryName);
+    else renameCategory(categoryName, inputValue);
+  };
 
   const handleKeyPress = (event: React.KeyboardEvent) =>
-    event.key === 'Enter' && rename()
+    event.key === 'Enter' && rename();
 
   return (
     <div className='pb-1 static w-full flex justify-end'>
@@ -33,10 +38,10 @@ export const CategoryName = ({
         value={inputValue}
         onInput={handleInput}
         onBlur={rename}
-        disabled={!isFocused(categoryName)}
+        disabled={!isSelected(categoryName)}
         onClick={(e) => e.stopPropagation()}
         onKeyPress={handleKeyPress}
       />
     </div>
-  )
-}
+  );
+};

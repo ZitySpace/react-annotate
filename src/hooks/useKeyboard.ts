@@ -1,16 +1,10 @@
 import { LabelType } from '../classes/Label';
 import { DataOperation } from './useData';
-import { UseFocusReturnProps } from './useFocus';
 import { useStore } from 'zustand';
 import { CanvasStore, CanvasStoreProps } from '../stores/CanvasStore';
+import { SelectionStore, SelectionStoreProps } from '../stores/SelectionStore';
 
-export const useKeyboard = ({
-  focus,
-  dataOperation,
-}: {
-  focus: UseFocusReturnProps;
-  dataOperation: DataOperation;
-}) => {
+export const useKeyboard = (dataOperation: DataOperation) => {
   const [
     undo,
     redo,
@@ -33,14 +27,18 @@ export const useKeyboard = ({
     ];
   });
 
-  const { setDrawingType } = focus;
-  const { drawingType, objects } = focus.nowFocus;
+  const {
+    drawType,
+    setDrawType,
+    objects: selectedObjects,
+  } = useStore(SelectionStore, (s: SelectionStoreProps) => s);
+
   const { prevImg, nextImg, save } = dataOperation;
 
-  const deleteObj = () => deleteObjects(objects.map(({ id }) => id));
+  const deleteObj = () => deleteObjects(selectedObjects.map(({ id }) => id));
 
   const draw = (labelType: LabelType) => () =>
-    setDrawingType(drawingType === labelType ? LabelType.None : labelType);
+    setDrawType(drawType === labelType ? LabelType.None : labelType);
 
   const drawPoint = draw(LabelType.Point);
   const drawLine = draw(LabelType.Line);

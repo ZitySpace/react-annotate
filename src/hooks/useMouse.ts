@@ -24,7 +24,6 @@ import {
   updateEndpointAssociatedLinesPosition,
 } from '../utils/label';
 import { UseColorsReturnProps } from './useColor';
-import { UseFocusReturnProps } from './useFocus';
 import { useStore } from 'zustand';
 import { CanvasStore, CanvasStoreProps } from '../stores/CanvasStore';
 import {
@@ -32,14 +31,13 @@ import {
   CanvasMetaStoreProps,
 } from '../stores/CanvasMetaStore';
 import { ImageMetaStore, ImageMetaStoreProps } from '../stores/ImageMetaStore';
+import { SelectionStore, SelectionStoreProps } from '../stores/SelectionStore';
 
 export const useMouse = ({
-  focus,
   annoColors,
   loadListeners,
   syncCanvasToState,
 }: {
-  focus: UseFocusReturnProps;
   annoColors: UseColorsReturnProps;
   loadListeners: (newListeners: object) => void;
   syncCanvasToState: () => void;
@@ -62,6 +60,16 @@ export const useMouse = ({
     offset,
   } = useStore(ImageMetaStore, (s: ImageMetaStoreProps) => s);
 
+  const {
+    drawType,
+    setDrawType,
+    objects: selectedObjects,
+    category: selectedCategory,
+    isSelected,
+    selectObjects,
+    isVisible,
+  } = useStore(SelectionStore, (s: SelectionStoreProps) => s);
+
   // mount gestures event listener
   const pinchListener = usePinch(() => {})();
   if (canvas) {
@@ -70,7 +78,6 @@ export const useMouse = ({
   }
 
   if (!canvas) return;
-  const { nowFocus, setDrawingType, setObjects } = focus;
 
   /**
    * If it is a point / endpoint, swap its fill color and stroke color
@@ -117,12 +124,12 @@ export const useMouse = ({
     const { x, y } = imageBoundary.within(canvas.getPointer(event.e));
     lastPosition.current = new Point(x, y);
 
-    const category = nowFocus.category || NEW_CATEGORY_NAME;
+    const category = selectedCategory || NEW_CATEGORY_NAME;
     const id = Math.max(-1, ...curState.map(({ id }) => id)) + 1;
     const color = annoColors.get(category);
 
     const fabricObjects = newLabel({
-      labelType: nowFocus.drawingType,
+      labelType: drawType,
       position: new Point(x, y),
       category,
       id,
@@ -227,7 +234,7 @@ export const useMouse = ({
     if (isInvalid(obj)) {
       canvas.remove(...canvas.getObjects().filter((o: any) => o.id === obj.id));
     } else {
-      setObjects([newLabel({ obj, offset, scale })]);
+      selectObjects([newLabel({ obj, offset, scale })]);
       canvas.setActiveObject(
         [LabelType.Line].includes(obj.labelType)
           ? obj.endpoints[obj.endpoints.length - 1]
@@ -236,7 +243,7 @@ export const useMouse = ({
     }
     isDrawingStarted.current = false;
     onDrawObj.current = null;
-    setDrawingType();
+    setDrawType();
     canvas.renderAll();
     syncCanvasToState();
   };
@@ -247,7 +254,7 @@ export const useMouse = ({
       if (!obj) return;
 
       setHoverEffectOfEndpoint(obj);
-      focus.isFocused(obj as any) &&
+      isSelected((obj as any).id) &&
         isPolygonLine(obj) &&
         canvas.add((obj as any).midpoint);
 
@@ -277,12 +284,12 @@ export const useMouse = ({
 
     'mouse:down': (e: fabric.IEvent<MouseEvent>) => {
       if (isDrawingStarted.current) drawingBreak(e);
-      else if (nowFocus.drawingType) drawingStart(e);
+      else if (drawType) drawingStart(e);
       else if (!canvas.getActiveObject()) {
         const evt = e.e as any;
         const { clientX, clientY } = isTouchEvent(evt) ? evt.touches[0] : evt;
         lastPosition.current = new Point(clientX, clientY);
-        setObjects();
+        selectObjects();
         canvas.setCursor('grabbing');
         isPanning.current = true;
       }
@@ -303,7 +310,7 @@ export const useMouse = ({
     },
 
     'mouse:up': () => {
-      if (isDrawingStarted.current && nowFocus.drawingType === LabelType.Point)
+      if (isDrawingStarted.current && drawType === LabelType.Point)
         drawingStop();
       else if (isPanning.current) isPanning.current = false;
     },
