@@ -24,23 +24,21 @@ import {
   updateEndpointAssociatedLinesPosition,
 } from '../utils/label';
 import { UseColorsReturnProps } from './useColor';
-import { GeometricAttributes } from './useData';
 import { UseFocusReturnProps } from './useFocus';
 import { useStore } from 'zustand';
 import { CanvasStore, CanvasStoreProps } from '../stores/CanvasStore';
+import {
+  CanvasMetaStore,
+  CanvasMetaStoreProps,
+} from '../stores/CanvasMetaStore';
+import { ImageMetaStore, ImageMetaStoreProps } from '../stores/ImageMetaStore';
 
 export const useMouse = ({
-  canvas,
-  geometricAttributes,
-  initWidthRef,
   focus,
   annoColors,
   loadListeners,
   syncCanvasToState,
 }: {
-  canvas: fabric.Canvas | null;
-  geometricAttributes: GeometricAttributes;
-  initWidthRef: React.MutableRefObject<number>;
   focus: UseFocusReturnProps;
   annoColors: UseColorsReturnProps;
   loadListeners: (newListeners: object) => void;
@@ -53,6 +51,17 @@ export const useMouse = ({
 
   const curState = useStore(CanvasStore, (s: CanvasStoreProps) => s.curState());
 
+  const { canvas, initDims: canvasInitDims } = useStore(
+    CanvasMetaStore,
+    (s: CanvasMetaStoreProps) => s
+  );
+
+  const {
+    boundary: imageBoundary,
+    scale,
+    offset,
+  } = useStore(ImageMetaStore, (s: ImageMetaStoreProps) => s);
+
   // mount gestures event listener
   const pinchListener = usePinch(() => {})();
   if (canvas) {
@@ -62,7 +71,6 @@ export const useMouse = ({
 
   if (!canvas) return;
   const { nowFocus, setDrawingType, setObjects } = focus;
-  const { canvasDims, imageBoundary, scale, offset } = geometricAttributes;
 
   /**
    * If it is a point / endpoint, swap its fill color and stroke color
@@ -81,12 +89,11 @@ export const useMouse = ({
    * @param evt wheel event
    * @returns
    */
-  const setZoomAndGetNewZoom = (evt: WheelEvent) => {
+  const setZoomByWheel = (evt: WheelEvent) => {
     const { deltaY, offsetX: x, offsetY: y } = evt;
     const delta = deltaY * (evt.cancelable ? 3 : 1); // make touchBoard more smooth
     const zoom = getBetween(canvas.getZoom() * 0.999 ** delta, 0.01, 20);
     canvas.zoomToPoint({ x, y }, zoom);
-    return zoom;
   };
 
   /**
@@ -94,16 +101,15 @@ export const useMouse = ({
    * @param zoom zoom scale
    * @param offset cursor offset after panning
    */
-  const setViewport = (zoom: number, offset: Point = new Point()) => {
-    const { w, h } = canvasDims! || new Point();
+  const setViewport = (offset: Point = new Point()) => {
+    const zoom = canvas.getZoom();
+    const [w, h] = [canvas.width!, canvas.height!];
     const { x, y } = offset;
     const vpt = canvas.viewportTransform as number[];
-    // const offsetX = w * (1 - zoom)
-    const offsetX = w - initWidthRef.current * zoom;
-    const offsetY = h * (1 - zoom);
-    // vpt[4] = zoom < 1 ? offsetX / 2 : getBetween(vpt[4] + x, offsetX, 0)
+    const offsetX = w - canvasInitDims!.w * zoom;
+    const offsetY = h - canvasInitDims!.h * zoom;
     vpt[4] = offsetX > 0 ? offsetX / 2 : getBetween(vpt[4] + x, offsetX, 0);
-    vpt[5] = zoom < 1 ? offsetY / 2 : getBetween(vpt[5] + y, offsetY, 0);
+    vpt[5] = offsetY > 0 ? offsetY / 2 : getBetween(vpt[5] + y, offsetY, 0);
     canvas.requestRenderAll();
   };
 
@@ -247,6 +253,7 @@ export const useMouse = ({
 
       canvas.requestRenderAll();
     },
+
     'mouse:out': (e: fabric.IEvent<MouseEvent>) => {
       const obj = e.target as fabric.Object;
       if (!obj) return;
@@ -260,11 +267,14 @@ export const useMouse = ({
 
       canvas.requestRenderAll();
     },
+
     'mouse:wheel': (event: fabric.IEvent<WheelEvent>) => {
       event.e.preventDefault();
       event.e.stopPropagation();
-      setViewport(setZoomAndGetNewZoom(event.e));
+      setZoomByWheel(event.e);
+      setViewport();
     },
+
     'mouse:down': (e: fabric.IEvent<MouseEvent>) => {
       if (isDrawingStarted.current) drawingBreak(e);
       else if (nowFocus.drawingType) drawingStart(e);
@@ -277,6 +287,7 @@ export const useMouse = ({
         isPanning.current = true;
       }
     },
+
     'mouse:move': (e: fabric.IEvent<MouseEvent>) => {
       if (isDrawingStarted.current) drawOnMouseMove(e);
       else if (isPanning.current) {
@@ -284,12 +295,13 @@ export const useMouse = ({
         const { clientX, clientY } = isTouchEvent(evt) ? evt.touches[0] : evt;
         const { x: lastX, y: lastY } = lastPosition.current;
         const offset = new Point(clientX - lastX, clientY - lastY);
-        setViewport(canvas.getZoom(), offset);
+        setViewport(offset);
         canvas.setViewportTransform(canvas.viewportTransform as number[]);
         lastPosition.current = new Point(clientX, clientY);
         canvas.setCursor('grabbing');
       }
     },
+
     'mouse:up': () => {
       if (isDrawingStarted.current && nowFocus.drawingType === LabelType.Point)
         drawingStop();

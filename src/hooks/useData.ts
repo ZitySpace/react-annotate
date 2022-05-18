@@ -4,7 +4,6 @@ import { useStateList } from 'react-use';
 import { Boundary } from '../classes/Geometry/Boundary';
 import { Dimension } from '../classes/Geometry/Dimension';
 import { Point } from '../classes/Geometry/Point';
-import { Label } from '../classes/Label';
 import { ImageData, DataState } from '../interfaces/basic';
 import { useStore } from 'zustand';
 import { CanvasStore, CanvasStoreProps } from '../stores/CanvasStore';
@@ -12,26 +11,12 @@ import {
   CanvasMetaStore,
   CanvasMetaStoreProps,
 } from '../stores/CanvasMetaStore';
-
-export interface GeometricAttributes {
-  imageDims: Dimension;
-  imageBoundary: Boundary;
-  scale: number;
-  offset: Point;
-}
+import { ImageMetaStore, ImageMetaStoreProps } from '../stores/ImageMetaStore';
 
 export interface DataOperation {
   prevImg: () => void;
   nextImg: () => void;
   save: () => void;
-}
-
-export interface UseDataReturnProps {
-  imageObj: fabric.Image | null;
-  imageLoadingState: DataState;
-  annosInitState: DataState;
-  geometricAttributes: GeometricAttributes;
-  operation: DataOperation;
 }
 
 export const useData = (imagesList: ImageData[], initIndex: number = 0) => {
@@ -45,21 +30,15 @@ export const useData = (imagesList: ImageData[], initIndex: number = 0) => {
 
   const setStack = useStore(CanvasStore, (s: CanvasStoreProps) => s.setStack);
 
-  const { canvas, initSize } = useStore(CanvasMetaStore);
-
-  const imageDims = useRef<Dimension>(new Dimension());
-  const imageBoundary = useRef<Boundary>(new Boundary());
-  const scale = useRef<number>(1);
-  const offset = useRef<Point>(new Point());
-
-  const [annosInitState, setAnnosInitState] = useState<DataState>(
-    DataState.Loading
+  const { canvas, setInitDims: setCanvasInitDims } = useStore(
+    CanvasMetaStore,
+    (s: CanvasMetaStoreProps) => s
   );
-  const [imageLoadingState, setImageLoadingState] = useState<DataState>(
-    DataState.Loading
+
+  const { setImage, setImageMeta } = useStore(
+    ImageMetaStore,
+    (s: ImageMetaStoreProps) => s
   );
-  const [imageObj, setImageObj] = useState<fabric.Image | null>(null);
-  const theLastLoadImageUrl = useRef<string>();
 
   const operation = {
     save: () => {
@@ -70,31 +49,42 @@ export const useData = (imagesList: ImageData[], initIndex: number = 0) => {
     nextImg: () => (next() as undefined) || operation.save(),
   };
 
+  const [annosInitState, setAnnosInitState] = useState<DataState>(
+    DataState.Loading
+  );
+  const [imageLoadingState, setImageLoadingState] = useState<DataState>(
+    DataState.Loading
+  );
+  const theLastLoadImageUrl = useRef<string>();
+
   useEffect(() => {
-    if (!canvasDims) return;
+    if (!canvas) return;
+
     theLastLoadImageUrl.current = imageData.url;
     setImageLoadingState(DataState.Loading);
     setAnnosInitState(DataState.Loading);
 
     // calculate the image dimensions and boundary, its scale and the offset between canvas and image
     const { width: image_w, height: image_h } = imageData;
-    const { w: canvas_w, h: canvas_h } = canvasDims;
-    const scale_x = image_w < canvas_w ? 1 : canvas_w / image_w;
-    const scale_y = image_h < canvas_h ? 1 : canvas_h / image_h;
-    scale.current = Math.min(scale_x, scale_y);
-    imageDims.current = new Dimension(image_w, image_h).zoom(scale.current);
-    imageBoundary.current = imageDims.current.boundaryIn(canvasDims);
-    offset.current = imageDims.current.offsetTo(canvasDims);
+    const [canvas_w, canvas_h] = [canvas.width!, canvas.height!];
+    const scale_x = canvas_w / image_w;
+    const scale_y = canvas_h / image_h;
+    const scale = Math.min(scale_x, scale_y);
+    const imageDims = new Dimension(image_w, image_h).zoom(scale);
+    const canvasDims = new Dimension(canvas_w, canvas_h);
+    const imageBoundary = imageDims.boundaryIn(canvasDims);
+    const offset = imageDims.offsetTo(canvasDims);
 
-    const { x: left, y: top } = offset.current;
-    const [scaleX, scaleY] = [scale.current, scale.current];
+    const { x: left, y: top } = offset;
+    const [scaleX, scaleY] = [scale, scale];
+
     fabric.Image.fromURL(
       imageData.url,
       (img: fabric.Image) => {
         const { width, height } = img;
         if (width && height) {
           if (theLastLoadImageUrl.current === imageData.url) {
-            setImageObj(img);
+            setImage(img);
             setImageLoadingState(DataState.Ready);
           }
         } else setImageLoadingState(DataState.Error);
@@ -102,12 +92,14 @@ export const useData = (imagesList: ImageData[], initIndex: number = 0) => {
       { left, top, scaleX, scaleY, url: imageData.url } as any
     );
 
-    const annos = imageData.annotations;
-    annos.forEach((anno) => anno.scaleTransform(scale.current, offset.current));
-    setStack([annos]);
-    setAnnosInitState(DataState.Ready);
+    setImageMeta({ dims: imageDims, scale, offset, boundary: imageBoundary });
 
-    initWidthRef.current = canvas_w;
+    const annos = imageData.annotations;
+    annos.forEach((anno) => anno.scaleTransform(scale, offset));
+    setStack([annos]);
+    setCanvasInitDims(new Dimension(canvas_w, canvas_h));
+
+    setAnnosInitState(DataState.Ready);
   }, [imageData]);
 
   useEffect(() => {
@@ -115,16 +107,9 @@ export const useData = (imagesList: ImageData[], initIndex: number = 0) => {
   }, []);
 
   return {
-    imageObj,
-    imageLoadingState,
-    annosInitState,
-    geometricAttributes: {
-      canvasDims,
-      imageDims: imageDims.current,
-      imageBoundary: imageBoundary.current,
-      scale: scale.current,
-      offset: offset.current,
-    },
-    operation,
+    dataReady:
+      imageLoadingState === DataState.Ready &&
+      annosInitState === DataState.Ready,
+    dataOperation: operation,
   };
 };

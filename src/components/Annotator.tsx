@@ -34,31 +34,27 @@ export const Annotator = ({
   const annoColors = useColors(); // handle colors' stuff.
 
   const Container = useContainer();
-  const data = useData(imagesList, canvasDims, initWidthRef, index);
+  const { dataReady, dataOperation } = useData(imagesList, index);
   const { loadListeners, syncCanvasToState } = useCanvas({
-    canvas,
-    data,
+    dataReady,
     annoColors,
     focus,
   });
 
   useMouse({
-    canvas,
-    geometricAttributes: data.geometricAttributes,
     focus,
     annoColors,
     loadListeners,
     syncCanvasToState,
-    initWidthRef,
   });
 
-  useKeyboard({ focus, dataOperation: data.operation }); // listeners for keyboard for support shortcuts.
+  useKeyboard({ focus, dataOperation: dataOperation }); // listeners for keyboard for support shortcuts.
 
   return isAnnosVisible ? (
     <div className='w-full h-full flex flex-col justify-center items-center relative'>
       {Container}
       <OperationPanel focus={focus} annoColors={annoColors} />
-      <ButtonBar focus={focus} dataOperation={data.operation} />
+      <ButtonBar focus={focus} dataOperation={dataOperation} />
     </div>
   ) : null;
 };

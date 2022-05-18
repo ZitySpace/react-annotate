@@ -18,8 +18,12 @@ export interface UseContainerReturnProps {
 export const useContainer = () => {
   const canvasElm = useRef<HTMLCanvasElement | null>(null);
 
-  const { canvas, initSize, setCanvas, setInitSize } =
-    useStore(CanvasMetaStore);
+  const {
+    canvas,
+    initDims: canvasInitDims,
+    setCanvas,
+    setInitDims: setCanvasInitDims,
+  } = useStore(CanvasMetaStore, (s: CanvasMetaStoreProps) => s);
 
   const calcCanvasDims = () => {
     const extendElm = document.getElementById('canvas_extended') as HTMLElement;
@@ -49,7 +53,7 @@ export const useContainer = () => {
     upperCanvasElm.classList.remove('hidden');
 
     setCanvas(canvas);
-    setInitSize({ w: canvas_w, h: canvas_h });
+    setCanvasInitDims(new Dimension(canvas_w, canvas_h));
   };
 
   useEffect(initCanvas, [canvasElm]);
@@ -63,7 +67,7 @@ export const useContainer = () => {
 
     const vpt = canvas.viewportTransform as number[];
     const zoom = canvas.getZoom();
-    const { w: initW, h: initH } = initSize!;
+    const { w: initW, h: initH } = canvasInitDims!;
 
     if (canvas_w >= initW * zoom) vpt[4] = (canvas_w - initW * zoom) / 2;
 

@@ -1,31 +1,27 @@
 import { fabric } from 'fabric';
 import { createContext } from 'react';
 import { createStore, State, StoreApi } from 'zustand';
-
-interface Size {
-  w: number;
-  h: number;
-}
+import { Dimension } from '../classes/Geometry/Dimension';
 
 interface StoreData extends State {
   canvas: fabric.Canvas | null;
-  initSize: Size | null;
+  initDims: Dimension | null;
 }
 
 const StoreDataDefault = {
   canvas: null,
-  initSize: null,
+  initDims: null,
 };
 
 interface Store extends StoreData {
   setCanvas: (c: fabric.Canvas) => void;
-  setInitSize: (sz: Size) => void;
+  setInitDims: (dims: Dimension) => void;
 }
 
 const store = createStore<Store>((set) => ({
   ...StoreDataDefault,
   setCanvas: (c) => set({ canvas: c }),
-  setInitSize: (sz) => set({ initSize: sz }),
+  setInitDims: (dims) => set({ initDims: dims }),
 }));
 
 const StoreContext = createContext<StoreApi<Store>>(store);
