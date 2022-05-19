@@ -1,6 +1,6 @@
-import { MAX_FONT_SIZE, RADIUS, STROKE_WIDTH } from '../interfaces/config'
-import { Label, LabelType } from '../classes/Label'
-import { Point } from '../classes/Geometry/Point'
+import { MAX_FONT_SIZE, RADIUS, STROKE_WIDTH } from '../interfaces/config';
+import { Label, LabelType } from '../classes/Label';
+import { Point } from '../classes/Geometry/Point';
 
 /**
  * Judge that is the label invalid
@@ -9,23 +9,23 @@ import { Point } from '../classes/Geometry/Point'
  * @returns is the obj invalid
  */
 export const isInvalid = (obj: any) => {
-  const { labelType } = obj
+  const { labelType } = obj;
   switch (labelType) {
     case LabelType.Rect:
-      return obj.width <= STROKE_WIDTH || obj.height <= STROKE_WIDTH
+      return obj.width <= STROKE_WIDTH || obj.height <= STROKE_WIDTH;
     case LabelType.Line:
       return (
         obj.endpoints[0]
           .getPointByOrigin()
           .distanceFrom(obj.endpoints[1].getPointByOrigin()) <
         (RADIUS + STROKE_WIDTH) * 2
-      )
+      );
     case LabelType.Polygon:
-      return obj.points.length <= 2
+      return obj.points.length <= 2;
     default:
-      return false
+      return false;
   }
-}
+};
 
 /**
  * Determine whether the event is a touch event
@@ -34,7 +34,7 @@ export const isInvalid = (obj: any) => {
  */
 export const isTouchEvent = (event: React.TouchEvent | React.MouseEvent) =>
   // safari and firefox has no TouchEvent
-  typeof TouchEvent !== 'undefined' && event instanceof TouchEvent
+  typeof TouchEvent !== 'undefined' && event instanceof TouchEvent;
 
 /**
  *  Group annotations by given property
@@ -45,15 +45,16 @@ export const isTouchEvent = (event: React.TouchEvent | React.MouseEvent) =>
 export const groupBy = (annotations: Label[], property: string) => {
   const groupedAnnosObj = annotations.reduce(
     (groupedAnnos: Object, theAnno: Label) => {
-      if (!groupedAnnos[theAnno[property]]) groupedAnnos[theAnno[property]] = []
-      groupedAnnos[theAnno[property]].push(theAnno)
-      return groupedAnnos
+      if (!groupedAnnos[theAnno[property]])
+        groupedAnnos[theAnno[property]] = [];
+      groupedAnnos[theAnno[property]].push(theAnno);
+      return groupedAnnos;
     },
     {}
-  )
+  );
 
-  return Object.entries(groupedAnnosObj)
-}
+  return Object.entries(groupedAnnosObj);
+};
 
 /**
  * Get the value which repeat the most
@@ -64,7 +65,7 @@ export const mostRepeatedValue = (array: any[]) =>
   array.sort(
     (a, b) =>
       array.filter((v) => v === b).length - array.filter((v) => v === a).length
-  )[0]
+  )[0];
 
 /**
  * Get legal values within the range
@@ -73,7 +74,7 @@ export const mostRepeatedValue = (array: any[]) =>
  * @returns legal values within the range
  */
 export function getBetween(value: number, ...args: number[]): number {
-  return Math.min(Math.max(args[0], value), args[1])
+  return Math.min(Math.max(args[0], value), args[1]);
 }
 
 /**
@@ -83,8 +84,8 @@ export function getBetween(value: number, ...args: number[]): number {
  * @returns label's text's font size
  */
 export const getFontSize = (width: number, height: number) => {
-  return Math.min(MAX_FONT_SIZE, width / 2, height / 2)
-}
+  return Math.min(MAX_FONT_SIZE, width / 2, height / 2);
+};
 
 /**
  * Calculate the boundary of polygon
@@ -92,20 +93,20 @@ export const getFontSize = (width: number, height: number) => {
  * @returns boundary of polygon
  */
 export const boundaryOfPolygon = (points: Point[]) => {
-  const xSet = points.map((p) => p.x)
-  const ySet = points.map((p) => p.y)
+  const xSet = points.map((p) => p.x);
+  const ySet = points.map((p) => p.y);
 
   return {
     x: Math.min(...xSet),
     y: Math.min(...ySet),
     w: Math.max(...xSet) - Math.min(...xSet),
-    h: Math.max(...ySet) - Math.min(...ySet)
-  }
-}
+    h: Math.max(...ySet) - Math.min(...ySet),
+  };
+};
 
 /**
  * Deep clone an object
  * @param obj target object
  * @returns a deep copy of the object
  */
-export const deepClone = <T>(obj: T): T => JSON.parse(JSON.stringify(obj))
+export const deepClone = <T>(obj: T): T => JSON.parse(JSON.stringify(obj));

@@ -12,6 +12,7 @@ import {
   CanvasMetaStoreProps,
 } from '../stores/CanvasMetaStore';
 import { ImageMetaStore, ImageMetaStoreProps } from '../stores/ImageMetaStore';
+import { SelectionStore, SelectionStoreProps } from '../stores/SelectionStore';
 
 export interface DataOperation {
   prevImg: () => void;
@@ -40,6 +41,11 @@ export const useData = (imagesList: ImageData[], initIndex: number = 0) => {
     (s: ImageMetaStoreProps) => s
   );
 
+  const selectObjects = useStore(
+    SelectionStore,
+    (s: SelectionStoreProps) => s.selectObjects
+  );
+
   const operation = {
     save: () => {
       console.log('Save called but not Implemented');
@@ -63,6 +69,7 @@ export const useData = (imagesList: ImageData[], initIndex: number = 0) => {
     theLastLoadImageUrl.current = imageData.url;
     setImageLoadingState(DataState.Loading);
     setAnnosInitState(DataState.Loading);
+    selectObjects();
 
     // calculate the image dimensions and boundary, its scale and the offset between canvas and image
     const { width: image_w, height: image_h } = imageData;

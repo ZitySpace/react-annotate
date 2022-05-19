@@ -1,21 +1,21 @@
-import { Point } from '../classes/Geometry/Point'
-import { Label, LabelType } from '../classes/Label'
-import { LineLabel } from '../classes/Label/LineLabel'
-import { PointLabel } from '../classes/Label/PointLabel'
-import { PolygonLabel } from '../classes/Label/PolygonLabel'
-import { RectLabel } from '../classes/Label/RectLabel'
+import { Point } from '../classes/Geometry/Point';
+import { Label, LabelType } from '../classes/Label';
+import { LineLabel } from '../classes/Label/LineLabel';
+import { PointLabel } from '../classes/Label/PointLabel';
+import { PolygonLabel } from '../classes/Label/PolygonLabel';
+import { RectLabel } from '../classes/Label/RectLabel';
 
 interface something {
-  type: string
-  labelType: LabelType
+  type: string;
+  labelType: LabelType;
 }
 
 const _newLabel = {
   [LabelType.Point]: (args: any) => new PointLabel(args),
   [LabelType.Line]: (args: any) => new LineLabel(args),
   [LabelType.Rect]: (args: any) => new RectLabel(args),
-  [LabelType.Polygon]: (args: any) => new PolygonLabel(args)
-}
+  [LabelType.Polygon]: (args: any) => new PolygonLabel(args),
+};
 
 export function newLabel({
   labelType,
@@ -23,25 +23,25 @@ export function newLabel({
   category,
   id,
   scale,
-  offset
+  offset,
 }: {
-  labelType: LabelType
-  position: Point
-  category: string
-  id: number
-  scale: number
-  offset: Point
-}): Label
+  labelType: LabelType;
+  position: Point;
+  category: string;
+  id: number;
+  scale: number;
+  offset: Point;
+}): Label;
 
 export function newLabel({
   obj,
   scale,
-  offset
+  offset,
 }: {
-  obj: fabric.Object
-  scale: number
-  offset: Point
-}): Label
+  obj: fabric.Object;
+  scale: number;
+  offset: Point;
+}): Label;
 
 export function newLabel({
   labelType,
@@ -50,48 +50,48 @@ export function newLabel({
   id,
   scale = 1,
   offset = new Point(),
-  obj
+  obj,
 }: {
-  labelType?: LabelType
-  category?: string
-  id?: number
-  scale?: number
-  offset?: Point
-  position?: Point
-  obj?: fabric.Object
+  labelType?: LabelType;
+  category?: string;
+  id?: number;
+  scale?: number;
+  offset?: Point;
+  position?: Point;
+  obj?: fabric.Object;
 }): Label {
   if (position && labelType) {
-    const { x, y } = position
-    return _newLabel[labelType]({ x, y, category, id, scale, offset })
+    const { x, y } = position;
+    return _newLabel[labelType]({ x, y, category, id, scale, offset });
   } else {
-    const { labelType } = obj as any
-    return _newLabel[labelType]({ obj, scale, offset })
+    const { labelType } = obj as any;
+    return _newLabel[labelType]({ obj, scale, offset });
   }
 }
 
 const isSomething = (target: something, type: string, labelType: LabelType[]) =>
-  type === target.type && labelType.includes(target.labelType)
+  type === target.type && labelType.includes(target.labelType);
 
 export const isRect = (target: any) =>
-  target && isSomething(target, 'rect', [LabelType.Rect])
+  target && isSomething(target, 'rect', [LabelType.Rect]);
 
 export const isPoint = (target: any) =>
-  target && isSomething(target, 'circle', [LabelType.Point])
+  target && isSomething(target, 'circle', [LabelType.Point]);
 
 export const isLine = (target: any) =>
-  target && isSomething(target, 'line', [LabelType.Line])
+  target && isSomething(target, 'line', [LabelType.Line]);
 
 export const isPolygon = (target: any) =>
-  target && isSomething(target, 'polygon', [LabelType.Polygon])
+  target && isSomething(target, 'polygon', [LabelType.Polygon]);
 
 export const isEndpoint = (target: any) =>
-  target && isSomething(target, 'circle', [LabelType.Line, LabelType.Polygon])
+  target && isSomething(target, 'circle', [LabelType.Line, LabelType.Polygon]);
 
 export const isPolygonLine = (target: any) =>
-  target && isSomething(target, 'line', [LabelType.Polygon])
+  target && isSomething(target, 'line', [LabelType.Polygon]);
 
 export const isLabel = (target: any) =>
-  [isRect, isLine, isPoint, isPolygon].some((fn) => fn(target))
+  [isRect, isLine, isPoint, isPolygon].some((fn) => fn(target));
 
 /**
  * Update associated lines' position if the endpoint is moved
@@ -102,19 +102,19 @@ export const updateEndpointAssociatedLinesPosition = (
   needUpdateCoords: boolean = false
 ) => {
   if (object && isEndpoint(object)) {
-    const { left, top, lines, _id } = object as any
+    const { left, top, lines, _id } = object as any;
     lines.forEach((line: fabric.Line) => {
-      const { endpoints, midpoint } = line as any
+      const { endpoints, midpoint } = line as any;
       const [{ left: x1, top: y1 }] = endpoints.filter(
         (p: any) => p._id !== _id
-      )
-      line.set({ x1, y1, x2: left, y2: top })
-      needUpdateCoords && line.setCoords()
+      );
+      line.set({ x1, y1, x2: left, y2: top });
+      needUpdateCoords && line.setCoords();
       if (midpoint) {
-        const { x, y } = line.getCenterPoint()
-        midpoint.set({ left: x, top: y })
-        midpoint.setCoords()
+        const { x, y } = line.getCenterPoint();
+        midpoint.set({ left: x, top: y });
+        midpoint.setCoords();
       }
-    })
+    });
   }
-}
+};

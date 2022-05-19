@@ -141,7 +141,12 @@ export const useCanvas = ({
     if (drawType || !adjustMode) canvas.discardActiveObject();
 
     canvas.forEachObject((obj: any) => {
-      obj.visible = isVisible(obj.type, obj.id, !(drawType || adjustMode));
+      obj.visible = isVisible(
+        obj.labelType,
+        obj.type,
+        obj.id,
+        !(drawType || adjustMode)
+      );
 
       if ((drawType || adjustMode) && isSelected(obj.id) && isRect(obj))
         canvas.setActiveObject(obj);

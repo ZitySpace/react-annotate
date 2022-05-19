@@ -1,6 +1,6 @@
 export interface Point {
-  x: number
-  y: number
+  x: number;
+  y: number;
 }
 
 export class Point implements Point {
@@ -10,8 +10,8 @@ export class Point implements Point {
    * @param y y_coordinate default 0
    */
   constructor(x: number = 0, y: number = 0) {
-    this.x = x
-    this.y = y
+    this.x = x;
+    this.y = y;
   }
 
   /**
@@ -20,9 +20,9 @@ export class Point implements Point {
    * @returns this
    */
   zoom(ratio: number): Point {
-    this.x *= ratio
-    this.y *= ratio
-    return this
+    this.x *= ratio;
+    this.y *= ratio;
+    return this;
   }
 
   /**
@@ -31,9 +31,9 @@ export class Point implements Point {
    * @returns
    */
   translate(offset: Point): Point {
-    this.x += offset.x
-    this.y += offset.y
-    return this
+    this.x += offset.x;
+    this.y += offset.y;
+    return this;
   }
 
   /**
@@ -41,7 +41,7 @@ export class Point implements Point {
    * @returns this Point
    */
   inverse(): Point {
-    return new Point(-this.x, -this.y)
+    return new Point(-this.x, -this.y);
   }
 
   /**
@@ -50,6 +50,6 @@ export class Point implements Point {
   distanceFrom(target: Point): number {
     return Math.sqrt(
       Math.pow(this.x - target.x, 2) + Math.pow(this.y - target.y, 2)
-    )
+    );
   }
 }

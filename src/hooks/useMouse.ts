@@ -71,11 +71,7 @@ export const useMouse = ({
   } = useStore(SelectionStore, (s: SelectionStoreProps) => s);
 
   // mount gestures event listener
-  const pinchListener = usePinch(() => {})();
-  if (canvas) {
-    const canvasExtendEle = canvas.getElement().parentElement;
-    canvasExtendEle!.onwheel = pinchListener['onWheel'];
-  }
+  usePinch(() => {}, { target: canvas?.getElement().parentElement });
 
   if (!canvas) return;
 
@@ -98,7 +94,11 @@ export const useMouse = ({
    */
   const setZoomByWheel = (evt: WheelEvent) => {
     const { deltaY, offsetX: x, offsetY: y } = evt;
-    const delta = deltaY * (evt.cancelable ? 3 : 1); // make touchBoard more smooth
+
+    // make touchBoard more smooth, using ctrlKey to identify touchBoard
+    // more detail in: https://use-gesture.netlify.app/docs/options/#modifierkey
+    const delta = deltaY * (evt.ctrlKey ? 3 : 1);
+
     const zoom = getBetween(canvas.getZoom() * 0.999 ** delta, 0.01, 20);
     canvas.zoomToPoint({ x, y }, zoom);
   };

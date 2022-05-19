@@ -23,7 +23,12 @@ interface Store extends StoreData {
   setDrawType: (drawType?: LabelType) => void;
   selectObjects: (objects?: Label[]) => void;
   toggleMulti: () => void;
-  isVisible: (type: string, id: number, showText?: boolean) => boolean;
+  isVisible: (
+    labelType: LabelType,
+    type: string,
+    id: number,
+    showText?: boolean
+  ) => boolean;
   isSelected: (target: number | string) => boolean;
 }
 
@@ -41,12 +46,16 @@ const store = createStore<Store>((set, get) => ({
 
   toggleMulti: () => set((s: Store) => ({ multi: !s.multi })),
 
-  isVisible: (t, id, sT = true) => {
+  isVisible: (labelType, type, id, showText = true) => {
     const s = get();
     return (
-      (!s.objects.length && !s.drawType) ||
+      (!s.objects.length &&
+        !s.drawType &&
+        !(
+          labelType === LabelType.Polygon && ['circle', 'line'].includes(type)
+        )) ||
       (s.objects.map(({ id }: { id: number }) => id).includes(id) &&
-        (sT || !['textbox', 'polygon'].includes(t)))
+        (showText || !['textbox', 'polygon'].includes(type)))
     );
   },
 

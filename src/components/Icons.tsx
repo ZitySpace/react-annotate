@@ -1,19 +1,19 @@
-import React, { MouseEventHandler } from 'react'
+import React, { MouseEventHandler } from 'react';
 
 const Icon =
   (children: React.ReactNode) =>
   ({
     onClick,
-    className
+    className,
   }: {
-    onClick?: MouseEventHandler
-    className?: string
+    onClick?: MouseEventHandler;
+    className?: string;
   }) =>
     (
       <div onClick={onClick} className={className}>
         {children}
       </div>
-    )
+    );
 
 export const SaveIcon = Icon(
   <svg
@@ -29,7 +29,7 @@ export const SaveIcon = Icon(
     <polyline points='17 21 17 13 7 13 7 21' />
     <polyline points='7 3 7 8 15 8' />
   </svg>
-)
+);
 
 export const PointIcon = Icon(
   <svg
@@ -45,7 +45,7 @@ export const PointIcon = Icon(
     <circle cx='12' cy='12' r='.5' fill='currentColor' />
     <circle cx='12' cy='12' r='9' />
   </svg>
-)
+);
 
 export const RectangleIcon = Icon(
   <svg
@@ -60,7 +60,7 @@ export const RectangleIcon = Icon(
     <path stroke='none' d='M0 0h24v24H0z' />
     <rect x='4' y='6' width='16' height='12' rx='2' />
   </svg>
-)
+);
 
 export const LineIcon = Icon(
   <svg
@@ -77,7 +77,7 @@ export const LineIcon = Icon(
     <circle cx='18' cy='18' r='2' />
     <line x1='7.5' y1='7.5' x2='16.5' y2='16.5' />
   </svg>
-)
+);
 
 export const PolygonIcon = Icon(
   <svg
@@ -91,7 +91,7 @@ export const PolygonIcon = Icon(
   >
     <polygon points='12 2 22 9.27 18.18 21.02 5.82 21.02 2 9.27 12 2' />
   </svg>
-)
+);
 
 export const UndoIcon = Icon(
   <svg
@@ -107,7 +107,7 @@ export const UndoIcon = Icon(
     <path d='M15 4.55a8 8 0 0 0 -6 14.9m0 -4.45v5h-5' />
     <path d='M13 19.95a8 8 0 0 0 5.3 -12.8' strokeDasharray='.001 4.13' />
   </svg>
-)
+);
 
 export const RedoIcon = Icon(
   <svg
@@ -123,7 +123,7 @@ export const RedoIcon = Icon(
     <path d='M9 4.55a8 8 0 0 1 6 14.9m0 -4.45v5h5' />
     <path d='M11 19.95a8 8 0 0 1 -5.3 -12.8' strokeDasharray='.001 4.13' />
   </svg>
-)
+);
 
 export const ResetIcon = Icon(
   <svg
@@ -139,7 +139,7 @@ export const ResetIcon = Icon(
     <polyline points='1 20 1 14 7 14' />
     <path d='M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15' />
   </svg>
-)
+);
 
 export const NextIcon = Icon(
   <svg
@@ -154,7 +154,7 @@ export const NextIcon = Icon(
     <path stroke='none' d='M0 0h24v24H0z' />
     <polyline points='9 6 15 12 9 18' />
   </svg>
-)
+);
 
 export const PervIcon = Icon(
   <svg
@@ -169,7 +169,7 @@ export const PervIcon = Icon(
     <path stroke='none' d='M0 0h24v24H0z' />
     <polyline points='15 6 9 12 15 18' />
   </svg>
-)
+);
 
 export const TrashIcon = Icon(
   <svg
@@ -188,7 +188,7 @@ export const TrashIcon = Icon(
     <path d='M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12' />
     <path d='M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3' />
   </svg>
-)
+);
 
 export const CloseIcon = Icon(
   <svg
@@ -204,7 +204,7 @@ export const CloseIcon = Icon(
     <line x1='18' y1='6' x2='6' y2='18' />
     <line x1='6' y1='6' x2='18' y2='18' />
   </svg>
-)
+);
 
 export const VisibleIcon = Icon(
   <svg
@@ -219,7 +219,7 @@ export const VisibleIcon = Icon(
     <path d='M15 12a3 3 0 11-6 0 3 3 0 016 0z' />
     <path d='M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z' />
   </svg>
-)
+);
 
 export const InvisibleIcon = Icon(
   <svg
@@ -233,7 +233,7 @@ export const InvisibleIcon = Icon(
   >
     <path d='M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21' />
   </svg>
-)
+);
 
 export const MultipleSelectIcon = Icon(
   <svg
@@ -249,7 +249,7 @@ export const MultipleSelectIcon = Icon(
     <polyline points='9 11 12 14 20 6' />
     <path d='M20 12v6a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h9' />
   </svg>
-)
+);
 
 export const LoadingIcon = Icon(
   <svg
@@ -262,7 +262,7 @@ export const LoadingIcon = Icon(
       display: 'block',
       shapeRendering: 'auto',
       animationPlayState: 'running',
-      animationDelay: '0s'
+      animationDelay: '0s',
     }}
     width='64px'
     height='64px'
@@ -290,4 +290,4 @@ export const LoadingIcon = Icon(
       ></animateTransform>
     </circle>
   </svg>
-)
+);

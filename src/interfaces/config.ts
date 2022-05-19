@@ -1,24 +1,24 @@
-export const IS_TOUCH_SCREEN = 'ontouchstart' in window
+export const IS_TOUCH_SCREEN = 'ontouchstart' in window;
 // || (navigator as any).maxTouchPoints > 0
 // || (navigator as any).msMaxTouchPoints > 0
 
-export const STROKE_WIDTH = 2
+export const STROKE_WIDTH = 2;
 
-export const RADIUS = 3
+export const RADIUS = 4;
 
-export const NEW_CATEGORY_NAME = 'new_category'
+export const NEW_CATEGORY_NAME = 'new_category';
 
-export const TRANSPARENT = 'rgba(255,0,0,0)'
+export const TRANSPARENT = 'rgba(255,0,0,0)';
 
-export const DEFAULT_COLOR = 'rgba(0,0,0,1)'
+export const DEFAULT_COLOR = 'rgba(0,0,0,1)';
 
-export const MAX_FONT_SIZE = 14
+export const MAX_FONT_SIZE = 14;
 
 export const CANVAS_CONFIG: fabric.ICanvasOptions = {
   defaultCursor: 'default',
   selection: false,
-  uniformScaling: false
-}
+  uniformScaling: false,
+};
 
 export const POINT_DEFAULT_CONFIG: fabric.ICircleOptions = {
   originX: 'center',
@@ -29,8 +29,8 @@ export const POINT_DEFAULT_CONFIG: fabric.ICircleOptions = {
   strokeWidth: STROKE_WIDTH,
   fill: TRANSPARENT,
   radius: RADIUS,
-  perPixelTargetFind: false
-}
+  perPixelTargetFind: false,
+};
 
 export const LINE_DEFAULT_CONFIG: fabric.ILineOptions | any = {
   originX: 'center',
@@ -44,8 +44,8 @@ export const LINE_DEFAULT_CONFIG: fabric.ILineOptions | any = {
   lockMovementY: true,
   selectable: true,
   perPixelTargetFind: true,
-  targetFindTolerance: RADIUS + STROKE_WIDTH
-}
+  targetFindTolerance: RADIUS + STROKE_WIDTH,
+};
 
 export const RECT_DEFAULT_CONFIG: fabric.IRectOptions | any = {
   originX: 'left',
@@ -60,8 +60,8 @@ export const RECT_DEFAULT_CONFIG: fabric.IRectOptions | any = {
   noScaleCache: false,
   cornerSize: 8,
   transparentCorners: false,
-  perPixelTargetFind: true
-}
+  perPixelTargetFind: true,
+};
 
 export const POLYGON_DEFAULT_CONFIG: fabric.IPolylineOptions = {
   originX: 'left',
@@ -78,12 +78,12 @@ export const POLYGON_DEFAULT_CONFIG: fabric.IPolylineOptions = {
   strokeUniform: true,
   noScaleCache: false,
   opacity: 1,
-  perPixelTargetFind: true
-}
+  perPixelTargetFind: true,
+};
 
 export const TEXTBOX_DEFAULT_CONFIG: fabric.ITextboxOptions = {
   fill: 'black',
   selectable: false,
   hoverCursor: 'default',
-  fontSize: RADIUS * 2
-}
+  fontSize: 14,
+};
