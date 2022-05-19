@@ -1,6 +1,7 @@
 import { usePinch } from '@use-gesture/react';
 import { fabric } from 'fabric';
 import { useRef } from 'react';
+import { useStore } from 'zustand';
 import { Point } from '../classes/Geometry/Point';
 import { LabelType } from '../classes/Label';
 import { PolygonLabel } from '../classes/Label/PolygonLabel';
@@ -12,6 +13,13 @@ import {
   STROKE_WIDTH,
   TRANSPARENT,
 } from '../interfaces/config';
+import {
+  CanvasMetaStore,
+  CanvasMetaStoreProps,
+} from '../stores/CanvasMetaStore';
+import { CanvasStore, CanvasStoreProps } from '../stores/CanvasStore';
+import { ImageMetaStore, ImageMetaStoreProps } from '../stores/ImageMetaStore';
+import { SelectionStore, SelectionStoreProps } from '../stores/SelectionStore';
 import { getBetween, isInvalid, isTouchEvent } from '../utils';
 import {
   isEndpoint,
@@ -24,22 +32,12 @@ import {
   updateEndpointAssociatedLinesPosition,
 } from '../utils/label';
 import { UseColorsReturnProps } from './useColor';
-import { useStore } from 'zustand';
-import { CanvasStore, CanvasStoreProps } from '../stores/CanvasStore';
-import {
-  CanvasMetaStore,
-  CanvasMetaStoreProps,
-} from '../stores/CanvasMetaStore';
-import { ImageMetaStore, ImageMetaStoreProps } from '../stores/ImageMetaStore';
-import { SelectionStore, SelectionStoreProps } from '../stores/SelectionStore';
 
 export const useMouse = ({
   annoColors,
-  loadListeners,
   syncCanvasToState,
 }: {
   annoColors: UseColorsReturnProps;
-  loadListeners: (newListeners: object) => void;
   syncCanvasToState: () => void;
 }) => {
   const lastPosition = useRef<Point>(new Point());
@@ -63,11 +61,9 @@ export const useMouse = ({
   const {
     drawType,
     setDrawType,
-    objects: selectedObjects,
     category: selectedCategory,
     isSelected,
     selectObjects,
-    isVisible,
   } = useStore(SelectionStore, (s: SelectionStoreProps) => s);
 
   // mount gestures event listener
@@ -316,5 +312,7 @@ export const useMouse = ({
     },
   };
 
-  loadListeners(listeners);
+  Object.entries(listeners).forEach(([event, handler]) =>
+    canvas.on(event, handler)
+  );
 };
