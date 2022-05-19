@@ -51,6 +51,7 @@ export const useCanvas = ({
 
   const {
     drawType,
+    visibleType,
     objects: selectedObjects,
     category: selectedCategory,
     isSelected,
@@ -153,7 +154,7 @@ export const useCanvas = ({
     });
 
     canvas.requestRenderAll();
-  }, [drawType, selectedObjects, selectedCategory]);
+  }, [drawType, visibleType, selectedObjects, selectedCategory]);
 
   // Initialize image
   useEffect(() => {

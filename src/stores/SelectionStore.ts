@@ -6,7 +6,7 @@ import { mostRepeatedValue } from '../utils';
 interface StoreData extends State {
   multi: boolean;
   drawType: LabelType;
-  vizType: LabelType[];
+  visibleType: LabelType[];
   category: string | null;
   objects: Label[];
 }
@@ -14,7 +14,7 @@ interface StoreData extends State {
 const StoreDataDefault = {
   multi: false,
   drawType: LabelType.None,
-  vizType: Object.keys(LabelType).map((key) => LabelType[key]),
+  visibleType: Object.keys(LabelType).map((key) => LabelType[key]),
   category: null,
   objects: [],
 };
@@ -23,6 +23,7 @@ interface Store extends StoreData {
   setDrawType: (drawType?: LabelType) => void;
   selectObjects: (objects?: Label[]) => void;
   toggleMulti: () => void;
+  toggleVisibility: () => void;
   isVisible: (
     labelType: LabelType,
     type: string,
@@ -46,11 +47,17 @@ const store = createStore<Store>((set, get) => ({
 
   toggleMulti: () => set((s: Store) => ({ multi: !s.multi })),
 
+  toggleVisibility: () =>
+    set((s: Store) => ({
+      visibleType: s.visibleType.length ? [] : StoreDataDefault.visibleType,
+    })),
+
   isVisible: (labelType, type, id, isShowText) => {
     const s = get();
     return (
       (!s.objects.length &&
         !s.drawType &&
+        s.visibleType.includes(labelType) &&
         !(
           labelType === LabelType.Polygon && ['circle', 'line'].includes(type)
         )) ||

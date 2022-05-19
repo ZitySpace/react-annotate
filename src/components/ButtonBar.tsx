@@ -4,6 +4,7 @@ import { DataOperation } from '../hooks/useData';
 import { Button } from './Button';
 import {
   CloseIcon,
+  InvisibleIcon,
   LineIcon,
   NextIcon,
   PervIcon,
@@ -48,7 +49,9 @@ export const ButtonBar = ({
 
   const {
     drawType,
+    visibleType,
     setDrawType,
+    toggleVisibility,
     objects: selectedObjects,
   } = useStore(SelectionStore, (s: SelectionStoreProps) => s);
 
@@ -81,8 +84,8 @@ export const ButtonBar = ({
           <CloseIcon />
         </Button>
 
-        <Button onClick={() => {}}>
-          <VisibleIcon />
+        <Button onClick={toggleVisibility}>
+          {visibleType.length ? <InvisibleIcon /> : <VisibleIcon />}
         </Button>
       </div>
 
