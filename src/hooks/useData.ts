@@ -1,16 +1,14 @@
 import { fabric } from 'fabric';
 import { useEffect, useRef, useState } from 'react';
 import { useStateList } from 'react-use';
-import { Boundary } from '../classes/Geometry/Boundary';
-import { Dimension } from '../classes/Geometry/Dimension';
-import { Point } from '../classes/Geometry/Point';
-import { ImageData, DataState } from '../interfaces/basic';
 import { useStore } from 'zustand';
-import { CanvasStore, CanvasStoreProps } from '../stores/CanvasStore';
+import { Dimension } from '../classes/Geometry/Dimension';
+import { DataState, ImageData } from '../interfaces/basic';
 import {
   CanvasMetaStore,
   CanvasMetaStoreProps,
 } from '../stores/CanvasMetaStore';
+import { CanvasStore, CanvasStoreProps } from '../stores/CanvasStore';
 import { ImageMetaStore, ImageMetaStoreProps } from '../stores/ImageMetaStore';
 import { SelectionStore, SelectionStoreProps } from '../stores/SelectionStore';
 
@@ -89,14 +87,14 @@ export const useData = (imagesList: ImageData[], initIndex: number = 0) => {
       imageData.url,
       (img: fabric.Image) => {
         const { width, height } = img;
-        if (width && height) {
-          if (theLastLoadImageUrl.current === imageData.url) {
+        if (theLastLoadImageUrl.current === imageData.url) {
+          if (width && height) {
             setImage(img);
             setImageLoadingState(DataState.Ready);
-          }
-        } else setImageLoadingState(DataState.Error);
+          } else setImageLoadingState(DataState.Error);
+        }
       },
-      { left, top, scaleX, scaleY, url: imageData.url } as any
+      { left, top, scaleX, scaleY }
     );
 
     setImageMeta({ dims: imageDims, scale, offset, boundary: imageBoundary });
