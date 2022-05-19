@@ -1,9 +1,21 @@
 import { fabric } from 'fabric';
 import { useEffect, useMemo, useRef } from 'react';
+import { useStore } from 'zustand';
 import { Boundary } from '../classes/Geometry/Boundary';
 import { Point } from '../classes/Geometry/Point';
 import { Label } from '../classes/Label';
 import { PolygonLabel } from '../classes/Label/PolygonLabel';
+import {
+  CanvasMetaStore,
+  CanvasMetaStoreProps,
+} from '../stores/CanvasMetaStore';
+import {
+  CanvasState,
+  CanvasStore,
+  CanvasStoreProps,
+} from '../stores/CanvasStore';
+import { ImageMetaStore, ImageMetaStoreProps } from '../stores/ImageMetaStore';
+import { SelectionStore, SelectionStoreProps } from '../stores/SelectionStore';
 import {
   isEndpoint,
   isLabel,
@@ -12,18 +24,6 @@ import {
   updateEndpointAssociatedLinesPosition,
 } from '../utils/label';
 import { UseColorsReturnProps } from './useColor';
-import { useStore } from 'zustand';
-import {
-  CanvasStore,
-  CanvasStoreProps,
-  CanvasState,
-} from '../stores/CanvasStore';
-import {
-  CanvasMetaStore,
-  CanvasMetaStoreProps,
-} from '../stores/CanvasMetaStore';
-import { ImageMetaStore, ImageMetaStoreProps } from '../stores/ImageMetaStore';
-import { SelectionStore, SelectionStoreProps } from '../stores/SelectionStore';
 
 export const useCanvas = ({
   dataReady,

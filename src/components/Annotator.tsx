@@ -3,7 +3,6 @@ import { useCanvas } from '../hooks/useCanvas';
 import { useColors } from '../hooks/useColor';
 import { useContainer } from '../hooks/useContainer';
 import { useData } from '../hooks/useData';
-import { useFocus } from '../hooks/useFocus';
 import { useKeyboard } from '../hooks/useKeyboard';
 import { useMouse } from '../hooks/useMouse';
 import { ImageData } from '../interfaces/basic';
@@ -27,24 +26,26 @@ export const Annotator = ({
   colors?: string[];
   onSwitchVisible?: Function; // TODO: bind to button
 }) => {
-  const [isAnnosVisible] = useState(isAnnotationsVisible); // TODO: remove this global state or add setter and bind to button
+  // TODO: remove this global state or add setter and bind to button
+  const [isAnnosVisible] = useState(isAnnotationsVisible);
+  const nothing = {
+    categoryColors,
+    categories,
+    colors,
+  };
+  !nothing;
 
   // Initialize the main variables
   const annoColors = useColors(); // handle colors' stuff.
 
   const Container = useContainer();
   const { dataReady, dataOperation } = useData(imagesList, index);
-  const { loadListeners, syncCanvasToState } = useCanvas({
+  const { syncCanvasToState } = useCanvas({
     dataReady,
     annoColors,
   });
 
-  useMouse({
-    annoColors,
-    loadListeners,
-    syncCanvasToState,
-  });
-
+  useMouse({ annoColors, syncCanvasToState });
   useKeyboard(dataOperation); // listeners for keyboard for support shortcuts.
 
   return isAnnosVisible ? (

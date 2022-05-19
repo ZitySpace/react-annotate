@@ -20,7 +20,7 @@ export const AnnotationsGrid = ({ annotations }: { annotations: Label[] }) => {
     const anno = annotations[annoIndex];
     const doesFocused = isSelected(anno.id);
     const newObjects = multi
-      ? selectedObjects.filter(({ id }) => id !== anno.id)
+      ? selectedObjects.filter(({ id }: { id: number }) => id !== anno.id)
       : [];
 
     if (doesFocused) selectObjects(newObjects);

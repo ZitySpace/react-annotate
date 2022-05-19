@@ -1,8 +1,8 @@
-import { LabelType } from '../classes/Label';
-import { DataOperation } from './useData';
 import { useStore } from 'zustand';
+import { LabelType } from '../classes/Label';
 import { CanvasStore, CanvasStoreProps } from '../stores/CanvasStore';
 import { SelectionStore, SelectionStoreProps } from '../stores/SelectionStore';
+import { DataOperation } from './useData';
 
 export const useKeyboard = (dataOperation: DataOperation) => {
   const [

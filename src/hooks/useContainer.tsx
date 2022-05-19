@@ -16,7 +16,7 @@ export interface UseContainerReturnProps {
 }
 
 export const useContainer = () => {
-  const canvasElm = useRef<HTMLCanvasElement | null>(null);
+  const canvasElmRef = useRef<HTMLCanvasElement | null>(null);
 
   const {
     canvas,
@@ -30,14 +30,14 @@ export const useContainer = () => {
     const { width: canvas_w, height: _canvas_h } =
       extendElm.getBoundingClientRect(); // get canvas extend element dimensions
     const canvas_h = _canvas_h - 36; // minus the buttons bar's height
-    const _canvasDims = new Dimension(canvas_w, canvas_h);
-    return _canvasDims;
+    return new Dimension(canvas_w, canvas_h);
   };
 
   const initCanvas = () => {
-    const canvas = new fabric.Canvas(canvasElm.current, CANVAS_CONFIG);
+    const canvas = new fabric.Canvas(canvasElmRef.current, CANVAS_CONFIG);
 
-    const { w: canvas_w, h: canvas_h } = calcCanvasDims();
+    const canvasDims = calcCanvasDims();
+    const { w: canvas_w, h: canvas_h } = canvasDims;
     canvas.setWidth(canvas_w);
     canvas.setHeight(canvas_h);
 
@@ -53,26 +53,24 @@ export const useContainer = () => {
     upperCanvasElm.classList.remove('hidden');
 
     setCanvas(canvas);
-    setCanvasInitDims(new Dimension(canvas_w, canvas_h));
+    setCanvasInitDims(canvasDims);
   };
 
-  useEffect(initCanvas, [canvasElm]);
+  useEffect(initCanvas, [canvasElmRef]);
 
   window.onresize = () => {
     if (!canvas) return;
 
-    const { w: canvas_w, h: canvas_h } = calcCanvasDims();
-    canvas.setWidth(canvas_w);
-    canvas.setHeight(canvas_h);
+    const { w: curW, h: curH } = calcCanvasDims();
+    canvas.setWidth(curW);
+    canvas.setHeight(curH);
 
     const vpt = canvas.viewportTransform as number[];
     const zoom = canvas.getZoom();
     const { w: initW, h: initH } = canvasInitDims!;
 
-    if (canvas_w >= initW * zoom) vpt[4] = (canvas_w - initW * zoom) / 2;
-
-    if (canvas_h >= initH * zoom) vpt[5] = (canvas_h - initH * zoom) / 2;
-
+    if (curW >= initW * zoom) vpt[4] = (curW - initW * zoom) / 2;
+    if (curH >= initH * zoom) vpt[5] = (curH - initH * zoom) / 2;
     canvas.setViewportTransform(vpt);
   };
 
@@ -81,7 +79,7 @@ export const useContainer = () => {
       className='h-full relative pb-7 md:pb-9 select-none w-full flex justify-center items-center overflow-y-hidden'
       id='canvas_extended'
     >
-      <canvas ref={canvasElm} className='hidden' />
+      <canvas ref={canvasElmRef} className='hidden' />
       {/* <LoadingIcon /> */}
     </div>
   );
