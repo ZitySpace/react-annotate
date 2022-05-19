@@ -21,7 +21,7 @@ const StoreDataDefault = {
 };
 
 interface Store extends StoreData {
-  setImage: (im: fabric.Image) => void;
+  setImage: (image: fabric.Image) => void;
   setImageMeta: ({
     dims,
     scale,
@@ -37,7 +37,7 @@ interface Store extends StoreData {
 
 const store = createStore<Store>((set) => ({
   ...StoreDataDefault,
-  setImage: (im) => set({ image: im }),
+  setImage: (image) => set({ image }),
   setImageMeta: (meta) => {
     // remove keys with value == undefined
     Object.keys(meta).forEach((k) => meta[k] === undefined && delete meta[k]);

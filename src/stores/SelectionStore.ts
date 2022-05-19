@@ -27,7 +27,7 @@ interface Store extends StoreData {
     labelType: LabelType,
     type: string,
     id: number,
-    showText?: boolean
+    isShowText: boolean
   ) => boolean;
   isSelected: (target: number | string) => boolean;
 }
@@ -46,7 +46,7 @@ const store = createStore<Store>((set, get) => ({
 
   toggleMulti: () => set((s: Store) => ({ multi: !s.multi })),
 
-  isVisible: (labelType, type, id, showText = true) => {
+  isVisible: (labelType, type, id, isShowText) => {
     const s = get();
     return (
       (!s.objects.length &&
@@ -55,7 +55,7 @@ const store = createStore<Store>((set, get) => ({
           labelType === LabelType.Polygon && ['circle', 'line'].includes(type)
         )) ||
       (s.objects.map(({ id }: { id: number }) => id).includes(id) &&
-        (showText || !['textbox', 'polygon'].includes(type)))
+        (isShowText || !['textbox', 'polygon'].includes(type)))
     );
   },
 
