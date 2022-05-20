@@ -110,13 +110,7 @@ export const useCanvas = ({
     const theEndpoint = newObjs.find(
       (o: any) => o._id === _id + 1 && o.type === 'circle'
     );
-    obj.set({ hoverCursor: 'move' }).on('moving', () => {
-      const { left, top } = obj;
-      (theEndpoint as fabric.Circle).set({ left, top });
-      (theEndpoint as fabric.Circle).setCoords();
-      updateEndpointAssociatedLinesPosition(theEndpoint as fabric.Circle, true);
-      updateEndpointAssociatedPolygon(theEndpoint as fabric.Circle);
-    });
+    (obj as any).set({ hoverCursor: 'move', counterpart: theEndpoint });
 
     methods.syncCanvasToState();
     canvas.remove(...oldObjs).add(...newObjs);
@@ -213,13 +207,11 @@ export const useCanvas = ({
 
   // set default listeners and must after declare actions otherwise it will not work
   Object.assign(listeners, {
-    // when canvas's object is moving, sync its line's position if the object is line's endpoint
-    'object:moving': (e: fabric.IEvent) =>
-      updateEndpointAssociatedLinesPosition(e.target!),
+    // when canvas's object is moving, ensure its position is in the image boundary
+    // and sync the position of its line/polygon if the object is a endpoint
+    'object:moving': (e: fabric.IEvent) => {
+      const obj = e.target as fabric.Object;
 
-    // when canvas's object was moved, ensure its position is in the image boundary
-    'object:modified': () => {
-      const obj: any = canvas?.getActiveObject();
       const { x, y, _x, _y } = imageBoundary;
       const _imgBoundary = new Boundary(x, y, _x, _y); // deep clone to avoid rect-type calculate influences
       // rect's boundary need consider of its dimensions
@@ -228,12 +220,16 @@ export const useCanvas = ({
         _imgBoundary._y -= obj.getScaledHeight();
       }
       // as for other types label, they controlled by its endpoint
-      obj.set(_imgBoundary.within(obj));
-      updateEndpointAssociatedLinesPosition(obj, true);
-      updateEndpointAssociatedPolygon(obj);
-
-      methods.syncCanvasToState();
+      const target = (obj as any).counterpart || obj; // if the object has counterpart, use it
+      target.set(_imgBoundary.within(obj));
+      target.setCoords();
+      updateEndpointAssociatedLinesPosition(target, true);
+      updateEndpointAssociatedPolygon(target);
+      canvas?.requestRenderAll();
     },
+
+    // after modifying the object on the canvas, synchronizes the canvas to the state
+    'object:modified': () => methods.syncCanvasToState(),
 
     // Sync canvas's selection to focus, or if the midpoint is selected, add it as a endpoint to the associated polygon
     'selection:updated': (e: any) => {
