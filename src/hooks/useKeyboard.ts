@@ -30,6 +30,7 @@ export const useKeyboard = (dataOperation: DataOperation) => {
   const {
     drawType,
     setDrawType,
+    toggleVisibility,
     objects: selectedObjects,
   } = useStore(SelectionStore, (s: SelectionStoreProps) => s);
 
@@ -43,6 +44,7 @@ export const useKeyboard = (dataOperation: DataOperation) => {
   const drawPoint = draw(LabelType.Point);
   const drawLine = draw(LabelType.Line);
   const drawRect = draw(LabelType.Rect);
+  const drawPolygon = draw(LabelType.Polygon);
 
   const plainShortcutMap = {
     Backspace: deleteObj,
@@ -50,6 +52,8 @@ export const useKeyboard = (dataOperation: DataOperation) => {
     KeyR: drawRect,
     KeyO: drawPoint,
     KeyL: drawLine,
+    KeyP: drawPolygon,
+    KeyV: toggleVisibility,
     Period: nextImg,
     ArrowRight: nextImg,
     Comma: prevImg,
