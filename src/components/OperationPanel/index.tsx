@@ -1,7 +1,6 @@
 import React, { MouseEvent } from 'react';
 import Draggable from 'react-draggable';
 import { Label } from '../../classes/Label';
-import { UseColorsReturnProps } from '../../hooks/useColor';
 import { MultipleSelectIcon } from '../Icons';
 import { AnnotationsGrid } from './AnnotationsGrid';
 import { CategoryName } from './CategoryName';
@@ -12,12 +11,9 @@ import {
   SelectionStore,
   SelectionStoreProps,
 } from '../../stores/SelectionStore';
+import { ColorStore, ColorStoreProps } from '../../stores/ColorStore';
 
-export const OperationPanel = ({
-  annoColors,
-}: {
-  annoColors: UseColorsReturnProps;
-}) => {
+export const OperationPanel = () => {
   const {
     multi,
     objects: selectedObjects,
@@ -26,13 +22,18 @@ export const OperationPanel = ({
     toggleMulti,
   } = useStore(SelectionStore, (s: SelectionStoreProps) => s);
 
+  const { getColor, renameKey: renameColorKey } = useStore(
+    ColorStore,
+    (s: ColorStoreProps) => s
+  );
+
   const [labels, renameCategory] = useStore(
     CanvasStore,
     (s: CanvasStoreProps) => [
       s.curState() ? groupBy(s.curState(), 'category') : [],
       (oldName: string, newName: string) => {
         s.renameCategory(oldName, newName);
-        annoColors.rename(oldName, newName);
+        renameColorKey(oldName, newName);
       },
     ]
   );
@@ -75,7 +76,7 @@ export const OperationPanel = ({
                   <div
                     className='w-28 p-2 flex flex-col items-end border-indigo-600'
                     style={{
-                      backgroundColor: annoColors.get(categoryName),
+                      backgroundColor: getColor(categoryName),
                     }}
                     data-annotations={JSON.stringify(annotations)}
                     onClick={handleClick}

@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useCanvas } from '../hooks/useCanvas';
-import { useColors } from '../hooks/useColor';
 import { useContainer } from '../hooks/useContainer';
 import { useData } from '../hooks/useData';
 import { useKeyboard } from '../hooks/useKeyboard';
@@ -36,22 +35,19 @@ export const Annotator = ({
   !nothing;
 
   // Initialize the main variables
-  const annoColors = useColors(); // handle colors' stuff.
+  // const annoColors = useColors(); // handle colors' stuff.
 
   const Container = useContainer();
   const { dataReady, dataOperation } = useData(imagesList, index);
-  const { syncCanvasToState } = useCanvas({
-    dataReady,
-    annoColors,
-  });
+  const { syncCanvasToState } = useCanvas(dataReady);
 
-  useMouse({ annoColors, syncCanvasToState });
+  useMouse(syncCanvasToState);
   useKeyboard(dataOperation); // listeners for keyboard for support shortcuts.
 
   return isAnnosVisible ? (
     <div className='w-full h-full flex flex-col justify-center items-center relative'>
       {Container}
-      <OperationPanel annoColors={annoColors} />
+      <OperationPanel />
       <ButtonBar dataOperation={dataOperation} />
     </div>
   ) : null;

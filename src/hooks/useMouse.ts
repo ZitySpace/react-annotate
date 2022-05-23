@@ -31,15 +31,9 @@ import {
   newLabel,
   updateEndpointAssociatedLinesPosition,
 } from '../utils/label';
-import { UseColorsReturnProps } from './useColor';
+import { ColorStore, ColorStoreProps } from '../stores/ColorStore';
 
-export const useMouse = ({
-  annoColors,
-  syncCanvasToState,
-}: {
-  annoColors: UseColorsReturnProps;
-  syncCanvasToState: () => void;
-}) => {
+export const useMouse = (syncCanvasToState: () => void) => {
   const lastPosition = useRef<Point>(new Point());
   const isPanning = useRef<boolean>(false);
   const isDrawingStarted = useRef<boolean>(false);
@@ -65,6 +59,8 @@ export const useMouse = ({
     isSelected,
     selectObjects,
   } = useStore(SelectionStore, (s: SelectionStoreProps) => s);
+
+  const getColor = useStore(ColorStore, (s: ColorStoreProps) => s.getColor);
 
   // mount gestures event listener
   usePinch(() => {}, { target: canvas?.getElement().parentElement });
@@ -122,7 +118,7 @@ export const useMouse = ({
 
     const category = selectedCategory || NEW_CATEGORY_NAME;
     const id = Math.max(-1, ...curState.map(({ id }) => id)) + 1;
-    const color = annoColors.get(category);
+    const color = getColor(category);
 
     const fabricObjects = newLabel({
       labelType: drawType,
@@ -175,7 +171,7 @@ export const useMouse = ({
     // for segmentation, drawing is not done in once
     if (isPolygon(obj)) {
       const { points, endpoints, lines, labelType, category, id } = obj;
-      const color = annoColors.get(category);
+      const color = getColor(category);
       const { left, top } = imageBoundary.within(canvas.getPointer(event.e));
       const nowPoint = new Point(left, top);
 

@@ -23,15 +23,9 @@ import {
   newLabel,
   updateEndpointAssociatedLinesPosition,
 } from '../utils/label';
-import { UseColorsReturnProps } from './useColor';
+import { ColorStore, ColorStoreProps } from '../stores/ColorStore';
 
-export const useCanvas = ({
-  dataReady,
-  annoColors,
-}: {
-  dataReady: boolean;
-  annoColors: UseColorsReturnProps;
-}) => {
+export const useCanvas = (dataReady: boolean) => {
   const [curState, pushState] = useStore(CanvasStore, (s: CanvasStoreProps) => [
     s.curState(),
     s.pushState,
@@ -58,6 +52,8 @@ export const useCanvas = ({
     selectObjects,
     isVisible,
   } = useStore(SelectionStore, (s: SelectionStoreProps) => s);
+
+  const getColor = useStore(ColorStore, (s: ColorStoreProps) => s.getColor);
 
   const listenersRef = useRef<object>({});
   const listeners = listenersRef.current;
@@ -88,9 +84,7 @@ export const useCanvas = ({
     if (!canvas) return;
     const currentLabelObjs = canvas.getObjects().filter(isLabel);
     const newObjects = currentLabelObjs.map((obj: any) =>
-      newLabel({ obj, offset, scale }).getFabricObjects(
-        annoColors.get(obj.category)
-      )
+      newLabel({ obj, offset, scale }).getFabricObjects(getColor(obj.category))
     );
     canvas.remove(...canvas.getObjects()).add(...newObjects.flat());
   };
@@ -105,7 +99,7 @@ export const useCanvas = ({
       obj: polygon,
       scale,
       offset,
-    }).getFabricObjects(annoColors.get(polygon.category), false);
+    }).getFabricObjects(getColor(polygon.category), false);
 
     const theEndpoint = newObjs.find(
       (o: any) => o._id === _id + 1 && o.type === 'circle'
@@ -181,7 +175,7 @@ export const useCanvas = ({
         canvas.remove(...canvas.getObjects());
         state.forEach((anno: Label) => {
           const { category } = anno;
-          const currentColor = annoColors.get(category!);
+          const currentColor = getColor(category!);
           // TODO: ensure visible
           const fabricObjects = anno.getFabricObjects(currentColor);
           canvas.add(...fabricObjects);
