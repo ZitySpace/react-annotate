@@ -67,13 +67,20 @@ export const useKeyboard = (dataOperation: DataOperation) => {
     const controlKey = ctrlKey || metaKey;
     const auxiliaryKey = shiftKey || altKey;
 
+    const preventDefault = () => {
+      event.preventDefault(); // prevent default event after execute such as save html
+      event.stopPropagation(); // prevent event bubble up
+    };
+
     const combinedShortcutMap = {
       KeyR: () => {
+        preventDefault();
         if (!controlKey || auxiliaryKey) return;
         else if (canReset) reset();
         else throw new Error('Cannot reset.');
       },
       KeyZ: () => {
+        preventDefault();
         if (!controlKey || altKey) return;
 
         if (!shiftKey && canUndo) undo();
@@ -82,6 +89,7 @@ export const useKeyboard = (dataOperation: DataOperation) => {
         else throw new Error('Cannot redo.');
       },
       KeyS: () => {
+        preventDefault();
         if (!controlKey || auxiliaryKey) return;
         else if (canSave) save();
         else throw new Error('Cannot save.');
@@ -91,7 +99,6 @@ export const useKeyboard = (dataOperation: DataOperation) => {
     try {
       if (controlKey || auxiliaryKey) combinedShortcutMap[code]();
       else plainShortcutMap[code]();
-      event.preventDefault(); // prevent default event after execute such as save html
     } catch (error) {
       if (!(error instanceof TypeError)) console.log(error);
     }
