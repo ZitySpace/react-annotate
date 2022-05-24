@@ -70,7 +70,8 @@ export function newLabel({
 }
 
 const isSomething = (target: something, type: string, labelType: LabelType[]) =>
-  type === target.type && labelType.includes(target.labelType);
+  (target?.type ? target.type === type : true) &&
+  labelType.includes(target.labelType);
 
 export const isRect = (target: any) =>
   target && isSomething(target, 'rect', [LabelType.Rect]);

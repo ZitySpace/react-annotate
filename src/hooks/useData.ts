@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useStateList } from 'react-use';
 import { useStore } from 'zustand';
 import { Dimension } from '../classes/Geometry/Dimension';
+import { PolygonLabel } from '../classes/Label/PolygonLabel';
 import { DataState, ImageData } from '../interfaces/basic';
 import {
   CanvasMetaStore,
@@ -11,6 +12,7 @@ import {
 import { CanvasStore, CanvasStoreProps } from '../stores/CanvasStore';
 import { ImageMetaStore, ImageMetaStoreProps } from '../stores/ImageMetaStore';
 import { SelectionStore, SelectionStoreProps } from '../stores/SelectionStore';
+import { isPolygon } from '../utils/label';
 
 export interface DataOperation {
   prevImg: () => void;
@@ -101,6 +103,16 @@ export const useData = (imagesList: ImageData[], initIndex: number = 0) => {
 
     const annos = imageData.annotations;
     annos.forEach((anno) => anno.scaleTransform(scale, offset));
+    annos.sort((a, b) => {
+      if (isPolygon(a) && !isPolygon(b)) return -1;
+      else if (isPolygon(b) && !isPolygon(a)) return 1;
+      else if (!isPolygon(a) && !isPolygon(b)) return 0;
+      else
+        return (
+          (b as PolygonLabel).boundary.getSize() -
+          (a as PolygonLabel).boundary.getSize()
+        );
+    });
     setStack([annos]);
     setCanvasInitDims(new Dimension(canvas_w, canvas_h));
 

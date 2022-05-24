@@ -45,4 +45,12 @@ export class Rect implements Rect {
     this._y += offset.y;
     return this;
   }
+
+  /**
+   * Calculate the size of the area
+   * @returns area sieze
+   */
+  getSize(): number {
+    return this.w * this.h;
+  }
 }
