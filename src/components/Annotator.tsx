@@ -34,9 +34,6 @@ export const Annotator = ({
   };
   !nothing;
 
-  // Initialize the main variables
-  // const annoColors = useColors(); // handle colors' stuff.
-
   const Container = useContainer();
   const { dataReady, dataOperation } = useData(imagesList, index);
   const { syncCanvasToState } = useCanvas(dataReady);
