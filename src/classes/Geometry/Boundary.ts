@@ -1,9 +1,9 @@
 import { getBetween } from '../../utils';
-import { Line } from './Line';
+import { Rect } from './Rect';
 
-export class Boundary extends Line {
+export class Boundary extends Rect {
   /**
-   * @param args [x, y, _x, _y]
+   * @param args [x, y, w, h]
    */
   constructor(...args: number[]) {
     super(...args);

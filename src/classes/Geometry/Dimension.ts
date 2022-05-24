@@ -54,6 +54,6 @@ export class Dimension implements Dimension {
   boundaryIn(external: Dimension): Boundary {
     const { w, h } = external;
     const { w: _w, h: _h } = this;
-    return new Boundary((w - _w) / 2, (h - _h) / 2, (w + _w) / 2, (h + _h) / 2);
+    return new Boundary((w - _w) / 2, (h - _h) / 2, _w, _h);
   }
 }
