@@ -85,6 +85,8 @@ export const isLine = (target: any) =>
 export const isPolygon = (target: any) =>
   target && isSomething(target, 'polygon', [LabelType.Polygon]);
 
+export const isMidpoint = (target: any) => target && target.type === 'midpoint';
+
 export const isEndpoint = (target: any) =>
   target && isSomething(target, 'circle', [LabelType.Line, LabelType.Polygon]);
 

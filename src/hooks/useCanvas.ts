@@ -5,7 +5,6 @@ import { Boundary } from '../classes/Geometry/Boundary';
 import { Point } from '../classes/Geometry/Point';
 import { Rect } from '../classes/Geometry/Rect';
 import { Label } from '../classes/Label';
-import { PolygonLabel } from '../classes/Label/PolygonLabel';
 import {
   CanvasMetaStore,
   CanvasMetaStoreProps,
@@ -20,6 +19,7 @@ import { SelectionStore, SelectionStoreProps } from '../stores/SelectionStore';
 import {
   isEndpoint,
   isLabel,
+  isMidpoint,
   isRect,
   newLabel,
   updateEndpointAssociatedLinesPosition,
@@ -89,27 +89,6 @@ export const useCanvas = (dataReady: boolean) => {
       newLabel({ obj, offset, scale }).getFabricObjects(getColor(obj.category))
     );
     canvas.remove(...canvas.getObjects()).add(...newObjects.flat());
-  };
-
-  const addPointToPolygon = (obj: fabric.Circle) => {
-    if (!canvas) return;
-    const { left, top, _id, polygon } = obj as any;
-    polygon.points.splice(_id + 1, 0, new Point(left, top));
-
-    const oldObjs = canvas.getObjects().filter((o: any) => o.id === polygon.id);
-    const newObjs = new PolygonLabel({
-      obj: polygon,
-      scale,
-      offset,
-    }).getFabricObjects(getColor(polygon.category), false);
-
-    const theEndpoint = newObjs.find(
-      (o: any) => o._id === _id + 1 && o.type === 'circle'
-    );
-    (obj as any).set({ hoverCursor: 'move', counterpart: theEndpoint });
-
-    canvas.remove(...oldObjs).add(...newObjs);
-    methods.syncCanvasToState();
   };
 
   // Sync state to canvas & focus if state changed
@@ -223,9 +202,12 @@ export const useCanvas = (dataReady: boolean) => {
       canvas?.requestRenderAll();
     },
 
-    // after modifying the object on the canvas, synchronizes the canvas to the state
+    // after modifying the object on the canvas,
+    // restrict the rectangle's position to be within the image boundary via tailoring
+    // and synchronizes the canvas to the state
     'object:modified': (e: fabric.IEvent) => {
       const { target } = e;
+      if (isMidpoint(target)) return;
       if (isRect(target)) {
         const { left, top } = target as fabric.Rect;
         const [width, height] = [
@@ -248,24 +230,13 @@ export const useCanvas = (dataReady: boolean) => {
       methods.syncCanvasToState();
     },
 
-    // Sync canvas's selection to focus, or if the midpoint is selected, add it as a endpoint to the associated polygon
-    'selection:updated': (e: any) => {
-      const target = e.selected[0];
-      if (target.type === 'midpoint')
-        addPointToPolygon(target as fabric.Circle);
-    },
-
+    // Sync canvas's selection to focus
     'selection:created': (e: any) => {
       const target = e.selected[0];
-      if (target.type === 'midpoint')
-        addPointToPolygon(target as fabric.Circle);
-      else {
-        const obj = target?.polygon || target;
-        const anno = newLabel({ obj, offset, scale });
-        selectObjects([anno]);
-      }
+      const obj = target?.polygon || target;
+      const anno = newLabel({ obj, offset, scale });
+      selectObjects([anno]);
     },
-
     'selection:cleared': (e: any) => e.e && selectObjects(),
   });
 
