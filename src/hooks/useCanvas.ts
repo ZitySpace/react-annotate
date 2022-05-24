@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import { useStore } from 'zustand';
 import { Boundary } from '../classes/Geometry/Boundary';
 import { Point } from '../classes/Geometry/Point';
+import { Rect } from '../classes/Geometry/Rect';
 import { Label } from '../classes/Label';
 import { PolygonLabel } from '../classes/Label/PolygonLabel';
 import {
@@ -24,6 +25,7 @@ import {
   updateEndpointAssociatedLinesPosition,
 } from '../utils/label';
 import { ColorStore, ColorStoreProps } from '../stores/ColorStore';
+import { STROKE_WIDTH } from '../interfaces/config';
 
 export const useCanvas = (dataReady: boolean) => {
   const [curState, pushState] = useStore(CanvasStore, (s: CanvasStoreProps) => [
@@ -206,8 +208,8 @@ export const useCanvas = (dataReady: boolean) => {
     'object:moving': (e: fabric.IEvent) => {
       const obj = e.target as fabric.Object;
 
-      const { x, y, _x, _y } = imageBoundary;
-      const _imgBoundary = new Boundary(x, y, _x, _y); // deep clone to avoid rect-type calculate influences
+      const { x, y, w, h } = imageBoundary;
+      const _imgBoundary = new Boundary(x, y, w, h); // deep clone to avoid rect-type calculate influences
       // rect's boundary need consider of its dimensions
       if (isRect(obj)) {
         _imgBoundary._x -= obj.getScaledWidth();
@@ -223,7 +225,29 @@ export const useCanvas = (dataReady: boolean) => {
     },
 
     // after modifying the object on the canvas, synchronizes the canvas to the state
-    'object:modified': () => methods.syncCanvasToState(),
+    'object:modified': (e: fabric.IEvent) => {
+      const { target } = e;
+      if (isRect(target)) {
+        const { left, top } = target as fabric.Rect;
+        const [width, height] = [
+          target?.getScaledWidth(),
+          target?.getScaledHeight(),
+        ];
+        const rect = imageBoundary.intersection(
+          new Rect(left!, top!, width!, height!)
+        );
+        const { x, y, w, h } = rect;
+        target?.set({
+          left: x,
+          top: y,
+          width: w - STROKE_WIDTH,
+          height: h - STROKE_WIDTH,
+          scaleX: 1,
+          scaleY: 1,
+        });
+      }
+      methods.syncCanvasToState();
+    },
 
     // Sync canvas's selection to focus, or if the midpoint is selected, add it as a endpoint to the associated polygon
     'selection:updated': (e: any) => {
