@@ -117,7 +117,7 @@ export const useData = (imagesList: ImageData[], initIndex: number = 0) => {
     setCanvasInitDims(new Dimension(canvas_w, canvas_h));
 
     setAnnosInitState(DataState.Ready);
-  }, [imageData]);
+  }, [imageData, canvas]);
 
   useEffect(() => {
     initIndex && setImageIdx(initIndex);
