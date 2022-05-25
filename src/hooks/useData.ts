@@ -12,7 +12,7 @@ import { CanvasStore, CanvasStoreProps } from '../stores/CanvasStore';
 import { ImageMetaStore, ImageMetaStoreProps } from '../stores/ImageMetaStore';
 import { SelectionStore, SelectionStoreProps } from '../stores/SelectionStore';
 import { isPolygon } from '../utils/label';
-import { useList } from './useList';
+import { useStateList } from './useStateList';
 
 export interface DataOperation {
   prevImg: () => void;
@@ -25,11 +25,15 @@ export const useData = (imagesList: ImageData[], initIndex: number = 0) => {
   const {
     state: imageData,
     currentIndex: imageIndex,
+    updateState: updateImageData,
     prev,
     next,
-  } = useList<ImageData>(imagesList, initIndex);
+  } = useStateList<ImageData>(imagesList, initIndex);
 
-  const { setStack } = useStore(CanvasStore, (s: CanvasStoreProps) => s);
+  const { curState, setStack } = useStore(
+    CanvasStore,
+    (s: CanvasStoreProps) => s
+  );
 
   const { canvas, setInitDims: setCanvasInitDims } = useStore(
     CanvasMetaStore,
@@ -48,7 +52,7 @@ export const useData = (imagesList: ImageData[], initIndex: number = 0) => {
 
   const operation = {
     save: () => {
-      console.log('Save called but not Implemented');
+      updateImageData({ ...imageData, annotations: curState() });
       return true;
     },
 
