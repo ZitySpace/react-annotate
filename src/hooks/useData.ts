@@ -1,6 +1,5 @@
 import { fabric } from 'fabric';
 import { useEffect, useRef, useState } from 'react';
-import { useStateList } from 'react-use';
 import { useStore } from 'zustand';
 import { Dimension } from '../classes/Geometry/Dimension';
 import { PolygonLabel } from '../classes/Label/PolygonLabel';
@@ -13,6 +12,7 @@ import { CanvasStore, CanvasStoreProps } from '../stores/CanvasStore';
 import { ImageMetaStore, ImageMetaStoreProps } from '../stores/ImageMetaStore';
 import { SelectionStore, SelectionStoreProps } from '../stores/SelectionStore';
 import { isPolygon } from '../utils/label';
+import { useList } from './useList';
 
 export interface DataOperation {
   prevImg: () => void;
@@ -24,12 +24,12 @@ export const useData = (imagesList: ImageData[], initIndex: number = 0) => {
   // initialize images list
   const {
     state: imageData,
-    setStateAt: setImageIdx,
+    currentIndex: imageIndex,
     prev,
     next,
-  } = useStateList<ImageData>(imagesList); // refer: https://github.com/streamich/react-use/blob/master/docs/useStateList.md
+  } = useList<ImageData>(imagesList, initIndex);
 
-  const setStack = useStore(CanvasStore, (s: CanvasStoreProps) => s.setStack);
+  const { setStack } = useStore(CanvasStore, (s: CanvasStoreProps) => s);
 
   const { canvas, setInitDims: setCanvasInitDims } = useStore(
     CanvasMetaStore,
@@ -49,10 +49,11 @@ export const useData = (imagesList: ImageData[], initIndex: number = 0) => {
   const operation = {
     save: () => {
       console.log('Save called but not Implemented');
+      return true;
     },
 
-    prevImg: () => (prev() as undefined) || operation.save(),
-    nextImg: () => (next() as undefined) || operation.save(),
+    prevImg: () => operation.save() && prev(),
+    nextImg: () => operation.save() && next(),
   };
 
   const [annosInitState, setAnnosInitState] = useState<DataState>(
@@ -117,11 +118,7 @@ export const useData = (imagesList: ImageData[], initIndex: number = 0) => {
     setCanvasInitDims(new Dimension(canvas_w, canvas_h));
 
     setAnnosInitState(DataState.Ready);
-  }, [imageData, canvas]);
-
-  useEffect(() => {
-    initIndex && setImageIdx(initIndex);
-  }, []);
+  }, [imageIndex, canvas]);
 
   return {
     dataReady:
