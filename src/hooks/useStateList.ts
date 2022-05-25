@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { useUpdate } from 'react-use';
 
-export interface UseListReturnProps<T> {
+export interface UseStateListReturnProps<T> {
   state: T;
   currentIndex: number;
   setIndex: (newIndex: number) => void;
@@ -11,21 +11,20 @@ export interface UseListReturnProps<T> {
   prev: () => void;
 }
 
-export function useList<T>(
-  initList: T[] = [],
+export function useStateList<T>(
+  list: T[] = [],
   initIndex: number = 0
-): UseListReturnProps<T> {
+): UseStateListReturnProps<T> {
   const update = useUpdate();
-  const list = useRef<T[]>(initList);
   const index = useRef(initIndex);
 
   // If new state list is shorter that before - switch to the last element
   useEffect(() => {
-    if (list.current.length <= index.current) {
-      index.current = list.current.length - 1;
+    if (list.length <= index.current) {
+      index.current = list.length - 1;
       update();
     }
-  }, [list.current.length]);
+  }, [list.length]);
 
   const actions = useMemo(
     () => ({
@@ -33,18 +32,18 @@ export function useList<T>(
       prev: () => actions.setIndex(index.current - 1),
 
       setIndex: (newIndex: number) => {
-        if (!list.current.length || newIndex === index.current) return;
+        if (!list.length || newIndex === index.current) return;
 
         // it gives the ability to traverse the borders.
         index.current =
           newIndex >= 0
-            ? newIndex % list.current.length
-            : list.current.length + (newIndex % list.current.length);
+            ? newIndex % list.length
+            : list.length + (newIndex % list.length);
         update();
       },
 
       setList: (state: T) => {
-        const newIndex = list.current.length ? list.current.indexOf(state) : -1;
+        const newIndex = list.length ? list.indexOf(state) : -1;
 
         if (newIndex === -1) {
           throw new Error(
@@ -57,15 +56,14 @@ export function useList<T>(
       },
 
       updateState: (newState: T, idx: number = index.current) => {
-        list.current.splice(idx, 1, newState);
-        update();
+        list.splice(idx, 1, newState);
       },
     }),
-    [list.current, index]
+    [list, index]
   );
 
   return {
-    state: list.current[index.current],
+    state: list[index.current],
     currentIndex: index.current,
     ...actions,
   };
