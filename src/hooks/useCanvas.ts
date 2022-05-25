@@ -198,7 +198,7 @@ export const useCanvas = (dataReady: boolean) => {
         });
       },
     }),
-    [canvas]
+    [canvas, scale, offset]
   );
 
   // set default listeners and must after declare actions otherwise it will not work
