@@ -56,6 +56,7 @@ export const useMouse = (syncCanvasToState: () => void) => {
   const {
     drawType,
     setDrawType,
+    objects: selectedObjects,
     category: selectedCategory,
     isSelected,
     selectObjects,
@@ -304,7 +305,7 @@ export const useMouse = (syncCanvasToState: () => void) => {
         const evt = e.e as any;
         const { clientX, clientY } = isTouchEvent(evt) ? evt.touches[0] : evt;
         lastPosition.current = new Point(clientX, clientY);
-        selectObjects();
+        selectedObjects.length && selectObjects();
         canvas.setCursor('grabbing');
         isPanning.current = true;
       }
