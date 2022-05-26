@@ -54,15 +54,20 @@ const store = createStore<Store>((set, get) => ({
 
   isVisible: (labelType, type, id, isShowText) => {
     const s = get();
+
+    const globalCondition = s.visibleType.includes(labelType);
+    const isPanoramic = !s.objects.length && !s.drawType;
+    const filterPointsAndLinesOfPolygon = !(
+      labelType === LabelType.Polygon && ['circle', 'line'].includes(type)
+    );
+    const filterTextAndMask = !['textbox', 'polygon'].includes(type);
+    const isMatchId = s.objects.some((o) => o.id === id);
+
     return (
-      (!s.objects.length &&
-        !s.drawType &&
-        s.visibleType.includes(labelType) &&
-        !(
-          labelType === LabelType.Polygon && ['circle', 'line'].includes(type)
-        )) ||
-      (s.objects.map(({ id }: { id: number }) => id).includes(id) &&
-        (isShowText || !['textbox', 'polygon'].includes(type)))
+      globalCondition &&
+      ((isPanoramic && filterPointsAndLinesOfPolygon) ||
+        (isMatchId &&
+          (isShowText ? filterPointsAndLinesOfPolygon : filterTextAndMask)))
     );
   },
 
