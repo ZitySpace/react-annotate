@@ -104,7 +104,7 @@ export class PolygonLabel extends Label {
     const isPolygonClosed = points.length > 2;
 
     // generate polygon
-    const polygon = new fabric.Polygon(points, {
+    const polygon = new fabric.Polygon([...points], {
       ...POLYGON_DEFAULT_CONFIG,
       left: boundary.x - STROKE_WIDTH / 2,
       top: boundary.y - STROKE_WIDTH / 2,
@@ -129,7 +129,7 @@ export class PolygonLabel extends Label {
     });
 
     // generate lines
-    const lines = (isPolygonClosed ? [...points, points[0]] : points) // add origin to the end to generate close line
+    const lines = (isPolygonClosed ? [...points, points[0]] : [...points]) // add origin to the end to generate close line
       .map((thePoint, idx, points) => [thePoint, points[idx + 1]]) // [[p0, p1], [p1, p2], [p2, p0], [p0, undefined]]
       .slice(0, points.length - (isPolygonClosed ? 0 : 1)) // remove last line which composed with undefined
       .map(([{ x, y }, { x: _x, y: _y }], _id) => {

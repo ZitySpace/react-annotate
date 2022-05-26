@@ -108,8 +108,8 @@ export const useCanvas = (dataReady: boolean) => {
     );
     (obj as any).set({ hoverCursor: 'move', counterpart: theEndpoint });
 
-    methods.syncCanvasToState();
     canvas.remove(...oldObjs).add(...newObjs);
+    methods.syncCanvasToState();
   };
 
   // Sync state to canvas & focus if state changed
@@ -166,7 +166,7 @@ export const useCanvas = (dataReady: boolean) => {
         const newState: Label[] = allCanvasObjects.map((obj) =>
           newLabel({ obj, offset, scale })
         );
-        pushState && pushState(newState);
+        pushState(newState);
         setRenderLock(); // avoid useEffect hook invoke syncStateToCanvas method
       },
 
@@ -178,7 +178,6 @@ export const useCanvas = (dataReady: boolean) => {
         state.forEach((anno: Label) => {
           const { category } = anno;
           const currentColor = getColor(category!);
-          // TODO: ensure visible
           const fabricObjects = anno.getFabricObjects(currentColor);
           canvas.add(...fabricObjects);
         });

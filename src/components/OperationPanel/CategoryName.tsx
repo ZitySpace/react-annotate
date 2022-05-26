@@ -41,6 +41,7 @@ export const CategoryName = ({
         disabled={!isSelected(categoryName)}
         onClick={(e) => e.stopPropagation()}
         onKeyPress={handleKeyPress}
+        readOnly
       />
     </div>
   );

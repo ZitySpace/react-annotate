@@ -61,7 +61,7 @@ const store = createStore<Store>((set, get) => ({
       labelType === LabelType.Polygon && ['circle', 'line'].includes(type)
     );
     const filterTextAndMask = !['textbox', 'polygon'].includes(type);
-    const isMatchId = s.objects.some((o) => o.id === id);
+    const isMatchId = s.objects.some((o: Label) => o.id === id);
 
     return (
       globalCondition &&
