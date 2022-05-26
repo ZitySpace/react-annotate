@@ -45,9 +45,9 @@ export const useData = (imagesList: ImageData[], initIndex: number = 0) => {
     (s: ImageMetaStoreProps) => s
   );
 
-  const selectObjects = useStore(
+  const [selectObjects, selectedCategory] = useStore(
     SelectionStore,
-    (s: SelectionStoreProps) => s.selectObjects
+    (s: SelectionStoreProps) => [s.selectObjects, s.category]
   );
 
   const operation = {
@@ -74,7 +74,6 @@ export const useData = (imagesList: ImageData[], initIndex: number = 0) => {
     theLastLoadImageUrl.current = imageData.url;
     setImageLoadingState(DataState.Loading);
     setAnnosInitState(DataState.Loading);
-    selectObjects();
 
     // calculate the image dimensions and boundary, its scale and the offset between canvas and image
     const { width: image_w, height: image_h } = imageData;
@@ -120,6 +119,11 @@ export const useData = (imagesList: ImageData[], initIndex: number = 0) => {
     });
     setStack([annos]);
     setCanvasInitDims(new Dimension(canvas_w, canvas_h));
+
+    const categoryInterestedAnnos = annos.filter(
+      ({ category }) => category === selectedCategory
+    );
+    selectObjects(categoryInterestedAnnos, true);
 
     setAnnosInitState(DataState.Ready);
   }, [imageIndex, canvas]);

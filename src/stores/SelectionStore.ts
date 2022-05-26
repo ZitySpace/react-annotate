@@ -21,7 +21,7 @@ const StoreDataDefault = {
 
 interface Store extends StoreData {
   setDrawType: (drawType?: LabelType) => void;
-  selectObjects: (objects?: Label[]) => void;
+  selectObjects: (objects?: Label[], keepCategory?: boolean) => void;
   toggleMulti: () => void;
   toggleVisibility: () => void;
   isVisible: (
@@ -39,11 +39,15 @@ const store = createStore<Store>((set, get) => ({
   setDrawType: (t = LabelType.None) =>
     set((s: Store) => ({ drawType: t, objects: t ? [] : s.objects })),
 
-  selectObjects: (os = []) =>
-    set({
-      objects: os,
-      category: mostRepeatedValue(os.map(({ category }) => category)) || null,
-    }),
+  selectObjects: (objs = [], keepCategory = false) => {
+    if (keepCategory) set({ objects: objs });
+    else
+      set({
+        objects: objs,
+        category:
+          mostRepeatedValue(objs.map(({ category }) => category)) || null,
+      });
+  },
 
   toggleMulti: () => set((s: Store) => ({ multi: !s.multi })),
 

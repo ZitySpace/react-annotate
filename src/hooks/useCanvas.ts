@@ -96,7 +96,10 @@ export const useCanvas = (dataReady: boolean) => {
     if (!dataReady) return;
 
     methods.syncStateToCanvas(curState); // sync state
-    selectObjects(curState.filter((label) => isSelected(label.id))); // sync focus
+    selectObjects(
+      curState.filter(({ id }) => isSelected(id)),
+      true
+    ); // sync focus
   }, [JSON.stringify(curState), dataReady]); // Deep compare
 
   // Set objects' visibale attribute in canvas when drawingType or focus changed
