@@ -49,7 +49,6 @@ export const useCanvas = (dataReady: boolean) => {
     drawType,
     visibleType,
     objects: selectedObjects,
-    category: selectedCategory,
     isSelected,
     selectObjects,
     isVisible,
@@ -59,6 +58,7 @@ export const useCanvas = (dataReady: boolean) => {
 
   const listenersRef = useRef<object>({});
   const listeners = listenersRef.current;
+  const adjustMode = selectedObjects.length === 1;
 
   // render lock used to avoid whole cycle callback caused by canvas changed which will ruin the canvas
   const renderLock = useRef<boolean>(false);
@@ -103,27 +103,20 @@ export const useCanvas = (dataReady: boolean) => {
   useEffect(() => {
     if (!canvas) return;
 
-    const adjustMode = selectedObjects.length === 1;
-
-    !(drawType || selectedObjects.length || selectedCategory) &&
-      updateAllTextboxPosition();
+    const isShowText = !(drawType || adjustMode);
+    if (isShowText) updateAllTextboxPosition();
 
     if (drawType || !adjustMode) canvas.discardActiveObject();
 
     canvas.forEachObject((obj: any) => {
-      obj.visible = isVisible(
-        obj.labelType,
-        obj.type,
-        obj.id,
-        !(drawType || adjustMode)
-      );
+      obj.visible = isVisible(obj.labelType, obj.type, obj.id, isShowText);
 
       if ((drawType || adjustMode) && isSelected(obj.id) && isRect(obj))
         canvas.setActiveObject(obj);
     });
 
     canvas.requestRenderAll();
-  }, [drawType, visibleType, selectedObjects, selectedCategory]);
+  }, [drawType, visibleType, selectedObjects]);
 
   // Initialize image
   useEffect(() => {
@@ -158,9 +151,12 @@ export const useCanvas = (dataReady: boolean) => {
           const { category } = anno;
           const currentColor = getColor(category!);
           const fabricObjects = anno.getFabricObjects(currentColor);
+          fabricObjects.forEach((obj) => {
+            const { labelType, type, id } = obj as any;
+            obj.visible = isVisible(labelType, type, id, false);
+          });
           canvas.add(...fabricObjects);
         });
-        canvas.requestRenderAll();
       },
 
       /**
