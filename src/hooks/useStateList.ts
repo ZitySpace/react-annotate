@@ -57,6 +57,7 @@ export function useStateList<T>(
 
       updateState: (newState: T, idx: number = index.current) => {
         list.splice(idx, 1, newState);
+        update();
       },
     }),
     [list, index]
