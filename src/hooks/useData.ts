@@ -20,7 +20,26 @@ export interface DataOperation {
   save: () => void;
 }
 
-export const useData = (imagesList: ImageData[], initIndex: number = 0) => {
+export const useData = ({
+  imagesList,
+  initIndex = 0,
+  onSave,
+  onSwitch,
+}: {
+  imagesList: ImageData[];
+  initIndex: number;
+  onSave?: (
+    curImageData: ImageData,
+    curIndex: number,
+    imagesList: ImageData[]
+  ) => void;
+  onSwitch?: (
+    curImageData: ImageData,
+    curIndex: number,
+    imagesList: ImageData[],
+    type: 'prev' | 'next'
+  ) => void;
+}) => {
   // initialize images list
   const {
     state: imageData,
@@ -30,10 +49,10 @@ export const useData = (imagesList: ImageData[], initIndex: number = 0) => {
     next,
   } = useStateList<ImageData>(imagesList, initIndex);
 
-  const { curState, setStack } = useStore(
-    CanvasStore,
-    (s: CanvasStoreProps) => s
-  );
+  const [curState, setStack] = useStore(CanvasStore, (s: CanvasStoreProps) => [
+    s.curState(),
+    s.setStack,
+  ]);
 
   const { canvas, setInitDims: setCanvasInitDims } = useStore(
     CanvasMetaStore,
@@ -50,14 +69,25 @@ export const useData = (imagesList: ImageData[], initIndex: number = 0) => {
     (s: SelectionStoreProps) => [s.selectObjects, s.category]
   );
 
-  const operation = {
+  const operation: DataOperation = {
     save: () => {
-      updateImageData({ ...imageData, annotations: curState() });
-      return true;
+      const updatedData = { ...imageData, annotations: curState };
+      updateImageData(updatedData);
+      onSave && onSave(updatedData, imageIndex, imagesList);
     },
 
-    prevImg: () => operation.save() && prev(),
-    nextImg: () => operation.save() && next(),
+    prevImg: () => {
+      const updatedData = { ...imageData, annotations: curState };
+      updateImageData(updatedData);
+      onSwitch && onSwitch(updatedData, imageIndex, imagesList, 'prev');
+      prev();
+    },
+    nextImg: () => {
+      const updatedData = { ...imageData, annotations: curState };
+      updateImageData(updatedData);
+      onSwitch && onSwitch(updatedData, imageIndex, imagesList, 'next');
+      next();
+    },
   };
 
   const [annosInitState, setAnnosInitState] = useState<DataState>(
