@@ -58,7 +58,6 @@ export const useCanvas = (dataReady: boolean) => {
 
   const listenersRef = useRef<object>({});
   const listeners = listenersRef.current;
-  const adjustMode = selectedObjects.length === 1;
 
   // render lock used to avoid whole cycle callback caused by canvas changed which will ruin the canvas
   const renderLock = useRef<boolean>(false);
@@ -99,13 +98,14 @@ export const useCanvas = (dataReady: boolean) => {
     selectObjects(
       curState.filter(({ id }) => isSelected(id)),
       true
-    ); // sync focus
+    ); // sync to the selection
   }, [JSON.stringify(curState), dataReady]); // Deep compare
 
   // Set objects' visibale attribute in canvas when drawingType or focus changed
   useEffect(() => {
     if (!canvas) return;
 
+    const adjustMode = selectedObjects.length === 1;
     const isShowText = !(drawType || adjustMode);
     if (isShowText) updateAllTextboxPosition();
 
@@ -113,10 +113,15 @@ export const useCanvas = (dataReady: boolean) => {
 
     canvas.forEachObject((obj: any) => {
       obj.visible = isVisible(obj.labelType, obj.type, obj.id, isShowText);
-
-      if ((drawType || adjustMode) && isSelected(obj.id) && isRect(obj))
-        canvas.setActiveObject(obj);
     });
+
+    const selectedRect = canvas
+      .getObjects('rect')
+      .filter((obj) => isSelected((obj as any).id));
+
+    if (adjustMode && selectedRect.length)
+      canvas.setActiveObject(selectedRect[0]);
+    else canvas.discardActiveObject();
 
     canvas.requestRenderAll();
   }, [drawType, visibleType, selectedObjects]);

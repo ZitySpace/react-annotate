@@ -37,7 +37,6 @@ import { ColorStore, ColorStoreProps } from '../stores/ColorStore';
 export const useMouse = (syncCanvasToState: () => void) => {
   const lastPosition = useRef<Point>(new Point());
   const isPanning = useRef<boolean>(false);
-  const isDrawingStarted = useRef<boolean>(false);
   const onDrawObj = useRef<fabric.Object | null>(null);
 
   const curState = useStore(CanvasStore, (s: CanvasStoreProps) => s.curState());
@@ -152,7 +151,6 @@ export const useMouse = (syncCanvasToState: () => void) => {
 
     canvas.add(...fabricObjects);
     onDrawObj.current = fabricObjects[0];
-    isDrawingStarted.current = true;
   };
 
   const drawOnMouseMove = (event: fabric.IEvent) => {
@@ -244,17 +242,12 @@ export const useMouse = (syncCanvasToState: () => void) => {
     console.log('drawingStop');
     const obj = onDrawObj.current as any;
 
-    if (isInvalid(obj)) {
+    if (isInvalid(obj))
       canvas.remove(...canvas.getObjects().filter((o: any) => o.id === obj.id));
-    } else {
+    else {
       selectObjects([newLabel({ obj, offset, scale })]);
-      canvas.setActiveObject(
-        [LabelType.Line].includes(obj.labelType)
-          ? obj.endpoints[obj.endpoints.length - 1]
-          : obj
-      );
+      isRect(obj) && canvas.setActiveObject(obj);
     }
-    isDrawingStarted.current = false;
     onDrawObj.current = null;
     setDrawType();
     canvas.renderAll();
@@ -298,7 +291,7 @@ export const useMouse = (syncCanvasToState: () => void) => {
     'mouse:down': (e: fabric.IEvent<MouseEvent>) => {
       const { target } = e;
 
-      if (isDrawingStarted.current) drawingBreak(e);
+      if (onDrawObj.current) drawingBreak(e);
       else if (drawType) drawingStart(e);
       else if (isMidpoint(target)) addPointToPolygon(target as fabric.Circle);
       else if (!target) {
@@ -312,7 +305,7 @@ export const useMouse = (syncCanvasToState: () => void) => {
     },
 
     'mouse:move': (e: fabric.IEvent<MouseEvent>) => {
-      if (isDrawingStarted.current) drawOnMouseMove(e);
+      if (onDrawObj.current) drawOnMouseMove(e);
       else if (isPanning.current) {
         const { e: evt } = e as any;
         const { clientX, clientY } = isTouchEvent(evt) ? evt.touches[0] : evt;
@@ -326,8 +319,7 @@ export const useMouse = (syncCanvasToState: () => void) => {
     },
 
     'mouse:up': (e: fabric.IEvent<MouseEvent>) => {
-      if (isDrawingStarted.current && drawType === LabelType.Point)
-        drawingStop();
+      if (onDrawObj.current && drawType === LabelType.Point) drawingStop();
       else if (isMidpoint(e.target)) syncCanvasToState();
       else if (isPanning.current) isPanning.current = false;
     },
