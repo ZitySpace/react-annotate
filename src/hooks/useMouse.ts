@@ -33,8 +33,11 @@ import {
   updateEndpointAssociatedLinesPosition,
 } from '../utils/label';
 import { ColorStore, ColorStoreProps } from '../stores/ColorStore';
+import { useSynchronizer } from './useSynchronizer';
 
-export const useMouse = (syncCanvasToState: () => void) => {
+export const useMouse = () => {
+  console.log('useMouse!');
+
   const lastPosition = useRef<Point>(new Point());
   const isPanning = useRef<boolean>(false);
   const onDrawObj = useRef<fabric.Object | null>(null);
@@ -63,6 +66,7 @@ export const useMouse = (syncCanvasToState: () => void) => {
 
   const getColor = useStore(ColorStore, (s: ColorStoreProps) => s.getColor);
 
+  const { syncCanvasToState } = useSynchronizer();
   // mount gestures event listener
   usePinch(() => {}, { target: canvas?.getElement().parentElement });
 

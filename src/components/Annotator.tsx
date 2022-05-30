@@ -36,9 +36,9 @@ export const Annotator = ({
     onSave,
     onSwitch,
   });
-  const { syncCanvasToState } = useCanvas(dataReady);
+  useCanvas(dataReady);
 
-  useMouse(syncCanvasToState);
+  useMouse();
   useKeyboard(dataOperation); // listeners for keyboard for support shortcuts.
 
   return (

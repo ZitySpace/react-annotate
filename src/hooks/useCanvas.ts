@@ -4,16 +4,11 @@ import { useStore } from 'zustand';
 import { Boundary } from '../classes/Geometry/Boundary';
 import { Point } from '../classes/Geometry/Point';
 import { Rect } from '../classes/Geometry/Rect';
-import { Label } from '../classes/Label';
 import {
   CanvasMetaStore,
   CanvasMetaStoreProps,
 } from '../stores/CanvasMetaStore';
-import {
-  CanvasState,
-  CanvasStore,
-  CanvasStoreProps,
-} from '../stores/CanvasStore';
+import { CanvasStore, CanvasStoreProps } from '../stores/CanvasStore';
 import { ImageMetaStore, ImageMetaStoreProps } from '../stores/ImageMetaStore';
 import { SelectionStore, SelectionStoreProps } from '../stores/SelectionStore';
 import {
@@ -26,12 +21,12 @@ import {
 } from '../utils/label';
 import { ColorStore, ColorStoreProps } from '../stores/ColorStore';
 import { STROKE_WIDTH } from '../interfaces/config';
+import { useSynchronizer } from './useSynchronizer';
 
 export const useCanvas = (dataReady: boolean) => {
-  const [curState, pushState] = useStore(CanvasStore, (s: CanvasStoreProps) => [
-    s.curState(),
-    s.pushState,
-  ]);
+  console.log('useCanvas!');
+
+  const curState = useStore(CanvasStore, (s: CanvasStoreProps) => s.curState());
 
   const canvas = useStore(
     CanvasMetaStore,
@@ -56,19 +51,10 @@ export const useCanvas = (dataReady: boolean) => {
 
   const getColor = useStore(ColorStore, (s: ColorStoreProps) => s.getColor);
 
+  const { syncStateToCanvas, syncCanvasToState } = useSynchronizer();
+
   const listenersRef = useRef<object>({});
   const listeners = listenersRef.current;
-
-  // render lock used to avoid whole cycle callback caused by canvas changed which will ruin the canvas
-  const renderLock = useRef<boolean>(false);
-  const setRenderLock = () => {
-    renderLock.current = true;
-  };
-  const getRenderLock = () => {
-    const nowLock = renderLock.current;
-    renderLock.current = false; // if it was queried, unlock
-    return nowLock;
-  };
 
   /**
    * Update polygon's if the obj is polygon's endpoint
@@ -94,7 +80,7 @@ export const useCanvas = (dataReady: boolean) => {
   useEffect(() => {
     if (!dataReady) return;
 
-    methods.syncStateToCanvas(curState); // sync state
+    syncStateToCanvas(curState); // sync state
     selectObjects(
       curState.filter(({ id }) => isSelected(id)),
       true
@@ -139,34 +125,6 @@ export const useCanvas = (dataReady: boolean) => {
 
   const methods = useMemo(
     () => ({
-      syncCanvasToState: () => {
-        console.log('syncCanvasToState called'); // TODO: remove
-
-        const allCanvasObjects = canvas!.getObjects().filter(isLabel);
-        const newState: Label[] = allCanvasObjects.map((obj) =>
-          newLabel({ obj, offset, scale })
-        );
-        pushState(newState);
-        setRenderLock(); // avoid useEffect hook invoke syncStateToCanvas method
-      },
-
-      syncStateToCanvas: (state: CanvasState) => {
-        if (!canvas || getRenderLock()) return;
-        console.log('syncStateToCanvas called'); // TODO: remove
-
-        canvas.remove(...canvas.getObjects());
-        state.forEach((anno: Label) => {
-          const { category } = anno;
-          const currentColor = getColor(category!);
-          const fabricObjects = anno.getFabricObjects(currentColor);
-          fabricObjects.forEach((obj) => {
-            const { labelType, type, id } = obj as any;
-            obj.visible = isVisible(labelType, type, id, false);
-          });
-          canvas.add(...fabricObjects);
-        });
-      },
-
       /**
        * Load event listeners to canvas.
        * @param newListeners listeners object which want to load
@@ -231,7 +189,7 @@ export const useCanvas = (dataReady: boolean) => {
           scaleY: 1,
         });
       }
-      methods.syncCanvasToState();
+      syncCanvasToState();
     },
 
     // Sync canvas's selection to focus
