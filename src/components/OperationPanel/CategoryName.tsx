@@ -37,11 +37,11 @@ export const CategoryName = ({
         tabIndex={-1}
         value={inputValue}
         onInput={handleInput}
+        onChange={() => {}}
         onBlur={rename}
         disabled={!isSelected(categoryName)}
         onClick={(e) => e.stopPropagation()}
         onKeyPress={handleKeyPress}
-        readOnly
       />
     </div>
   );
