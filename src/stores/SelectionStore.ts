@@ -40,9 +40,10 @@ const store = createStore<Store>((set, get) => ({
     set((s: Store) => ({ drawType: t, objects: t ? [] : s.objects })),
 
   selectObjects: (objs = [], keepCategory = false) => {
-    if (keepCategory) set({ objects: objs });
+    if (keepCategory) set({ drawType: LabelType.None, objects: objs });
     else
       set({
+        drawType: LabelType.None,
         objects: objs,
         category:
           mostRepeatedValue(objs.map(({ category }) => category)) || null,
