@@ -18,6 +18,7 @@ import {
   CanvasMetaStoreProps,
 } from '../stores/CanvasMetaStore';
 import { CanvasStore, CanvasStoreProps } from '../stores/CanvasStore';
+import { ColorStore, ColorStoreProps } from '../stores/ColorStore';
 import { ImageMetaStore, ImageMetaStoreProps } from '../stores/ImageMetaStore';
 import { SelectionStore, SelectionStoreProps } from '../stores/SelectionStore';
 import { getBetween, isInvalid, isTouchEvent } from '../utils';
@@ -32,12 +33,8 @@ import {
   newLabel,
   updateEndpointAssociatedLinesPosition,
 } from '../utils/label';
-import { ColorStore, ColorStoreProps } from '../stores/ColorStore';
-import { useSynchronizer } from './useSynchronizer';
 
-export const useMouse = () => {
-  console.log('useMouse!');
-
+export const useMouse = (syncCanvasToState: () => void) => {
   const lastPosition = useRef<Point>(new Point());
   const isPanning = useRef<boolean>(false);
   const onDrawObj = useRef<fabric.Object | null>(null);
@@ -66,7 +63,6 @@ export const useMouse = () => {
 
   const getColor = useStore(ColorStore, (s: ColorStoreProps) => s.getColor);
 
-  const { syncCanvasToState } = useSynchronizer();
   // mount gestures event listener
   usePinch(() => {}, { target: canvas?.getElement().parentElement });
 

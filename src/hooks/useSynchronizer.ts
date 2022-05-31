@@ -1,4 +1,4 @@
-import { useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useStore } from 'zustand';
 import { Label } from '../classes/Label';
 import {
@@ -14,23 +14,36 @@ import { ColorStore, ColorStoreProps } from '../stores/ColorStore';
 import { ImageMetaStore, ImageMetaStoreProps } from '../stores/ImageMetaStore';
 import { SelectionStore, SelectionStoreProps } from '../stores/SelectionStore';
 import { isLabel, newLabel } from '../utils/label';
+import { useCanvas } from './useCanvas';
+import { useMouse } from './useMouse';
 
-export const useSynchronizer = () => {
+export const useSynchronizer = (dataReady: boolean) => {
   const canvas = useStore(
     CanvasMetaStore,
     (s: CanvasMetaStoreProps) => s.canvas
   );
 
-  const { scale, offset } = useStore(
-    ImageMetaStore,
-    (s: ImageMetaStoreProps) => s
-  );
+  const {
+    image: imageObj,
+    scale,
+    offset,
+  } = useStore(ImageMetaStore, (s: ImageMetaStoreProps) => s);
 
-  const pushState = useStore(CanvasStore, (s: CanvasStoreProps) => s.pushState);
+  const [curState, pushState] = useStore(CanvasStore, (s: CanvasStoreProps) => [
+    s.curState(),
+    s.pushState,
+  ]);
 
   const getColor = useStore(ColorStore, (s: ColorStoreProps) => s.getColor);
 
-  const { isVisible } = useStore(SelectionStore, (s: SelectionStoreProps) => s);
+  const {
+    drawType,
+    visibleType,
+    objects: selectedObjects,
+    isSelected,
+    selectObjects,
+    isVisible,
+  } = useStore(SelectionStore, (s: SelectionStoreProps) => s);
 
   // render lock used to avoid whole cycle callback caused by canvas changed which will ruin the canvas
   const renderLock = useRef<boolean>(false);
@@ -43,6 +56,18 @@ export const useSynchronizer = () => {
     const nowLock = renderLock.current;
     renderLock.current = false; // if it was queried, unlock
     return nowLock;
+  };
+
+  /**
+   * Update all labels' fabric objects via regenerate them
+   */
+  const updateFabricObjects = () => {
+    if (!canvas) return;
+    const currentLabelObjs = canvas.getObjects().filter(isLabel);
+    const newObjects = currentLabelObjs.map((obj: any) =>
+      newLabel({ obj, offset, scale }).getFabricObjects(getColor(obj.category))
+    );
+    canvas.remove(...canvas.getObjects()).add(...newObjects.flat());
   };
 
   const { syncStateToCanvas, syncCanvasToState } = useMemo(
@@ -77,5 +102,70 @@ export const useSynchronizer = () => {
     [canvas, scale, offset]
   );
 
-  return { syncStateToCanvas, syncCanvasToState };
+  const canvasListeners = useCanvas(syncCanvasToState);
+  const mouseListeners = useMouse(syncCanvasToState);
+
+  /**
+   * mount listeners to canvas when canvas was exist
+   */
+  useEffect(() => {
+    if (!canvas) return;
+    canvas.off();
+    Object.entries({ ...canvasListeners, ...mouseListeners }).forEach(
+      ([event, handler]) => canvas.on(event, handler)
+    );
+  }, [canvas, canvasListeners, mouseListeners]);
+
+  /**
+   * when image and annotations was ready for render, render them then reset the viewport
+   * otherwise clear them
+   */
+  useEffect(() => {
+    if (!canvas) return;
+
+    if (dataReady && imageObj)
+      canvas
+        .setBackgroundImage(imageObj, () => {})
+        .setViewportTransform([1, 0, 0, 1, 0, 0]);
+    else canvas.clear();
+  }, [imageObj, dataReady]);
+
+  /**
+   * Sync the currrent state to the canvas and the selection
+   */
+  useEffect(() => {
+    if (!dataReady) return;
+
+    syncStateToCanvas(curState); // sync state
+    selectObjects(
+      curState.filter(({ id }) => isSelected(id)),
+      true
+    ); // sync to the selection
+  }, [JSON.stringify(curState), dataReady]); // Deep compare
+
+  /**
+   * Sync selection to the canvas
+   * recalculate the objects' visibility and the active of the canvas
+   */
+  useEffect(() => {
+    if (!canvas) return;
+
+    const adjustMode = selectedObjects.length === 1;
+    const isShowText = !(drawType || adjustMode);
+    if (isShowText) updateFabricObjects();
+
+    canvas.forEachObject((obj: any) => {
+      obj.visible = isVisible(obj.labelType, obj.type, obj.id, isShowText);
+    });
+
+    const selectedRect = canvas
+      .getObjects('rect')
+      .filter((obj) => isSelected((obj as any).id));
+
+    if (adjustMode && selectedRect.length)
+      canvas.setActiveObject(selectedRect[0]);
+    else canvas.discardActiveObject();
+
+    canvas.requestRenderAll();
+  }, [drawType, visibleType, selectedObjects]);
 };

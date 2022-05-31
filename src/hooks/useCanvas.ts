@@ -1,5 +1,5 @@
 import { fabric } from 'fabric';
-import { useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useStore } from 'zustand';
 import { Boundary } from '../classes/Geometry/Boundary';
 import { Point } from '../classes/Geometry/Point';
@@ -8,50 +8,33 @@ import {
   CanvasMetaStore,
   CanvasMetaStoreProps,
 } from '../stores/CanvasMetaStore';
-import { CanvasStore, CanvasStoreProps } from '../stores/CanvasStore';
 import { ImageMetaStore, ImageMetaStoreProps } from '../stores/ImageMetaStore';
 import { SelectionStore, SelectionStoreProps } from '../stores/SelectionStore';
 import {
   isEndpoint,
-  isLabel,
   isMidpoint,
   isRect,
   newLabel,
   updateEndpointAssociatedLinesPosition,
 } from '../utils/label';
-import { ColorStore, ColorStoreProps } from '../stores/ColorStore';
 import { STROKE_WIDTH } from '../interfaces/config';
-import { useSynchronizer } from './useSynchronizer';
 
-export const useCanvas = (dataReady: boolean) => {
-  console.log('useCanvas!');
-
-  const curState = useStore(CanvasStore, (s: CanvasStoreProps) => s.curState());
-
+export const useCanvas = (syncCanvasToState: () => void) => {
   const canvas = useStore(
     CanvasMetaStore,
     (s: CanvasMetaStoreProps) => s.canvas
   );
 
   const {
-    image: imageObj,
     boundary: imageBoundary,
     scale,
     offset,
   } = useStore(ImageMetaStore, (s: ImageMetaStoreProps) => s);
 
-  const {
-    drawType,
-    visibleType,
-    objects: selectedObjects,
-    isSelected,
-    selectObjects,
-    isVisible,
-  } = useStore(SelectionStore, (s: SelectionStoreProps) => s);
-
-  const getColor = useStore(ColorStore, (s: ColorStoreProps) => s.getColor);
-
-  const { syncStateToCanvas, syncCanvasToState } = useSynchronizer();
+  const { selectObjects } = useStore(
+    SelectionStore,
+    (s: SelectionStoreProps) => s
+  );
 
   /**
    * Update polygon's if the obj is polygon's endpoint
@@ -60,65 +43,6 @@ export const useCanvas = (dataReady: boolean) => {
     const { left, top, polygon, _id } = obj as any;
     if (isEndpoint(obj) && polygon) polygon.points[_id] = new Point(left, top);
   };
-
-  /**
-   * Update all labels' text position in canvas via regenerate them
-   */
-  const updateAllTextboxPosition = () => {
-    if (!canvas) return;
-    const currentLabelObjs = canvas.getObjects().filter(isLabel);
-    const newObjects = currentLabelObjs.map((obj: any) =>
-      newLabel({ obj, offset, scale }).getFabricObjects(getColor(obj.category))
-    );
-    canvas.remove(...canvas.getObjects()).add(...newObjects.flat());
-  };
-
-  // Sync state to canvas & focus if state changed
-  useEffect(() => {
-    if (!dataReady) return;
-
-    syncStateToCanvas(curState); // sync state
-    selectObjects(
-      curState.filter(({ id }) => isSelected(id)),
-      true
-    ); // sync to the selection
-  }, [JSON.stringify(curState), dataReady]); // Deep compare
-
-  // Set objects' visibale attribute in canvas when drawingType or focus changed
-  useEffect(() => {
-    if (!canvas) return;
-
-    const adjustMode = selectedObjects.length === 1;
-    const isShowText = !(drawType || adjustMode);
-    if (isShowText) updateAllTextboxPosition();
-
-    if (drawType || !adjustMode) canvas.discardActiveObject();
-
-    canvas.forEachObject((obj: any) => {
-      obj.visible = isVisible(obj.labelType, obj.type, obj.id, isShowText);
-    });
-
-    const selectedRect = canvas
-      .getObjects('rect')
-      .filter((obj) => isSelected((obj as any).id));
-
-    if (adjustMode && selectedRect.length)
-      canvas.setActiveObject(selectedRect[0]);
-    else canvas.discardActiveObject();
-
-    canvas.requestRenderAll();
-  }, [drawType, visibleType, selectedObjects]);
-
-  // Initialize image
-  useEffect(() => {
-    if (!canvas) return;
-
-    if (dataReady && imageObj)
-      canvas
-        .setBackgroundImage(imageObj, () => {})
-        .setViewportTransform([1, 0, 0, 1, 0, 0]);
-    else canvas.clear();
-  }, [imageObj, dataReady]);
 
   // set default listeners and must after declare actions otherwise it will not work
   const listeners = useMemo(
@@ -172,7 +96,7 @@ export const useCanvas = (dataReady: boolean) => {
         syncCanvasToState();
       },
 
-      // Sync canvas's selection to focus
+      // Sync canvas's selection to selection store
       'selection:created': (e: any) => {
         const target = e.selected[0];
         const obj = target?.polygon || target;
