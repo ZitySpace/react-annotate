@@ -34,9 +34,11 @@ export const useSynchronizer = () => {
 
   // render lock used to avoid whole cycle callback caused by canvas changed which will ruin the canvas
   const renderLock = useRef<boolean>(false);
+
   const setRenderLock = () => {
     renderLock.current = true;
   };
+
   const getRenderLock = () => {
     const nowLock = renderLock.current;
     renderLock.current = false; // if it was queried, unlock

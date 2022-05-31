@@ -70,7 +70,7 @@ export const useMouse = () => {
   // mount gestures event listener
   usePinch(() => {}, { target: canvas?.getElement().parentElement });
 
-  if (!canvas) return;
+  if (!canvas) return {};
 
   /**
    * If it is a point / endpoint, swap its fill color and stroke color
@@ -329,7 +329,5 @@ export const useMouse = () => {
     },
   };
 
-  Object.entries(listeners).forEach(([event, handler]) =>
-    canvas.on(event, handler)
-  );
+  return listeners;
 };

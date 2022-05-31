@@ -1,5 +1,5 @@
 import { fabric } from 'fabric';
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useStore } from 'zustand';
 import { Boundary } from '../classes/Geometry/Boundary';
 import { Point } from '../classes/Geometry/Point';
@@ -52,9 +52,6 @@ export const useCanvas = (dataReady: boolean) => {
   const getColor = useStore(ColorStore, (s: ColorStoreProps) => s.getColor);
 
   const { syncStateToCanvas, syncCanvasToState } = useSynchronizer();
-
-  const listenersRef = useRef<object>({});
-  const listeners = listenersRef.current;
 
   /**
    * Update polygon's if the obj is polygon's endpoint
@@ -123,85 +120,69 @@ export const useCanvas = (dataReady: boolean) => {
     else canvas.clear();
   }, [imageObj, dataReady]);
 
-  const methods = useMemo(
+  // set default listeners and must after declare actions otherwise it will not work
+  const listeners = useMemo(
     () => ({
-      /**
-       * Load event listeners to canvas.
-       * @param newListeners listeners object which want to load
-       */
-      loadListeners: (newListeners: object) => {
-        if (!canvas) return;
-        Object.assign(listeners, newListeners); // save new listeners and replace old listeners
-        canvas.off(); // remove all existed listeners
-        Object.entries(listeners).forEach(([event, handler]) => {
-          canvas.on(event, handler);
-        });
+      // when canvas's object is moving, ensure its position is in the image boundary
+      // and sync the position of its line/polygon if the object is a endpoint
+      'object:moving': (e: fabric.IEvent) => {
+        const obj = e.target as fabric.Object;
+
+        const { x, y, w, h } = imageBoundary;
+        const _imgBoundary = new Boundary(x, y, w, h); // deep clone to avoid rect-type calculate influences
+        // rect's boundary need consider of its dimensions
+        if (isRect(obj)) {
+          _imgBoundary._x -= obj.getScaledWidth();
+          _imgBoundary._y -= obj.getScaledHeight();
+        }
+        // as for other types label, they controlled by its endpoint
+        const target = (obj as any).counterpart || obj; // if the object has counterpart, use it
+        target.set(_imgBoundary.within(obj));
+        target.setCoords();
+        updateEndpointAssociatedLinesPosition(target, true);
+        updateEndpointAssociatedPolygon(target);
+        canvas?.requestRenderAll();
       },
+
+      // after modifying the object on the canvas,
+      // restrict the rectangle's position to be within the image boundary via tailoring
+      // and synchronizes the canvas to the state
+      'object:modified': (e: fabric.IEvent) => {
+        const { target } = e;
+        if (isMidpoint(target)) return;
+        if (isRect(target)) {
+          const { left, top } = target as fabric.Rect;
+          const [width, height] = [
+            target?.getScaledWidth(),
+            target?.getScaledHeight(),
+          ];
+          const rect = imageBoundary.intersection(
+            new Rect(left!, top!, width!, height!)
+          );
+          const { x, y, w, h } = rect;
+          target?.set({
+            left: x,
+            top: y,
+            width: w - STROKE_WIDTH,
+            height: h - STROKE_WIDTH,
+            scaleX: 1,
+            scaleY: 1,
+          });
+        }
+        syncCanvasToState();
+      },
+
+      // Sync canvas's selection to focus
+      'selection:created': (e: any) => {
+        const target = e.selected[0];
+        const obj = target?.polygon || target;
+        const anno = newLabel({ obj, offset, scale });
+        selectObjects([anno]);
+      },
+      'selection:cleared': (e: any) => e.e && selectObjects(),
     }),
-    [canvas, scale, offset]
+    [canvas, imageBoundary]
   );
 
-  // set default listeners and must after declare actions otherwise it will not work
-  Object.assign(listeners, {
-    // when canvas's object is moving, ensure its position is in the image boundary
-    // and sync the position of its line/polygon if the object is a endpoint
-    'object:moving': (e: fabric.IEvent) => {
-      const obj = e.target as fabric.Object;
-
-      const { x, y, w, h } = imageBoundary;
-      const _imgBoundary = new Boundary(x, y, w, h); // deep clone to avoid rect-type calculate influences
-      // rect's boundary need consider of its dimensions
-      if (isRect(obj)) {
-        _imgBoundary._x -= obj.getScaledWidth();
-        _imgBoundary._y -= obj.getScaledHeight();
-      }
-      // as for other types label, they controlled by its endpoint
-      const target = (obj as any).counterpart || obj; // if the object has counterpart, use it
-      target.set(_imgBoundary.within(obj));
-      target.setCoords();
-      updateEndpointAssociatedLinesPosition(target, true);
-      updateEndpointAssociatedPolygon(target);
-      canvas?.requestRenderAll();
-    },
-
-    // after modifying the object on the canvas,
-    // restrict the rectangle's position to be within the image boundary via tailoring
-    // and synchronizes the canvas to the state
-    'object:modified': (e: fabric.IEvent) => {
-      const { target } = e;
-      if (isMidpoint(target)) return;
-      if (isRect(target)) {
-        const { left, top } = target as fabric.Rect;
-        const [width, height] = [
-          target?.getScaledWidth(),
-          target?.getScaledHeight(),
-        ];
-        const rect = imageBoundary.intersection(
-          new Rect(left!, top!, width!, height!)
-        );
-        const { x, y, w, h } = rect;
-        target?.set({
-          left: x,
-          top: y,
-          width: w - STROKE_WIDTH,
-          height: h - STROKE_WIDTH,
-          scaleX: 1,
-          scaleY: 1,
-        });
-      }
-      syncCanvasToState();
-    },
-
-    // Sync canvas's selection to focus
-    'selection:created': (e: any) => {
-      const target = e.selected[0];
-      const obj = target?.polygon || target;
-      const anno = newLabel({ obj, offset, scale });
-      selectObjects([anno]);
-    },
-    'selection:cleared': (e: any) => e.e && selectObjects(),
-  });
-
-  canvas && methods.loadListeners(listeners); // If canvas no null, mount listeners
-  return { ...methods };
+  return listeners;
 };
