@@ -49,10 +49,10 @@ export const useData = ({
     next,
   } = useStateList<ImageData>(imagesList, initIndex);
 
-  const [curState, setStack] = useStore(CanvasStore, (s: CanvasStoreProps) => [
-    s.curState(),
-    s.setStack,
-  ]);
+  const [curState, setStack, updateCanSave] = useStore(
+    CanvasStore,
+    (s: CanvasStoreProps) => [s.curState(), s.setStack, s.updateCanSave]
+  );
 
   const { canvas, setInitDims: setCanvasInitDims } = useStore(
     CanvasMetaStore,
@@ -73,6 +73,7 @@ export const useData = ({
     save: () => {
       const updatedData = { ...imageData, annotations: curState };
       updateImageData(updatedData);
+      updateCanSave(false);
       onSave && onSave(updatedData, imageIndex, imagesList);
     },
 
@@ -97,6 +98,12 @@ export const useData = ({
     DataState.Loading
   );
   const theLastLoadImageUrl = useRef<string>();
+
+  useEffect(() => {
+    updateCanSave(
+      JSON.stringify(curState) !== JSON.stringify(imageData.annotations)
+    );
+  }, [curState]);
 
   useEffect(() => {
     if (!canvas) return;

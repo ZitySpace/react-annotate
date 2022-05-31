@@ -30,6 +30,7 @@ interface Store extends StoreData {
   undo: () => boolean;
   redo: () => boolean;
   reset: () => boolean;
+  updateCanSave: (canSave: boolean) => void;
 
   deleteObjects: (ids: number[]) => boolean;
   renameCategory: (oldCategory: string, newCategory: string) => void;
@@ -43,7 +44,6 @@ const store = createStore<Store>((set, get) => {
       canRedo: index < stack.length,
       canUndo: index > 1,
       canReset: stack.length > 1,
-      canSave: index > 1 || index < stack.length,
     });
     return true;
   };
@@ -71,6 +71,7 @@ const store = createStore<Store>((set, get) => {
       if (canReset) update(stack, index !== 1 ? 1 : stack.length);
       return true;
     },
+    updateCanSave: (canSave: boolean) => set({ canSave }),
     deleteObjects: (ids) => {
       const curState = get().curState();
       const newState = curState.filter(
