@@ -162,7 +162,7 @@ export const useSynchronizer = (dataReady: boolean) => {
       .getObjects('rect')
       .filter((obj) => isSelected((obj as any).id));
 
-    if (adjustMode && selectedRect.length)
+    if (adjustMode && selectedRect.length && visibleType.length)
       canvas.setActiveObject(selectedRect[0]);
     else canvas.discardActiveObject();
 
