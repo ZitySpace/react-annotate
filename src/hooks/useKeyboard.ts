@@ -5,7 +5,7 @@ import { SelectionStore, SelectionStoreProps } from '../stores/SelectionStore';
 import { DataOperation } from './useData';
 
 export const useKeyboard = (dataOperation: DataOperation) => {
-  const [
+  const {
     undo,
     redo,
     reset,
@@ -14,18 +14,7 @@ export const useKeyboard = (dataOperation: DataOperation) => {
     canReset,
     canSave,
     deleteObjects,
-  ] = useStore(CanvasStore, (s: CanvasStoreProps) => {
-    return [
-      s.undo,
-      s.redo,
-      s.reset,
-      s.canUndo(),
-      s.canRedo(),
-      s.canReset(),
-      s.canSave(),
-      s.deleteObjects,
-    ];
-  });
+  } = useStore(CanvasStore, (s: CanvasStoreProps) => s);
 
   const {
     drawType,
