@@ -2,17 +2,17 @@
 
 [![NPM](https://img.shields.io/npm/v/react-annotate-image.svg)](https://www.npmjs.com/package/react-annotate-image) [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
 
-React component for computer vision dataset images annotate
+React library for annotating image dataset. Currently it supports annotating points, lines, boxes, segmentation masks.
 
 ## Status
 
-Still under development.
+Still in development.
 
-## Usage
+## Install
 
-Add production version via `yarn add react-annotate-image`/`npm install react-annotate-image --save`, or `yarn link react-annotate-image` for development version.
+For production version: `yarn add @ZitySpace/react-annotate-image`, or `npm install @ZitySpace/react-annotate-image --save`. For development version: `yarn link @ZitySpace/react-annotate-image`.
 
-### Simple Example
+#### Simple Example
 
 ```ts
 // import the component and css
@@ -32,7 +32,7 @@ const App = () => {
 
 For specific example, visit [here](./example/README.md)
 
-### Options
+#### `Annotator` Props
 
 - ⚠️ imagesList: required
   - type: ImageData[]
@@ -47,11 +47,12 @@ For specific example, visit [here](./example/README.md)
   - type: (curImageData: ImageData, curIndex: number, imagesList: ImageData[], type: "prev" | "next") => void
   - description: will be invoked when the prev/next button was clicked
 
-## Development this repo
+## Development in the repo
 
-1. run `yarn` to install dependencies in root path.
-2. run `yarn start` to start the process which watch the files changes and build in real time. The process wouldn't stop until you press `ctrl + c`.
-3. New a terminal and enter the **example** dir, then run `yarn` to install dependencies and run `yarn start` to start the development server.
+1. run `yarn` under root path to install dependencies.
+2. run `yarn start` to watch and hot build the library.
+3. run `yarn` and `yarn start` under example folder to hot build the example.
+4. edit library source code and see changes in the example UI.
 
 ## Documentation
 
