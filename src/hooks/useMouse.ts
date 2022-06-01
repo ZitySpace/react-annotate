@@ -154,6 +154,8 @@ export const useMouse = (syncCanvasToState: () => void) => {
   };
 
   const drawOnMouseMove = (event: fabric.IEvent) => {
+    if (drawType === LabelType.None) return drawingStop();
+
     const { x: nowX, y: nowY } = imageBoundary.within(
       canvas.getPointer(event.e)
     );
@@ -242,7 +244,7 @@ export const useMouse = (syncCanvasToState: () => void) => {
     console.log('drawingStop');
     const obj = onDrawObj.current as any;
 
-    if (isInvalid(obj))
+    if (isInvalid(obj) || drawType === LabelType.None)
       canvas.remove(...canvas.getObjects().filter((o: any) => o.id === obj.id));
     else {
       selectObjects([newLabel({ obj, offset, scale })]);
