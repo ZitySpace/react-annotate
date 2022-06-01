@@ -8,6 +8,51 @@ React component for computer vision dataset images annotate
 
 Still under development.
 
+## Usage
+
+Add production version via `yarn add react-annotate-image`/`npm install react-annotate-image --save`, or `yarn link react-annotate-image` for development version.
+
+### Simple Example
+
+```ts
+// import the component and css
+import { Annotator } from 'react-annotate-image';
+import 'react-annotate-image/dist/index.css';
+...
+
+const App = () => {
+  ...
+  return (
+    <div className='h-screen w-screen'>
+      <Annotator imagesList={imagesList} /> // use
+    </div>
+  );
+};
+```
+
+For specific example, visit [here](./example/README.md)
+
+### Options
+
+- ⚠️ imagesList: required
+  - type: ImageData[]
+  - description: all the image and annotation data required
+- initIndex: optional
+  - type: number
+  - description: first image's index
+- onSave: optional
+  - type: (curImageData: ImageData, curIndex: number, imagesList: ImageData[]) => void
+  - description: will be invoked when the save button was clicked
+- onSwitch: optional
+  - type: (curImageData: ImageData, curIndex: number, imagesList: ImageData[], type: "prev" | "next") => void
+  - description: will be invoked when the prev/next button was clicked
+
+## Development this repo
+
+1. run `yarn` to install dependencies in root path.
+2. run `yarn start` to start the process which watch the files changes and build in real time. The process wouldn't stop until you press `ctrl + c`.
+3. New a terminal and enter the **example** dir, then run `yarn` to install dependencies and run `yarn start` to start the development server.
+
 ## Documentation
 
 ### Keyboard shortcuts
@@ -25,12 +70,6 @@ Still under development.
 - `Ctrl`+`Z` / `Cmd`+`Z`: undo last annotation alter
 - `Ctrl`+`Shift`+`Z` / `Cmd`+`Shift`+`Z`: redo last annotation alter
 - `Ctrl`+`S` / `Cmd`+`S`: save annotations
-
-## Development this repo
-
-1. run `yarn` to install dependencies in root path.
-2. run `yarn start` to start the process which watch the files changes and build in real time. The process wouldn't stop until you press `ctrl + c`.
-3. New a terminal and enter the **example** dir, then run `yarn` to install dependencies and run `yarn start` to start the development server.
 
 ## Reference
 
