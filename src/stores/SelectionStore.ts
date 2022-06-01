@@ -53,6 +53,7 @@ const store = createStore<Store>((set, get) => ({
   toggleMulti: () => set((s: Store) => ({ multi: !s.multi })),
 
   toggleVisibility: () =>
+    !get().drawType &&
     set((s: Store) => ({
       visibleType: s.visibleType.length ? [] : StoreDataDefault.visibleType,
     })),
