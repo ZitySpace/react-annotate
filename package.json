@@ -72,7 +72,6 @@
     "@use-gesture/react": "^10.2.4",
     "fabric": "^5.2.1",
     "randomcolor": "^0.6.2",
-    "react-draggable": "^4.4.4",
-    "react-use": "^17.3.2"
+    "react-draggable": "^4.4.4"
   }
 }
