@@ -1,5 +1,6 @@
 export { Annotator } from './components/Annotator';
 
+export { ImageData } from './interfaces/basic';
 export { Label } from './classes/Label';
 export { PointLabel } from './classes/Label/PointLabel';
 export { LineLabel } from './classes/Label/LineLabel';

@@ -1,21 +1,21 @@
 import React from 'react';
 
-import { Annotator } from 'react-annotate-image';
+import { Annotator, ImageData } from 'react-annotate-image';
 import 'react-annotate-image/dist/index.css';
 
-// import { data as rect } from './rectangles'
-// import { RectLabel } from 'react-annotate-image'
-// const imagesList = rect.map((img) => ({
+// import { data as rect } from './rectangles';
+// import { RectLabel } from 'react-annotate-image';
+// const imagesList: ImageData[] = rect.map((img) => ({
 //   ...img,
 //   annotations: img.annotations.map((anno: any, id: number) => {
-//     const { x, y, w, h, category } = anno
-//     return new RectLabel({ x, y, w, h, id, category })
-//   })
-// }))
+//     const { x, y, w, h, category } = anno;
+//     return new RectLabel({ x, y, w, h, id, category });
+//   }),
+// }));
 
 import { data as segm } from './segmentations';
 import { PolygonLabel } from 'react-annotate-image';
-const imagesList = segm.map((img) => ({
+const imagesList: ImageData[] = segm.map((img) => ({
   ...img,
   annotations: img.annotations.map((anno: any, id: number) => {
     const { points, category } = anno;
