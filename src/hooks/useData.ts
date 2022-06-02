@@ -25,6 +25,7 @@ export const useData = ({
   initIndex = 0,
   onSave,
   onSwitch,
+  onError,
 }: {
   imagesList: ImageData[];
   initIndex: number;
@@ -39,6 +40,7 @@ export const useData = ({
     imagesList: ImageData[],
     type: 'prev' | 'next'
   ) => void;
+  onError?: (message: string, context: any) => void;
 }) => {
   // initialize images list
   const {
@@ -140,7 +142,10 @@ export const useData = ({
         }
       };
       image.onerror = () => {
-        console.log('load image failed');
+        onError &&
+          onError('Load image failed', {
+            url: imageData.url,
+          });
         setDataLoadingState({ imageState: DataState.Error });
       };
       image.src = imageData.url;

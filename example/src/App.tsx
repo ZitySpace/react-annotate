@@ -31,6 +31,7 @@ const App = () => {
         initIndex={6}
         onSave={console.log}
         onSwitch={console.log}
+        onError={console.log}
       />
     </div>
   );

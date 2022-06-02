@@ -13,6 +13,7 @@ export const Annotator = ({
   initIndex = 0,
   onSave,
   onSwitch,
+  onError,
 }: {
   imagesList: ImageData[];
   initIndex?: number;
@@ -27,6 +28,7 @@ export const Annotator = ({
     imagesList: ImageData[],
     type: 'prev' | 'next'
   ) => void;
+  onError?: (message: string, context: any) => void;
 }) => {
   const Container = useContainer(); // Initialize canvas, set canvas dom's style and handle the resize event
 
@@ -36,6 +38,7 @@ export const Annotator = ({
     initIndex,
     onSave,
     onSwitch,
+    onError,
   });
 
   useKeyboard(dataOperation); // listeners for keyboard for support shortcuts.
