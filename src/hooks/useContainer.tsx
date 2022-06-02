@@ -8,7 +8,8 @@ import {
   CanvasMetaStoreProps,
 } from '../stores/CanvasMetaStore';
 import { useStore } from 'zustand';
-import { Spinner } from '../components/Icons';
+import { DataState } from '../interfaces/basic';
+import { SpinnerIcon, WarningIcon } from '../components/Icons';
 
 export interface UseContainerReturnProps {
   Container: JSX.Element; // canvas dom
@@ -22,9 +23,15 @@ export const useContainer = () => {
   const {
     canvas,
     initDims: canvasInitDims,
+    imageState,
+    annosState,
     setCanvas,
     setInitDims: setCanvasInitDims,
   } = useStore(CanvasMetaStore, (s: CanvasMetaStoreProps) => s);
+  const dataReady = [imageState, annosState].every(
+    (s) => s === DataState.Ready
+  );
+  const dataError = [imageState, annosState].some((s) => s === DataState.Error);
 
   const calcCanvasDims = () => {
     const extendElm = document.getElementById('canvas_extended') as HTMLElement;
@@ -81,7 +88,14 @@ export const useContainer = () => {
       id='canvas_extended'
     >
       <canvas ref={canvasElmRef} className='hidden' />
-      <Spinner />
+      <SpinnerIcon className={`${dataReady || dataError ? 'hidden' : ''}`} />
+      <div
+        className={`flex flex-col text-gray-800 ${dataError ? '' : 'hidden'}`}
+        style={{ zIndex: 999 }}
+      >
+        <WarningIcon className='m-auto' />
+        <p>Unable to load the picture, please check your network connection.</p>
+      </div>
     </div>
   );
 };

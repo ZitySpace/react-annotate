@@ -1,5 +1,5 @@
 import { fabric } from 'fabric';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { useStore } from 'zustand';
 import { Dimension } from '../classes/Geometry/Dimension';
 import { PolygonLabel } from '../classes/Label/PolygonLabel';
@@ -54,10 +54,11 @@ export const useData = ({
     (s: CanvasStoreProps) => [s.curState(), s.setStack, s.updateCanSave]
   );
 
-  const { canvas, setInitDims: setCanvasInitDims } = useStore(
-    CanvasMetaStore,
-    (s: CanvasMetaStoreProps) => s
-  );
+  const {
+    canvas,
+    setInitDims: setCanvasInitDims,
+    setDataLoadingState,
+  } = useStore(CanvasMetaStore, (s: CanvasMetaStoreProps) => s);
 
   const { setImage, setImageMeta } = useStore(
     ImageMetaStore,
@@ -91,12 +92,6 @@ export const useData = ({
     },
   };
 
-  const [annosInitState, setAnnosInitState] = useState<DataState>(
-    DataState.Loading
-  );
-  const [imageLoadingState, setImageLoadingState] = useState<DataState>(
-    DataState.Loading
-  );
   const theLastLoadImageUrl = useRef<string>();
 
   useEffect(() => {
@@ -109,8 +104,10 @@ export const useData = ({
     if (!canvas) return;
 
     theLastLoadImageUrl.current = imageData.url;
-    setImageLoadingState(DataState.Loading);
-    setAnnosInitState(DataState.Loading);
+    setDataLoadingState({
+      imageState: DataState.Loading,
+      annosState: DataState.Loading,
+    });
 
     // calculate the image dimensions and boundary, its scale and the offset between canvas and image
     const { width: image_w, height: image_h } = imageData;
@@ -133,8 +130,8 @@ export const useData = ({
         if (theLastLoadImageUrl.current === imageData.url) {
           if (width && height) {
             setImage(img);
-            setImageLoadingState(DataState.Ready);
-          } else setImageLoadingState(DataState.Error);
+            setDataLoadingState({ imageState: DataState.Ready });
+          } else setDataLoadingState({ imageState: DataState.Error });
         }
       },
       { left, top, scaleX, scaleY }
@@ -161,14 +158,8 @@ export const useData = ({
       ({ category }) => category === selectedCategory
     );
     selectObjects(categoryInterestedAnnos, true);
-
-    setAnnosInitState(DataState.Ready);
+    setDataLoadingState({ annosState: DataState.Ready });
   }, [imageIndex, canvas]);
 
-  return {
-    dataReady:
-      imageLoadingState === DataState.Ready &&
-      annosInitState === DataState.Ready,
-    dataOperation: operation,
-  };
+  return operation;
 };

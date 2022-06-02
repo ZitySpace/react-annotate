@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { useStore } from 'zustand';
 import { Label } from '../classes/Label';
+import { DataState } from '../interfaces/basic';
 import {
   CanvasMetaStore,
   CanvasMetaStoreProps,
@@ -17,10 +18,13 @@ import { isLabel, newLabel } from '../utils/label';
 import { useCanvas } from './useCanvas';
 import { useMouse } from './useMouse';
 
-export const useSynchronizer = (dataReady: boolean) => {
-  const canvas = useStore(
+export const useSynchronizer = () => {
+  const { canvas, imageState, annosState } = useStore(
     CanvasMetaStore,
-    (s: CanvasMetaStoreProps) => s.canvas
+    (s: CanvasMetaStoreProps) => s
+  );
+  const dataReady = [imageState, annosState].every(
+    (s) => s === DataState.Ready
   );
 
   const {

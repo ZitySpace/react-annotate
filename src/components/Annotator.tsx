@@ -31,7 +31,7 @@ export const Annotator = ({
   const Container = useContainer(); // Initialize canvas, set canvas dom's style and handle the resize event
 
   // handle data import/export
-  const { dataReady, dataOperation } = useData({
+  const dataOperation = useData({
     imagesList,
     initIndex,
     onSave,
@@ -40,7 +40,7 @@ export const Annotator = ({
 
   useKeyboard(dataOperation); // listeners for keyboard for support shortcuts.
 
-  useSynchronizer(dataReady); // Core entrance
+  useSynchronizer(); // Core entrance
 
   return (
     <div className='w-full h-full flex flex-col justify-center items-center relative'>
