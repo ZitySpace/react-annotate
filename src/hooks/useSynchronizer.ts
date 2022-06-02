@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { useStore } from 'zustand';
 import { Label } from '../classes/Label';
-import { DataState } from '../interfaces/basic';
 import {
   CanvasMetaStore,
   CanvasMetaStoreProps,
@@ -19,18 +18,13 @@ import { useCanvas } from './useCanvas';
 import { useMouse } from './useMouse';
 
 export const useSynchronizer = () => {
-  const { canvas, imageState, annosState } = useStore(
-    CanvasMetaStore,
-    (s: CanvasMetaStoreProps) => s
-  );
-  const dataReady = [imageState, annosState].every(
-    (s) => s === DataState.Ready
-  );
+  const { canvas } = useStore(CanvasMetaStore, (s: CanvasMetaStoreProps) => s);
 
   const {
     image: imageObj,
     scale,
     offset,
+    dataReady,
   } = useStore(ImageMetaStore, (s: ImageMetaStoreProps) => s);
 
   const [curState, pushState] = useStore(CanvasStore, (s: CanvasStoreProps) => [

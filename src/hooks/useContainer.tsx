@@ -8,8 +8,8 @@ import {
   CanvasMetaStoreProps,
 } from '../stores/CanvasMetaStore';
 import { useStore } from 'zustand';
-import { DataState } from '../interfaces/basic';
 import { SpinnerIcon, WarningIcon } from '../components/Icons';
+import { ImageMetaStore, ImageMetaStoreProps } from '../stores/ImageMetaStore';
 
 export interface UseContainerReturnProps {
   Container: JSX.Element; // canvas dom
@@ -23,15 +23,14 @@ export const useContainer = () => {
   const {
     canvas,
     initDims: canvasInitDims,
-    imageState,
-    annosState,
     setCanvas,
     setInitDims: setCanvasInitDims,
   } = useStore(CanvasMetaStore, (s: CanvasMetaStoreProps) => s);
-  const dataReady = [imageState, annosState].every(
-    (s) => s === DataState.Ready
+
+  const { dataReady, dataError } = useStore(
+    ImageMetaStore,
+    (s: ImageMetaStoreProps) => s
   );
-  const dataError = [imageState, annosState].some((s) => s === DataState.Error);
 
   const calcCanvasDims = () => {
     const extendElm = document.getElementById('canvas_extended') as HTMLElement;

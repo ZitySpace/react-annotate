@@ -54,13 +54,12 @@ export const useData = ({
     (s: CanvasStoreProps) => [s.curState(), s.setStack, s.updateCanSave]
   );
 
-  const {
-    canvas,
-    setInitDims: setCanvasInitDims,
-    setDataLoadingState,
-  } = useStore(CanvasMetaStore, (s: CanvasMetaStoreProps) => s);
+  const { canvas, setInitDims: setCanvasInitDims } = useStore(
+    CanvasMetaStore,
+    (s: CanvasMetaStoreProps) => s
+  );
 
-  const { setImage, setImageMeta } = useStore(
+  const { setImage, setImageMeta, setDataLoadingState } = useStore(
     ImageMetaStore,
     (s: ImageMetaStoreProps) => s
   );
