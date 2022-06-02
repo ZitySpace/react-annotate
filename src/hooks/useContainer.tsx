@@ -8,6 +8,7 @@ import {
   CanvasMetaStoreProps,
 } from '../stores/CanvasMetaStore';
 import { useStore } from 'zustand';
+import { Spinner } from '../components/Icons';
 
 export interface UseContainerReturnProps {
   Container: JSX.Element; // canvas dom
@@ -80,7 +81,7 @@ export const useContainer = () => {
       id='canvas_extended'
     >
       <canvas ref={canvasElmRef} className='hidden' />
-      {/* <LoadingIcon /> */}
+      <Spinner />
     </div>
   );
 };
