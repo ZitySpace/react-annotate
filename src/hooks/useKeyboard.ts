@@ -1,10 +1,13 @@
 import { useStore } from 'zustand';
 import { LabelType } from '../classes/Label';
 import { CanvasStore, CanvasStoreProps } from '../stores/CanvasStore';
+import { ImageMetaStore, ImageMetaStoreProps } from '../stores/ImageMetaStore';
 import { SelectionStore, SelectionStoreProps } from '../stores/SelectionStore';
 import { DataOperation } from './useData';
 
 export const useKeyboard = (dataOperation: DataOperation) => {
+  const { dataReady } = useStore(ImageMetaStore, (s: ImageMetaStoreProps) => s);
+
   const {
     undo,
     redo,
@@ -28,6 +31,7 @@ export const useKeyboard = (dataOperation: DataOperation) => {
   const deleteObj = () => deleteObjects(selectedObjects.map(({ id }) => id));
 
   const draw = (labelType: LabelType) => () =>
+    dataReady &&
     setDrawType(drawType === labelType ? LabelType.None : labelType);
 
   const drawPoint = draw(LabelType.Point);

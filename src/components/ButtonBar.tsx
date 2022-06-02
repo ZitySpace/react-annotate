@@ -21,12 +21,15 @@ import {
 import { useStore } from 'zustand';
 import { CanvasStore, CanvasStoreProps } from '../stores/CanvasStore';
 import { SelectionStore, SelectionStoreProps } from '../stores/SelectionStore';
+import { ImageMetaStore, ImageMetaStoreProps } from '../stores/ImageMetaStore';
 
 export const ButtonBar = ({
   dataOperation,
 }: {
   dataOperation: DataOperation;
 }) => {
+  const { dataReady } = useStore(ImageMetaStore, (s: ImageMetaStoreProps) => s);
+
   const {
     undo,
     redo,
@@ -85,19 +88,23 @@ export const ButtonBar = ({
           <TrashIcon />
         </Button>
 
-        <Button isUsing={isDrawingRect} onClick={drawRect}>
+        <Button canUse={dataReady} isUsing={isDrawingRect} onClick={drawRect}>
           <RectangleIcon />
         </Button>
 
-        <Button isUsing={isDrawingPoint} onClick={drawPoint}>
+        <Button canUse={dataReady} isUsing={isDrawingPoint} onClick={drawPoint}>
           <PointIcon />
         </Button>
 
-        <Button isUsing={isDrawingLine} onClick={drawLine}>
+        <Button canUse={dataReady} isUsing={isDrawingLine} onClick={drawLine}>
           <LineIcon />
         </Button>
 
-        <Button isUsing={isDrawingPolygon} onClick={drawPolygon}>
+        <Button
+          canUse={dataReady}
+          isUsing={isDrawingPolygon}
+          onClick={drawPolygon}
+        >
           <PolygonIcon />
         </Button>
 
