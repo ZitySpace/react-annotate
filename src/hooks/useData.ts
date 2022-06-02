@@ -130,20 +130,20 @@ export const useData = ({
       const { x: left, y: top } = offset;
       const [scaleX, scaleY] = [scale, scale];
 
-      fabric.Image.fromURL(
-        imageData.url,
-        (img: fabric.Image) => {
-          const { width, height } = img;
-          if (theLastLoadImageUrl.current === imageData.url) {
-            if (width && height) {
-              imageCache.current[imageIndex] = img;
-              setImage(img);
-              setDataLoadingState({ imageState: DataState.Ready });
-            } else setDataLoadingState({ imageState: DataState.Error });
-          }
-        },
-        { left, top, scaleX, scaleY }
-      );
+      const image = new Image(image_w, image_h);
+      image.onload = () => {
+        const img = new fabric.Image(image, { left, top, scaleX, scaleY });
+        if (theLastLoadImageUrl.current === imageData.url) {
+          imageCache.current[imageIndex] = img;
+          setImage(img);
+          setDataLoadingState({ imageState: DataState.Ready });
+        }
+      };
+      image.onerror = () => {
+        console.log('load image failed');
+        setDataLoadingState({ imageState: DataState.Error });
+      };
+      image.src = imageData.url;
     }
 
     // load annotations
