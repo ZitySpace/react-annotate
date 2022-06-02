@@ -93,6 +93,7 @@ export const useData = ({
   };
 
   const theLastLoadImageUrl = useRef<string>();
+  const imageCache = useRef<fabric.Image[]>(new Array(imagesList.length));
 
   useEffect(() => {
     updateCanSave(
@@ -102,12 +103,6 @@ export const useData = ({
 
   useEffect(() => {
     if (!canvas) return;
-
-    theLastLoadImageUrl.current = imageData.url;
-    setDataLoadingState({
-      imageState: DataState.Loading,
-      annosState: DataState.Loading,
-    });
 
     // calculate the image dimensions and boundary, its scale and the offset between canvas and image
     const { width: image_w, height: image_h } = imageData;
@@ -119,25 +114,36 @@ export const useData = ({
     const canvasDims = new Dimension(canvas_w, canvas_h);
     const imageBoundary = imageDims.boundaryIn(canvasDims);
     const offset = imageDims.offsetTo(canvasDims);
-
-    const { x: left, y: top } = offset;
-    const [scaleX, scaleY] = [scale, scale];
-
-    fabric.Image.fromURL(
-      imageData.url,
-      (img: fabric.Image) => {
-        const { width, height } = img;
-        if (theLastLoadImageUrl.current === imageData.url) {
-          if (width && height) {
-            setImage(img);
-            setDataLoadingState({ imageState: DataState.Ready });
-          } else setDataLoadingState({ imageState: DataState.Error });
-        }
-      },
-      { left, top, scaleX, scaleY }
-    );
-
     setImageMeta({ dims: imageDims, scale, offset, boundary: imageBoundary });
+
+    if (imageCache.current[imageIndex]) {
+      setDataLoadingState({ annosState: DataState.Loading });
+      setImage(imageCache.current[imageIndex]);
+    } else {
+      theLastLoadImageUrl.current = imageData.url;
+      setDataLoadingState({
+        imageState: DataState.Loading,
+        annosState: DataState.Loading,
+      });
+
+      const { x: left, y: top } = offset;
+      const [scaleX, scaleY] = [scale, scale];
+
+      fabric.Image.fromURL(
+        imageData.url,
+        (img: fabric.Image) => {
+          const { width, height } = img;
+          if (theLastLoadImageUrl.current === imageData.url) {
+            if (width && height) {
+              imageCache.current[imageIndex] = img;
+              setImage(img);
+              setDataLoadingState({ imageState: DataState.Ready });
+            } else setDataLoadingState({ imageState: DataState.Error });
+          }
+        },
+        { left, top, scaleX, scaleY }
+      );
+    }
 
     const annos = imageData.annotations;
     annos.forEach((anno) => anno.scaleTransform(scale, offset));
