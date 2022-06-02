@@ -115,12 +115,14 @@ export const useData = ({
     const imageBoundary = imageDims.boundaryIn(canvasDims);
     const offset = imageDims.offsetTo(canvasDims);
     setImageMeta({ dims: imageDims, scale, offset, boundary: imageBoundary });
+    setCanvasInitDims(new Dimension(canvas_w, canvas_h));
 
+    // load image
+    theLastLoadImageUrl.current = imageData.url; // record the last target image to prevent the loading dislocation
     if (imageCache.current[imageIndex]) {
       setDataLoadingState({ annosState: DataState.Loading });
       setImage(imageCache.current[imageIndex]);
     } else {
-      theLastLoadImageUrl.current = imageData.url;
       setDataLoadingState({
         imageState: DataState.Loading,
         annosState: DataState.Loading,
@@ -145,6 +147,7 @@ export const useData = ({
       );
     }
 
+    // load annotations
     const annos = imageData.annotations;
     annos.forEach((anno) => anno.scaleTransform(scale, offset));
     annos.sort((a, b) => {
@@ -158,7 +161,6 @@ export const useData = ({
         );
     });
     setStack([annos]);
-    setCanvasInitDims(new Dimension(canvas_w, canvas_h));
 
     const categoryInterestedAnnos = annos.filter(
       ({ category }) => category === selectedCategory
