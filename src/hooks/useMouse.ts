@@ -36,6 +36,7 @@ import {
 
 export const useMouse = (syncCanvasToState: () => void) => {
   const lastPosition = useRef<Point>(new Point());
+  const lastSelection = useRef<fabric.Object | null>(null);
   const isPanning = useRef<boolean>(false);
   const onDrawObj = useRef<fabric.Object | null>(null);
 
@@ -113,6 +114,10 @@ export const useMouse = (syncCanvasToState: () => void) => {
     canvas.requestRenderAll();
   };
 
+  /**
+   * add midpoint to the polygon via regenerate it
+   * @param midpoint clicked midpoint
+   */
   const addPointToPolygon = (midpoint: fabric.Circle) => {
     const { left, top, _id, polygon } = midpoint as any;
     polygon.points.splice(_id + 1, 0, new Point(left, top));
@@ -124,12 +129,35 @@ export const useMouse = (syncCanvasToState: () => void) => {
       offset,
     }).getFabricObjects(getColor(polygon.category), false);
 
+    // the replace would not happen immediately,  associate them for convenience.
     const theEndpoint = newObjs.find(
       (o: any) => o._id === _id + 1 && o.type === 'circle'
     );
     (midpoint as any).set({ hoverCursor: 'move', counterpart: theEndpoint });
 
     canvas.remove(...oldObjs).add(...newObjs);
+  };
+
+  /**
+   * delete the polygon's endpoint via regeneratation
+   * @param endpoint the endpoint of polygon which want to delete
+   */
+  const deleteEndpointOfPolygon = (endpoint: fabric.Circle) => {
+    const { polygon, _id } = endpoint as any;
+
+    if (polygon.points.length > 3) {
+      polygon.points.splice(_id, 1);
+      const oldObjs = canvas
+        .getObjects()
+        .filter((o: any) => o.id === polygon.id);
+      const newObjs = new PolygonLabel({
+        obj: polygon,
+        scale,
+        offset,
+      }).getFabricObjects(getColor(polygon.category), false);
+
+      canvas.remove(...oldObjs).add(...newObjs);
+    }
   };
 
   const drawingStart = (event: fabric.IEvent) => {
@@ -291,18 +319,24 @@ export const useMouse = (syncCanvasToState: () => void) => {
     },
 
     'mouse:down': (e: fabric.IEvent<MouseEvent>) => {
-      const { target } = e;
+      const { target, button } = e;
 
-      if (onDrawObj.current) drawingBreak(e);
-      else if (drawType) drawingStart(e);
-      else if (isMidpoint(target)) addPointToPolygon(target as fabric.Circle);
-      else if (!target) {
-        const evt = e.e as any;
-        const { clientX, clientY } = isTouchEvent(evt) ? evt.touches[0] : evt;
-        lastPosition.current = new Point(clientX, clientY);
-        selectedObjects.length && selectObjects();
-        canvas.setCursor('grabbing');
-        isPanning.current = true;
+      if (button === 1) {
+        // left click
+        if (onDrawObj.current) drawingBreak(e);
+        else if (drawType) drawingStart(e);
+        else if (isMidpoint(target)) addPointToPolygon(target as fabric.Circle);
+        else if (!target) {
+          const evt = e.e as any;
+          const { clientX, clientY } = isTouchEvent(evt) ? evt.touches[0] : evt;
+          lastPosition.current = new Point(clientX, clientY);
+          selectedObjects.length && selectObjects();
+          canvas.setCursor('grabbing');
+          isPanning.current = true;
+        }
+      } else if (button === 3) {
+        // right click
+        if (target) lastSelection.current = target;
       }
     },
 
@@ -321,9 +355,24 @@ export const useMouse = (syncCanvasToState: () => void) => {
     },
 
     'mouse:up': (e: fabric.IEvent<MouseEvent>) => {
-      if (onDrawObj.current && drawType === LabelType.Point) drawingStop();
-      else if (isMidpoint(e.target)) syncCanvasToState();
-      else if (isPanning.current) isPanning.current = false;
+      const { target, button } = e;
+
+      if (button === 1) {
+        // left click
+        if (onDrawObj.current && drawType === LabelType.Point) drawingStop();
+        else if (isMidpoint(target)) syncCanvasToState();
+        else if (isPanning.current) isPanning.current = false;
+      } else if (button === 3) {
+        // right click
+        if (
+          lastSelection.current === target &&
+          isEndpoint(target) &&
+          (target as any).polygon
+        ) {
+          deleteEndpointOfPolygon(target as fabric.Circle);
+          syncCanvasToState();
+        }
+      }
     },
   };
 
