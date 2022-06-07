@@ -112,12 +112,24 @@ export const updateEndpointAssociatedLinesPosition = (
         (p: any) => p._id !== _id
       );
       line.set({ x1, y1, x2: left, y2: top });
-      needUpdateCoords && line.setCoords();
+      needUpdateCoords;
       if (midpoint) {
         const { x, y } = line.getCenterPoint();
         midpoint.set({ left: x, top: y });
-        midpoint.setCoords();
       }
     });
   }
+};
+
+/**
+ * update fabric object and its associated objects' coordinates on the operation layer
+ * @param object movde/reposition fabric object
+ */
+export const updateCoords = (object: fabric.Object) => {
+  object?.setCoords;
+  const { endpoints, midpoint, line, lines } = object as any;
+  midpoint?.setCoords();
+  line?.setCoords();
+  lines?.forEach((line: fabric.Object) => line.setCoords());
+  endpoints?.forEach((endpoint: fabric.Object) => endpoint.setCoords());
 };

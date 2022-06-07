@@ -31,6 +31,7 @@ import {
   isPolygonLine,
   isRect,
   newLabel,
+  updateCoords,
   updateEndpointAssociatedLinesPosition,
 } from '../utils/label';
 
@@ -265,6 +266,7 @@ export const useMouse = (syncCanvasToState: () => void) => {
         products.forEach((obj) => obj.setOptions({ labelType, category, id }));
         canvas.add(...products);
       }
+      updateCoords(obj);
     } else drawingStop();
   };
 
@@ -275,6 +277,7 @@ export const useMouse = (syncCanvasToState: () => void) => {
     if (isInvalid(obj) || drawType === LabelType.None)
       canvas.remove(...canvas.getObjects().filter((o: any) => o.id === obj.id));
     else {
+      updateCoords(obj);
       selectObjects([newLabel({ obj, offset, scale })]);
       isRect(obj) && canvas.setActiveObject(obj);
     }

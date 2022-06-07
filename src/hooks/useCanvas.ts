@@ -15,6 +15,7 @@ import {
   isMidpoint,
   isRect,
   newLabel,
+  updateCoords,
   updateEndpointAssociatedLinesPosition,
 } from '../utils/label';
 import { STROKE_WIDTH } from '../interfaces/config';
@@ -62,9 +63,9 @@ export const useCanvas = (syncCanvasToState: () => void) => {
         // as for other types label, they controlled by its endpoint
         const target = (obj as any).counterpart || obj; // if the object has counterpart, use it
         target.set(_imgBoundary.within(obj));
-        target.setCoords();
         updateEndpointAssociatedLinesPosition(target, true);
         updateEndpointAssociatedPolygon(target);
+        updateCoords(target);
         canvas?.requestRenderAll();
       },
 
