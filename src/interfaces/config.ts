@@ -18,6 +18,8 @@ export const CANVAS_CONFIG: fabric.ICanvasOptions = {
   defaultCursor: 'default',
   selection: false,
   uniformScaling: false,
+  fireRightClick: true,
+  stopContextMenu: true,
 };
 
 export const POINT_DEFAULT_CONFIG: fabric.ICircleOptions = {
