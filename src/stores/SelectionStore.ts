@@ -5,6 +5,7 @@ import { mostRepeatedValue } from '../utils';
 
 interface StoreData extends State {
   multi: boolean;
+  AIMode: boolean;
   drawType: LabelType;
   visibleType: LabelType[];
   category: string | null;
@@ -13,6 +14,7 @@ interface StoreData extends State {
 
 const StoreDataDefault = {
   multi: false,
+  AIMode: false,
   drawType: LabelType.None,
   visibleType: Object.keys(LabelType).map((key) => LabelType[key]),
   category: null,
@@ -24,6 +26,7 @@ interface Store extends StoreData {
   selectObjects: (objects?: Label[], keepCategory?: boolean) => void;
   toggleMulti: () => void;
   toggleVisibility: () => void;
+  toggleAIMode: () => void;
   isVisible: (
     labelType: LabelType,
     type: string,
@@ -57,6 +60,8 @@ const store = createStore<Store>((set, get) => ({
     set((s: Store) => ({
       visibleType: s.visibleType.length ? [] : StoreDataDefault.visibleType,
     })),
+
+  toggleAIMode: () => set((s: Store) => ({ AIMode: !s.AIMode })),
 
   isVisible: (labelType, type, id, isShowText) => {
     const s = get();
