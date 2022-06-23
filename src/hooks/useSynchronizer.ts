@@ -1,3 +1,4 @@
+import cv from '@techstark/opencv-js';
 import { useEffect, useMemo, useRef } from 'react';
 import { useStore } from 'zustand';
 import { Label } from '../classes/Label';
@@ -11,6 +12,7 @@ import {
   CanvasStoreProps,
 } from '../stores/CanvasStore';
 import { ColorStore, ColorStoreProps } from '../stores/ColorStore';
+import { CVStore, CVStoreProps } from '../stores/CVStore';
 import { ImageMetaStore, ImageMetaStoreProps } from '../stores/ImageMetaStore';
 import { SelectionStore, SelectionStoreProps } from '../stores/SelectionStore';
 import { isLabel, newLabel } from '../utils/label';
@@ -19,6 +21,12 @@ import { useMouse } from './useMouse';
 
 export const useSynchronizer = () => {
   const { canvas } = useStore(CanvasMetaStore, (s: CanvasMetaStoreProps) => s);
+  const { setReady: setCVReady } = useStore(CVStore, (s: CVStoreProps) => s);
+
+  cv.onRuntimeInitialized = () => {
+    console.log('cv init called in synchronizer', cv);
+    setCVReady();
+  };
 
   const {
     image: imageObj,

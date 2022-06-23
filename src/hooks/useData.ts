@@ -9,6 +9,7 @@ import {
   CanvasMetaStoreProps,
 } from '../stores/CanvasMetaStore';
 import { CanvasStore, CanvasStoreProps } from '../stores/CanvasStore';
+import { CVStore, CVStoreProps } from '../stores/CVStore';
 import { ImageMetaStore, ImageMetaStoreProps } from '../stores/ImageMetaStore';
 import { SelectionStore, SelectionStoreProps } from '../stores/SelectionStore';
 import { isPolygon } from '../utils/label';
@@ -50,6 +51,8 @@ export const useData = ({
     prev,
     next,
   } = useStateList<ImageData>(imagesList, initIndex);
+
+  const { initIntelligentScissor } = useStore(CVStore, (s: CVStoreProps) => s);
 
   const [curState, setStack, updateCanSave] = useStore(
     CanvasStore,
@@ -120,9 +123,11 @@ export const useData = ({
 
     // load image
     theLastLoadImageUrl.current = imageData.url; // record the last target image to prevent the loading dislocation
-    if (imageCache.current[imageIndex]) {
+    const img = imageCache.current[imageIndex];
+    if (img) {
       setDataLoadingState({ annosState: DataState.Loading });
-      setImage(imageCache.current[imageIndex]);
+      setImage(img);
+      initIntelligentScissor(img.getElement() as HTMLImageElement);
     } else {
       setDataLoadingState({
         imageState: DataState.Loading,
@@ -134,8 +139,9 @@ export const useData = ({
 
       const image = new Image(image_w, image_h);
       image.onload = () => {
-        const img = new fabric.Image(image, { left, top, scaleX, scaleY });
         if (theLastLoadImageUrl.current === imageData.url) {
+          initIntelligentScissor(image);
+          const img = new fabric.Image(image, { left, top, scaleX, scaleY });
           imageCache.current[imageIndex] = img;
           setImage(img);
           setDataLoadingState({ imageState: DataState.Ready });
