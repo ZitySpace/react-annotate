@@ -126,7 +126,7 @@ export const updateEndpointAssociatedLinesPosition = (
  * @param object movde/reposition fabric object
  */
 export const updateCoords = (object: fabric.Object) => {
-  object?.setCoords;
+  object?.setCoords();
   const { endpoints, midpoint, line, lines } = object as any;
   midpoint?.setCoords();
   line?.setCoords();
