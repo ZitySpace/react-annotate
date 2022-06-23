@@ -1,11 +1,10 @@
 import { createContext } from 'react';
 import { createStore, State, StoreApi } from 'zustand';
-import cv from '@techstark/opencv-js';
 
 interface StoreData extends State {
   ready: boolean;
   intelligentScissor: any;
-  img: cv.Mat | null;
+  img: any;
 }
 
 const StoreDataDefault = {
@@ -24,8 +23,10 @@ let cvReadyCallback: Function | null = null;
 const store = createStore<Store>((set, get) => ({
   ...StoreDataDefault,
   setReady: () => {
-    set({ ready: true });
-    cvReadyCallback && cvReadyCallback();
+    window['cv']['onRuntimeInitialized'] = () => {
+      set({ ready: true });
+      cvReadyCallback && cvReadyCallback();
+    };
   },
   initIntelligentScissor: (image: HTMLImageElement) => {
     const { img: existingImg, intelligentScissor: existingScissor } = get();
@@ -33,6 +34,7 @@ const store = createStore<Store>((set, get) => ({
     if (existingImg) existingImg.delete();
 
     const operation = () => {
+      const cv = window['cv'];
       const img = cv.imread(image);
       const newScissor = new cv['segmentation_IntelligentScissorsMB']();
       newScissor.setEdgeFeatureCannyParameters(32, 100);

@@ -1,4 +1,3 @@
-import cv from '@techstark/opencv-js';
 import { useEffect, useMemo, useRef } from 'react';
 import { useStore } from 'zustand';
 import { Label } from '../classes/Label';
@@ -22,11 +21,6 @@ import { useMouse } from './useMouse';
 export const useSynchronizer = () => {
   const { canvas } = useStore(CanvasMetaStore, (s: CanvasMetaStoreProps) => s);
   const { setReady: setCVReady } = useStore(CVStore, (s: CVStoreProps) => s);
-
-  cv.onRuntimeInitialized = () => {
-    console.log('cv init called in synchronizer', cv);
-    setCVReady();
-  };
 
   const {
     image: imageObj,
@@ -174,4 +168,15 @@ export const useSynchronizer = () => {
 
     canvas.requestRenderAll();
   }, [drawType, visibleType, selectedObjects]);
+
+  useEffect(() => {
+    if (!window['cv']) {
+      const script = document.createElement('script');
+      script.onload = setCVReady;
+      script.type = 'text/javascript';
+      script.async = true;
+      script.src = '/opencv.js';
+      document.body.appendChild(script);
+    }
+  }, [window['cv']]);
 };

@@ -9,6 +9,7 @@ import {
   LINE_DEFAULT_CONFIG,
   NEW_CATEGORY_NAME,
   POINT_DEFAULT_CONFIG,
+  POLYLINE_DEFAULT_OPTIONS,
   RADIUS,
   STROKE_WIDTH,
   TRANSPARENT,
@@ -19,9 +20,10 @@ import {
 } from '../stores/CanvasMetaStore';
 import { CanvasStore, CanvasStoreProps } from '../stores/CanvasStore';
 import { ColorStore, ColorStoreProps } from '../stores/ColorStore';
+import { CVStore, CVStoreProps } from '../stores/CVStore';
 import { ImageMetaStore, ImageMetaStoreProps } from '../stores/ImageMetaStore';
 import { SelectionStore, SelectionStoreProps } from '../stores/SelectionStore';
-import { getBetween, isInvalid, isTouchEvent } from '../utils';
+import { getBetween, isInvalid } from '../utils';
 import {
   isEndpoint,
   isLine,
@@ -40,8 +42,12 @@ export const useMouse = (syncCanvasToState: () => void) => {
   const lastSelection = useRef<fabric.Object | null>(null);
   const isPanning = useRef<boolean>(false);
   const onDrawObj = useRef<fabric.Object | null>(null);
+  const onRecommend = useRef<boolean>(false);
 
   const curState = useStore(CanvasStore, (s: CanvasStoreProps) => s.curState());
+
+  const cv = window['cv'];
+  const { intelligentScissor } = useStore(CVStore, (s: CVStoreProps) => s);
 
   const { canvas, initDims: canvasInitDims } = useStore(
     CanvasMetaStore,
@@ -56,6 +62,7 @@ export const useMouse = (syncCanvasToState: () => void) => {
 
   const {
     drawType,
+    AIMode,
     setDrawType,
     objects: selectedObjects,
     category: selectedCategory,
@@ -161,17 +168,34 @@ export const useMouse = (syncCanvasToState: () => void) => {
     }
   };
 
-  const drawingStart = (event: fabric.IEvent) => {
-    const { x, y } = imageBoundary.within(canvas.getPointer(event.e));
-    lastPosition.current = new Point(x, y);
+  function parseEvent<T extends MouseEvent | WheelEvent>(
+    e: fabric.IEvent<T>,
+    debugMode: boolean = false
+  ) {
+    if (debugMode) console.log(e);
+    const { button, target, pointer: poi, e: evt } = e;
 
+    evt.preventDefault();
+    evt.stopPropagation();
+    const { ctrlKey, shiftKey } = evt;
+    const cursorPosi = new Point(
+      imageBoundary.within(canvas?.getPointer(evt)!)
+    );
+    const pointer = new Point(poi);
+    return { target, evt, button, pointer, cursorPosi, ctrlKey, shiftKey };
+  }
+
+  const drawingStart = (event: fabric.IEvent<MouseEvent>) => {
+    const { cursorPosi } = parseEvent(event);
+
+    lastPosition.current = cursorPosi;
     const category = selectedCategory || NEW_CATEGORY_NAME;
     const id = Math.max(-1, ...curState.map(({ id }) => id)) + 1;
     const color = getColor(category);
 
     const fabricObjects = newLabel({
       labelType: drawType,
-      position: new Point(x, y),
+      position: cursorPosi,
       category,
       id,
       scale,
@@ -182,15 +206,14 @@ export const useMouse = (syncCanvasToState: () => void) => {
     onDrawObj.current = fabricObjects[0];
   };
 
-  const drawOnMouseMove = (event: fabric.IEvent) => {
+  const drawOnMouseMove = (event: fabric.IEvent<MouseEvent>) => {
     if (drawType === LabelType.None) return drawingStop();
-
-    const { x: nowX, y: nowY } = imageBoundary.within(
-      canvas.getPointer(event.e)
-    );
-    const { x: lastX, y: lastY } = lastPosition.current;
     const obj = onDrawObj.current as any;
     if (!obj) return;
+
+    const { cursorPosi } = parseEvent(event);
+    const { x: nowX, y: nowY } = cursorPosi;
+    const { x: lastX, y: lastY } = lastPosition.current;
 
     if (isRect(obj)) {
       const left = Math.min(lastX, nowX);
@@ -214,16 +237,16 @@ export const useMouse = (syncCanvasToState: () => void) => {
     canvas.requestRenderAll();
   };
 
-  const drawingBreak = (event: fabric.IEvent) => {
+  const drawingBreak = (event: fabric.IEvent<MouseEvent>) => {
     console.log('drawingBreak');
     const obj = onDrawObj.current as any;
+    const { cursorPosi: nowPoint } = parseEvent(event);
 
     // for segmentation, drawing is not done in once
     if (isPolygon(obj)) {
       const { points, endpoints, lines, labelType, category, id } = obj;
       const color = getColor(category);
-      const { left, top } = imageBoundary.within(canvas.getPointer(event.e));
-      const nowPoint = new Point(left, top);
+      const { x: left, y: top } = nowPoint;
 
       if (nowPoint.distanceFrom(points[0]) < RADIUS) {
         // if the last click is close to the starting point, stop drawing
@@ -287,9 +310,58 @@ export const useMouse = (syncCanvasToState: () => void) => {
     canvas.renderAll();
   };
 
+  const recommendStart = (event: fabric.IEvent<MouseEvent>) => {
+    if (drawType === LabelType.Polygon) {
+      const { cursorPosi } = parseEvent(event, true);
+      const thePoint = cursorPosi.translate(offset.inverse()).zoom(1 / scale);
+      onRecommend.current = true;
+      intelligentScissor.buildMap(thePoint);
+    }
+  };
+
+  const recommendBreak = (event: fabric.IEvent<MouseEvent>) => {
+    parseEvent(event);
+    recommendStop();
+  };
+
+  const recommening = (event: fabric.IEvent<MouseEvent>) => {
+    const color = getColor('recommend');
+    if (drawType === LabelType.Polygon) {
+      const { cursorPosi } = parseEvent(event);
+      const thePoint = cursorPosi.translate(offset.inverse()).zoom(1 / scale);
+      let contour = new cv.Mat();
+      intelligentScissor.getContour(thePoint, contour);
+      cv.approxPolyDP(contour, contour, 0.01 * contour.rows, false);
+      const _points: number[] = Array.from(contour.data32S);
+      const points = [];
+      while (_points.length) {
+        const [x, y] = _points.splice(0, 2);
+        points.push(new Point(x, y).zoom(scale).translate(offset));
+      }
+      contour.delete();
+      const polyline = new fabric.Polyline(points, {
+        ...POLYLINE_DEFAULT_OPTIONS,
+        stroke: color,
+        fill: TRANSPARENT,
+      });
+      const existingPolyline = canvas.getObjects('polyline');
+      canvas
+        .remove(...existingPolyline)
+        .add(polyline)
+        .requestRenderAll();
+    }
+  };
+
+  const recommendStop = () => {
+    onRecommend.current = false;
+    const existingPolyline = canvas.getObjects('polyline');
+    canvas.remove(...existingPolyline).requestRenderAll();
+    setDrawType();
+  };
+
   const listeners = {
     'mouse:over': (e: fabric.IEvent<MouseEvent>) => {
-      const obj = e.target;
+      const { target: obj } = parseEvent(e);
       if (!obj) return;
 
       setHoverEffectOfEndpoint(obj);
@@ -301,7 +373,7 @@ export const useMouse = (syncCanvasToState: () => void) => {
     },
 
     'mouse:out': (e: fabric.IEvent<MouseEvent>) => {
-      const obj = e.target as fabric.Object;
+      const { target: obj } = parseEvent(e);
       if (!obj) return;
 
       setHoverEffectOfEndpoint(obj);
@@ -314,25 +386,26 @@ export const useMouse = (syncCanvasToState: () => void) => {
       canvas.requestRenderAll();
     },
 
-    'mouse:wheel': (event: fabric.IEvent<WheelEvent>) => {
-      event.e.preventDefault();
-      event.e.stopPropagation();
-      setZoomByWheel(event.e);
+    'mouse:wheel': (e: fabric.IEvent<WheelEvent>) => {
+      const { evt } = parseEvent(e);
+      setZoomByWheel(evt);
       setViewport();
     },
 
     'mouse:down': (e: fabric.IEvent<MouseEvent>) => {
-      const { target, button } = e;
+      const { target, button, pointer } = parseEvent(e);
 
       if (button === 1) {
         // left click
         if (onDrawObj.current) drawingBreak(e);
-        else if (drawType) drawingStart(e);
-        else if (isMidpoint(target)) addPointToPolygon(target as fabric.Circle);
+        else if (onRecommend.current) recommendBreak(e);
+        else if (drawType) {
+          if (AIMode) recommendStart(e);
+          else drawingStart(e);
+        } else if (isMidpoint(target))
+          addPointToPolygon(target as fabric.Circle);
         else if (!target) {
-          const evt = e.e as any;
-          const { clientX, clientY } = isTouchEvent(evt) ? evt.touches[0] : evt;
-          lastPosition.current = new Point(clientX, clientY);
+          lastPosition.current = pointer;
           selectedObjects.length && selectObjects();
           canvas.setCursor('grabbing');
           isPanning.current = true;
@@ -344,21 +417,22 @@ export const useMouse = (syncCanvasToState: () => void) => {
     },
 
     'mouse:move': (e: fabric.IEvent<MouseEvent>) => {
+      const { pointer } = parseEvent(e);
       if (onDrawObj.current) drawOnMouseMove(e);
+      else if (onRecommend.current) recommening(e);
       else if (isPanning.current) {
-        const { e: evt } = e as any;
-        const { clientX, clientY } = isTouchEvent(evt) ? evt.touches[0] : evt;
+        const { x: nowX, y: nowY } = pointer;
         const { x: lastX, y: lastY } = lastPosition.current;
-        const offset = new Point(clientX - lastX, clientY - lastY);
+        const offset = new Point(nowX - lastX, nowY - lastY);
         setViewport(offset);
         canvas.setViewportTransform(canvas.viewportTransform as number[]);
-        lastPosition.current = new Point(clientX, clientY);
+        lastPosition.current = new Point(nowX, nowY);
         canvas.setCursor('grabbing');
       }
     },
 
     'mouse:up': (e: fabric.IEvent<MouseEvent>) => {
-      const { target, button } = e;
+      const { target, button } = parseEvent(e);
 
       if (button === 1) {
         // left click
