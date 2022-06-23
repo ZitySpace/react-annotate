@@ -14,7 +14,7 @@ interface StoreData extends State {
 
 const StoreDataDefault = {
   multi: false,
-  AIMode: false,
+  AIMode: true,
   drawType: LabelType.None,
   visibleType: Object.keys(LabelType).map((key) => LabelType[key]),
   category: null,

@@ -83,10 +83,7 @@ export const useMouse = (syncCanvasToState: () => void) => {
    */
   const setHoverEffectOfEndpoint = (obj: fabric.Object) => {
     if (isPoint(obj) || isEndpoint(obj))
-      obj.set({
-        fill: obj.stroke,
-        stroke: obj.fill as string,
-      });
+      obj.set({ fill: obj.stroke, stroke: obj.fill as any });
   };
 
   /**
@@ -100,7 +97,6 @@ export const useMouse = (syncCanvasToState: () => void) => {
     // make touchBoard more smooth, using ctrlKey to identify touchBoard
     // more detail in: https://use-gesture.netlify.app/docs/options/#modifierkey
     const delta = deltaY * (evt.ctrlKey ? 3 : 1);
-
     const zoom = getBetween(canvas.getZoom() * 0.999 ** delta, 0.01, 20);
     canvas.zoomToPoint({ x, y }, zoom);
   };
@@ -168,13 +164,18 @@ export const useMouse = (syncCanvasToState: () => void) => {
     }
   };
 
+  /**
+   * Parse the mouse event and process the detail
+   * @param e MouseEvent or WheelEvent
+   * @param debugMode log the detail of mouse event to the console
+   * @returns
+   */
   function parseEvent<T extends MouseEvent | WheelEvent>(
     e: fabric.IEvent<T>,
     debugMode: boolean = false
   ) {
     if (debugMode) console.log(e);
     const { button, target, pointer: poi, e: evt } = e;
-
     evt.preventDefault();
     evt.stopPropagation();
     const { ctrlKey, shiftKey } = evt;
@@ -182,6 +183,7 @@ export const useMouse = (syncCanvasToState: () => void) => {
       imageBoundary.within(canvas?.getPointer(evt)!)
     );
     const pointer = new Point(poi);
+
     return { target, evt, button, pointer, cursorPosi, ctrlKey, shiftKey };
   }
 
@@ -313,19 +315,52 @@ export const useMouse = (syncCanvasToState: () => void) => {
   const recommendStart = (event: fabric.IEvent<MouseEvent>) => {
     if (drawType === LabelType.Polygon) {
       const { cursorPosi } = parseEvent(event, true);
-      const thePoint = cursorPosi.translate(offset.inverse()).zoom(1 / scale);
-      onRecommend.current = true;
+      const thePoint = cursorPosi
+        .clone()
+        .translate(offset.inverse())
+        .zoom(1 / scale);
+
       intelligentScissor.buildMap(thePoint);
+      const breakpoint = new fabric.Circle({
+        ...POINT_DEFAULT_CONFIG,
+        left: cursorPosi.x,
+        top: cursorPosi.y,
+        fill: getColor('recommend'),
+        selectable: false,
+        type: 'breakpoint',
+      } as any);
+
+      onRecommend.current = true;
+      canvas.add(breakpoint);
     }
   };
 
   const recommendBreak = (event: fabric.IEvent<MouseEvent>) => {
-    parseEvent(event);
-    recommendStop();
+    const { cursorPosi } = parseEvent(event);
+    const startingPoint = canvas.getObjects('breakpoint')[0];
+
+    if (RADIUS < new Point(startingPoint).distanceFrom(cursorPosi)) {
+      const thePoint = cursorPosi
+        .clone()
+        .translate(offset.inverse())
+        .zoom(1 / scale);
+      intelligentScissor.buildMap(thePoint);
+
+      const breakpoint = new fabric.Circle({
+        ...POINT_DEFAULT_CONFIG,
+        left: cursorPosi.x,
+        top: cursorPosi.y,
+        fill: getColor('recommend'),
+        selectable: false,
+        type: 'breakpoint',
+      });
+
+      const cachePolyline = new fabric.Polyline([cursorPosi]);
+      canvas.add(breakpoint, cachePolyline);
+    } else recommendStop();
   };
 
   const recommening = (event: fabric.IEvent<MouseEvent>) => {
-    const color = getColor('recommend');
     if (drawType === LabelType.Polygon) {
       const { cursorPosi } = parseEvent(event);
       const thePoint = cursorPosi.translate(offset.inverse()).zoom(1 / scale);
@@ -339,24 +374,43 @@ export const useMouse = (syncCanvasToState: () => void) => {
         points.push(new Point(x, y).zoom(scale).translate(offset));
       }
       contour.delete();
+
       const polyline = new fabric.Polyline(points, {
         ...POLYLINE_DEFAULT_OPTIONS,
-        stroke: color,
+        stroke: getColor('recommend'),
         fill: TRANSPARENT,
       });
-      const existingPolyline = canvas.getObjects('polyline');
-      canvas
-        .remove(...existingPolyline)
-        .add(polyline)
-        .requestRenderAll();
+      const lastPolyline = canvas.getObjects('polyline').slice(-1)[0];
+      canvas.remove(lastPolyline).add(polyline).requestRenderAll();
     }
   };
 
   const recommendStop = () => {
+    const category = selectedCategory || NEW_CATEGORY_NAME;
+    const id = Math.max(-1, ...curState.map(({ id }) => id)) + 1;
+    const color = getColor(category);
+
+    const allBreakpoints = canvas.getObjects('breakpoint');
+    const allPoints = canvas
+      .getObjects('polyline')
+      .map((pl: any) => pl.points.map(Object.values).flat())
+      .flat();
+
+    const fabricObjects = new PolygonLabel({
+      points: allPoints,
+      category,
+      id,
+    }).getFabricObjects(color, false);
+
+    const allPolyline = canvas.getObjects('polyline');
+    canvas
+      .remove(...allPolyline, ...allBreakpoints)
+      .add(...fabricObjects)
+      .requestRenderAll();
+
     onRecommend.current = false;
-    const existingPolyline = canvas.getObjects('polyline');
-    canvas.remove(...existingPolyline).requestRenderAll();
     setDrawType();
+    syncCanvasToState();
   };
 
   const listeners = {

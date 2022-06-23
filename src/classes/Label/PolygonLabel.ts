@@ -114,7 +114,7 @@ export class PolygonLabel extends Label {
 
     // generate endpoints, without last point if polygon is closed
     const endpoints = points.map(({ x, y }, _id) => {
-      const endpoint = new fabric.Circle({
+      const endpoint: fabric.Circle = new fabric.Circle({
         ...POINT_DEFAULT_CONFIG,
         left: x,
         top: y,
