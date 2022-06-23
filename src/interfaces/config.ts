@@ -83,6 +83,19 @@ export const POLYGON_DEFAULT_CONFIG: fabric.IPolylineOptions = {
   perPixelTargetFind: true,
 };
 
+export const POLYLINE_DEFAULT_OPTIONS = {
+  originX: 'left',
+  originY: 'top',
+  hasBorders: false,
+  hasControls: false,
+  hoverCursor: 'default',
+  lockMovementX: true,
+  lockMovementY: true,
+  lockRotation: true,
+  selectable: false,
+  fill: TRANSPARENT,
+};
+
 export const TEXTBOX_DEFAULT_CONFIG: fabric.ITextboxOptions = {
   fill: 'black',
   selectable: false,
