@@ -9,9 +9,18 @@ export class Point implements Point {
    * @param x x_coordinate default 0
    * @param y y_coordinate default 0
    */
-  constructor(x: number = 0, y: number = 0) {
-    this.x = x;
-    this.y = y;
+
+  constructor(x: number, y: number);
+  constructor(o?: { x: number; y: number });
+  constructor(o: number | { x: number; y: number } = 0, y: number = 0) {
+    if (typeof o !== 'number') {
+      const { x, y } = o;
+      this.x = x;
+      this.y = y;
+    } else {
+      this.x = o;
+      this.y = y;
+    }
   }
 
   /**
