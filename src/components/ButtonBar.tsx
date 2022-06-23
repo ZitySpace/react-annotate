@@ -1,8 +1,14 @@
 import React from 'react';
+import { useStore } from 'zustand';
 import { LabelType } from '../classes/Label';
 import { DataOperation } from '../hooks/useData';
+import { CanvasStore, CanvasStoreProps } from '../stores/CanvasStore';
+import { CVStore, CVStoreProps } from '../stores/CVStore';
+import { ImageMetaStore, ImageMetaStoreProps } from '../stores/ImageMetaStore';
+import { SelectionStore, SelectionStoreProps } from '../stores/SelectionStore';
 import { Button } from './Button';
 import {
+  AIIcon,
   CloseIcon,
   InvisibleIcon,
   LineIcon,
@@ -18,10 +24,6 @@ import {
   UndoIcon,
   VisibleIcon,
 } from './Icons';
-import { useStore } from 'zustand';
-import { CanvasStore, CanvasStoreProps } from '../stores/CanvasStore';
-import { SelectionStore, SelectionStoreProps } from '../stores/SelectionStore';
-import { ImageMetaStore, ImageMetaStoreProps } from '../stores/ImageMetaStore';
 
 export const ButtonBar = ({
   dataOperation,
@@ -29,6 +31,7 @@ export const ButtonBar = ({
   dataOperation: DataOperation;
 }) => {
   const { dataReady } = useStore(ImageMetaStore, (s: ImageMetaStoreProps) => s);
+  const { ready: CVReady } = useStore(CVStore, (s: CVStoreProps) => s);
 
   const {
     undo,
@@ -44,6 +47,8 @@ export const ButtonBar = ({
   const {
     drawType,
     visibleType,
+    AIMode,
+    toggleAIMode,
     setDrawType,
     toggleVisibility,
     objects: selectedObjects,
@@ -122,6 +127,10 @@ export const ButtonBar = ({
 
         <Button canUse={canSave} onClick={save}>
           <SaveIcon />
+        </Button>
+
+        <Button canUse={CVReady} isUsing={AIMode} onClick={toggleAIMode}>
+          <AIIcon />
         </Button>
       </div>
 
