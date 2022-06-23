@@ -280,11 +280,11 @@ export const useMouse = (syncCanvasToState: () => void) => {
       updateCoords(obj);
       selectObjects([newLabel({ obj, offset, scale })]);
       isRect(obj) && canvas.setActiveObject(obj);
+      syncCanvasToState();
     }
     onDrawObj.current = null;
     setDrawType();
     canvas.renderAll();
-    syncCanvasToState();
   };
 
   const listeners = {
