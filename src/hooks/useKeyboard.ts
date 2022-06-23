@@ -39,7 +39,7 @@ export const useKeyboard = (dataOperation: DataOperation) => {
   const drawRect = draw(LabelType.Rect);
   const drawPolygon = draw(LabelType.Polygon);
 
-  const plainShortcutMap = {
+  const plainShortcutMapping = {
     Backspace: deleteObj,
     Delete: deleteObj,
     KeyR: drawRect,
@@ -65,7 +65,7 @@ export const useKeyboard = (dataOperation: DataOperation) => {
       event.stopPropagation(); // prevent event bubble up
     };
 
-    const combinedShortcutMap = {
+    const combinedShortcutMapping = {
       KeyR: () => {
         preventDefault();
         if (!controlKey || auxiliaryKey) return;
@@ -90,8 +90,8 @@ export const useKeyboard = (dataOperation: DataOperation) => {
     };
 
     try {
-      if (controlKey || auxiliaryKey) combinedShortcutMap[code]();
-      else plainShortcutMap[code]();
+      if (controlKey || auxiliaryKey) combinedShortcutMapping[code]();
+      else plainShortcutMapping[code]();
     } catch (error) {
       if (!(error instanceof TypeError)) console.log(error);
     }

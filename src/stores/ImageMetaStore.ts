@@ -1,7 +1,7 @@
 import { createContext } from 'react';
 import { createStore, State, StoreApi } from 'zustand';
-import { Dimension } from '../classes/Geometry/Dimension';
 import { Boundary } from '../classes/Geometry/Boundary';
+import { Dimension } from '../classes/Geometry/Dimension';
 import { Point } from '../classes/Geometry/Point';
 import { DataState } from '../interfaces/basic';
 
