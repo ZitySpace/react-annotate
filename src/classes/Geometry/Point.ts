@@ -23,6 +23,10 @@ export class Point implements Point {
     }
   }
 
+  clone(): Point {
+    return new Point(this.x, this.y);
+  }
+
   /**
    *
    * @param ratio zoom ratio
@@ -54,11 +58,20 @@ export class Point implements Point {
   }
 
   /**
-   * Get distance between two points
+   * Get the distance of this point from another point like object
    */
-  distanceFrom(target: Point): number {
-    return Math.sqrt(
-      Math.pow(this.x - target.x, 2) + Math.pow(this.y - target.y, 2)
-    );
+  distanceFrom(target: {
+    x?: number;
+    y?: number;
+    left?: number;
+    top?: number;
+  }): number {
+    return target.x && target.y
+      ? Math.sqrt(
+          Math.pow(this.x - target.x, 2) + Math.pow(this.y - target.y, 2)
+        )
+      : Math.sqrt(
+          Math.pow(this.x - target.left!, 2) + Math.pow(this.y - target.top!, 2)
+        );
   }
 }
