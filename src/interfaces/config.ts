@@ -83,7 +83,7 @@ export const POLYGON_DEFAULT_CONFIG: fabric.IPolylineOptions = {
   perPixelTargetFind: true,
 };
 
-export const POLYLINE_DEFAULT_OPTIONS = {
+export const POLYLINE_DEFAULT_OPTIONS: fabric.IPolylineOptions = {
   originX: 'left',
   originY: 'top',
   hasBorders: false,
@@ -94,6 +94,12 @@ export const POLYLINE_DEFAULT_OPTIONS = {
   lockRotation: true,
   selectable: false,
   fill: TRANSPARENT,
+};
+
+export const BREAKPOINT_DEFAULT_OPTIONS: fabric.ICircleOptions = {
+  ...POINT_DEFAULT_CONFIG,
+  type: 'breakpoint',
+  selectable: false,
 };
 
 export const TEXTBOX_DEFAULT_CONFIG: fabric.ITextboxOptions = {
