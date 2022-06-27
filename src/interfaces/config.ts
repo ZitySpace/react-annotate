@@ -1,3 +1,5 @@
+import { XImg } from '../components/Icons';
+
 export const IS_TOUCH_SCREEN = 'ontouchstart' in window;
 // || (navigator as any).maxTouchPoints > 0
 // || (navigator as any).msMaxTouchPoints > 0
@@ -94,6 +96,7 @@ export const POLYLINE_DEFAULT_OPTIONS: fabric.IPolylineOptions = {
   lockRotation: true,
   selectable: false,
   fill: TRANSPARENT,
+  evented: false,
 };
 
 export const BREAKPOINT_DEFAULT_OPTIONS: fabric.ICircleOptions = {
