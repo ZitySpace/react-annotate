@@ -93,6 +93,9 @@ export const isEndpoint = (target: any) =>
 export const isPolygonLine = (target: any) =>
   target && isSomething(target, 'line', [LabelType.Polygon]);
 
+export const isPolygonEndpoint = (target: any) =>
+  target && isSomething(target, 'circle', [LabelType.Polygon]);
+
 export const isLabel = (target: any) =>
   [isRect, isLine, isPoint, isPolygon].some((fn) => fn(target));
 

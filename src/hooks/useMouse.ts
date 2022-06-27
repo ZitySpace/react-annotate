@@ -7,6 +7,7 @@ import { LabelType } from '../classes/Label';
 import { PolygonLabel } from '../classes/Label/PolygonLabel';
 import {
   BREAKPOINT_DEFAULT_OPTIONS,
+  deleteCursor,
   LINE_DEFAULT_CONFIG,
   NEW_CATEGORY_NAME,
   POINT_DEFAULT_CONFIG,
@@ -31,6 +32,7 @@ import {
   isMidpoint,
   isPoint,
   isPolygon,
+  isPolygonEndpoint,
   isPolygonLine,
   isRect,
   newLabel,
@@ -43,6 +45,8 @@ export const useMouse = (syncCanvasToState: () => void) => {
   const lastRightClickSelection = useRef<fabric.Object | null>(null);
   const isPanning = useRef<boolean>(false);
   const onDrawObj = useRef<fabric.Object | null>(null);
+  const onAlterObj = useRef<fabric.Object | null>(null);
+  const onConfirmDelete = useRef<Function | null>(null);
 
   const curState = useStore(CanvasStore, (s: CanvasStoreProps) => s.curState());
 
@@ -188,6 +192,8 @@ export const useMouse = (syncCanvasToState: () => void) => {
   }
 
   const drawingStart = (event: fabric.IEvent<MouseEvent>) => {
+    console.log('drawingStart');
+
     const { cursorPosi } = parseEvent(event);
     const category = selectedCategory || NEW_CATEGORY_NAME;
     const id = Math.max(-1, ...curState.map(({ id }) => id)) + 1;
@@ -227,6 +233,8 @@ export const useMouse = (syncCanvasToState: () => void) => {
   };
 
   const drawOnMouseMove = (event: fabric.IEvent<MouseEvent>) => {
+    console.log('drawOnMouseMove');
+
     if (drawType === LabelType.None) return drawingStop();
     const obj = onDrawObj.current as any;
     if (!obj) return;
@@ -272,7 +280,7 @@ export const useMouse = (syncCanvasToState: () => void) => {
         fill: TRANSPARENT,
       });
       const lastPolyline = canvas.getObjects('polyline').slice(-1)[0];
-      canvas.remove(lastPolyline).add(polyline).requestRenderAll();
+      canvas.remove(lastPolyline).add(polyline);
     }
   };
 
@@ -375,7 +383,7 @@ export const useMouse = (syncCanvasToState: () => void) => {
       const allBreakpoints = canvas.getObjects('breakpoint');
       const allPoints = canvas
         .getObjects('polyline')
-        .map((pl: any) => pl.points.map(Object.values).flat())
+        .map((pl: any) => pl.points.slice(0, -1).map(Object.values).flat())
         .flat();
 
       const fabricObjects = new PolygonLabel({
@@ -396,29 +404,191 @@ export const useMouse = (syncCanvasToState: () => void) => {
     setDrawType();
   };
 
+  const alterStart = (event: fabric.IEvent<MouseEvent>) => {
+    console.log('alterStart');
+
+    const { target, cursorPosi } = parseEvent(event);
+    if (target && isPolygonEndpoint(target) && !onAlterObj.current) {
+      onAlterObj.current = target;
+      const thePoint = cursorPosi.translate(offset.inverse()).zoom(1 / scale);
+      intelligentScissor.buildMap(thePoint);
+      (target as any).polygon.endpoints.forEach((ep: any) =>
+        ep.set({ selectable: false })
+      );
+    }
+  };
+
+  const alterRecommend = (event: fabric.IEvent<MouseEvent>) => {
+    console.log('alterRecommend');
+
+    const { cursorPosi } = parseEvent(event);
+    const obj = onAlterObj.current as any;
+    const thePoint = cursorPosi.translate(offset.inverse()).zoom(1 / scale);
+    let contour = new cv.Mat();
+    intelligentScissor.getContour(thePoint, contour);
+    cv.approxPolyDP(contour, contour, 0.01 * contour.rows, false);
+    const _points: number[] = Array.from(contour.data32S);
+    const points = [];
+    while (_points.length) {
+      const [x, y] = _points.splice(0, 2);
+      points.push(new Point(x, y).zoom(scale).translate(offset));
+    }
+    contour.delete();
+
+    const polyline = new fabric.Polyline(points, {
+      ...POLYLINE_DEFAULT_OPTIONS,
+      stroke: obj.fill,
+      fill: TRANSPARENT,
+    });
+    const lastPolyline = canvas.getObjects('polyline').slice(-1)[0];
+    canvas.remove(lastPolyline).add(polyline);
+  };
+
+  const alterBreak = (event: fabric.IEvent<MouseEvent>) => {
+    console.log('alterBreak');
+
+    const { target, cursorPosi } = parseEvent(event);
+    const obj = onAlterObj.current as any;
+
+    if (target && (target as any).id === obj.id) alterStop(target);
+    else {
+      const thePoint = cursorPosi
+        .clone()
+        .translate(offset.inverse())
+        .zoom(1 / scale);
+      intelligentScissor.buildMap(thePoint);
+      const breakpoint = new fabric.Circle({
+        ...BREAKPOINT_DEFAULT_OPTIONS,
+        left: cursorPosi.x,
+        top: cursorPosi.y,
+        fill: obj.fill,
+      });
+      const cachePolyline = new fabric.Polyline([cursorPosi]);
+      canvas.add(breakpoint, cachePolyline);
+    }
+  };
+
+  const alterStop = (endBreakpoint: any) => {
+    console.log('alterStop');
+    const startBreakpoint = onAlterObj.current as any;
+    const {
+      polygon: { lines, points },
+      category,
+      id,
+    } = endBreakpoint;
+
+    // with the in-order path of the polygon
+    const isSameDirection = startBreakpoint._id > endBreakpoint._id;
+
+    const [min_id, max_id] = isSameDirection
+      ? [endBreakpoint._id, startBreakpoint._id]
+      : [startBreakpoint._id, endBreakpoint._id];
+
+    // the path in same direction, which was separated via the start-breakpoint and the end-breakpoint
+    const pointOfPath_1 = points.slice(min_id + 1, max_id);
+    const pointOfPath_2 = [...points, ...points]
+      .slice(max_id + 1, min_id + points.length)
+      .reverse();
+
+    const polylines = canvas.getObjects('polyline') as fabric.Polyline[];
+    const pointsOfPolyline = polylines
+      .map((pl: fabric.Polyline) => pl.points?.slice(0, -1))
+      .flat();
+    pointsOfPolyline.push(
+      new fabric.Point(endBreakpoint.left, endBreakpoint.top)
+    );
+
+    const pointsOfPolygon_1 = [
+      ...pointsOfPolyline,
+      ...(isSameDirection ? pointOfPath_1 : pointOfPath_1.reverse()),
+    ];
+
+    const pointsOfPolygon_2 = [
+      ...pointsOfPolyline,
+      ...(isSameDirection ? pointOfPath_2 : pointOfPath_2.reverse()),
+    ];
+
+    const ObjsOfPath_1: fabric.Line[] = [];
+    const ObjsOfPath_2: fabric.Line[] = [];
+
+    (lines as fabric.Line[]).forEach((line, _id) => {
+      if (_id >= min_id && _id < max_id)
+        ObjsOfPath_1.push(line, ...(line as any).endpoints);
+      else ObjsOfPath_2.push(line, ...(line as any).endpoints);
+    });
+
+    const onOver = (e: fabric.IEvent<MouseEvent>) => {
+      const { target } = parseEvent(e) as any;
+      const objs = ObjsOfPath_1.includes(target) ? ObjsOfPath_1 : ObjsOfPath_2;
+
+      objs.forEach((o: any) => {
+        o.set({ opacity: 0.5 });
+      });
+    };
+
+    const onOut = (e: fabric.IEvent<MouseEvent>) => {
+      const { target } = parseEvent(e) as any;
+      const objs = ObjsOfPath_1.includes(target) ? ObjsOfPath_1 : ObjsOfPath_2;
+
+      objs.forEach((o: any) => {
+        o.set({ opacity: 1 });
+      });
+    };
+
+    const hoverCursor = deleteCursor;
+
+    [...ObjsOfPath_1, ...ObjsOfPath_2].forEach((o: any) => {
+      o.setOptions({ hoverCursor, onOver, onOut });
+    });
+
+    onConfirmDelete.current = (e: fabric.IEvent<MouseEvent>) => {
+      const { target } = parseEvent(e) as any;
+      const points = (
+        ObjsOfPath_1.includes(target) ? pointsOfPolygon_2 : pointsOfPolygon_1
+      )
+        .map(Object.values)
+        .flat();
+
+      const oldObjs = canvas.getObjects().filter((o: any) => o.id === id);
+      const newObjs = new PolygonLabel({
+        points,
+        category,
+        id,
+      }).getFabricObjects(getColor(category), false);
+
+      canvas.remove(...oldObjs).add(...newObjs);
+      onConfirmDelete.current = null;
+    };
+
+    onAlterObj.current = null;
+  };
+
   const listeners = {
     'mouse:over': (e: fabric.IEvent<MouseEvent>) => {
-      const { target: obj } = parseEvent(e);
+      const { target: obj } = e as any;
       if (!obj) return;
 
-      setHoverEffectOfEndpoint(obj);
-      isSelected((obj as any).id) &&
-        isPolygonLine(obj) &&
-        canvas.add((obj as any).midpoint);
+      if (obj.onOver) obj.onOver(e);
+      else {
+        setHoverEffectOfEndpoint(obj);
+        isSelected(obj.id) && isPolygonLine(obj) && canvas.add(obj.midpoint);
+      }
 
       canvas.requestRenderAll();
     },
 
     'mouse:out': (e: fabric.IEvent<MouseEvent>) => {
-      const { target: obj } = parseEvent(e);
+      const { target: obj } = e as any;
       if (!obj) return;
 
-      setHoverEffectOfEndpoint(obj);
-      if (isPolygonLine(obj)) {
-        const isMoveToMidpoint =
-          (e as any).nextTarget === (obj as any).midpoint;
-        if (!isMoveToMidpoint) canvas.remove((obj as any).midpoint);
-      } else if (isMidpoint(obj)) canvas.remove(obj);
+      if (obj.onOut) obj.onOut(e);
+      else {
+        setHoverEffectOfEndpoint(obj);
+        if (isPolygonLine(obj)) {
+          const isMoveToMidpoint = (e as any).nextTarget === obj.midpoint;
+          if (!isMoveToMidpoint) canvas.remove(obj.midpoint);
+        } else if (isMidpoint(obj)) canvas.remove(obj);
+      }
 
       canvas.requestRenderAll();
     },
@@ -435,6 +605,8 @@ export const useMouse = (syncCanvasToState: () => void) => {
       if (button === 1) {
         // left click
         if (onDrawObj.current) drawingBreak(e);
+        else if (onAlterObj.current) alterBreak(e);
+        else if (onConfirmDelete.current) onConfirmDelete.current(e);
         else if (drawType) drawingStart(e);
         else if (isMidpoint(target)) addPointToPolygon(target as fabric.Circle);
         else if (!target) {
@@ -442,7 +614,7 @@ export const useMouse = (syncCanvasToState: () => void) => {
           selectedObjects.length && selectObjects();
           canvas.setCursor('grabbing');
           isPanning.current = true;
-        }
+        } else if (AIMode) alterStart(e);
       } else if (button === 3) {
         // right click
         if (target) lastRightClickSelection.current = target;
@@ -453,6 +625,7 @@ export const useMouse = (syncCanvasToState: () => void) => {
       const { pointer } = parseEvent(e);
 
       if (onDrawObj.current) drawOnMouseMove(e);
+      else if (onAlterObj.current) alterRecommend(e);
       else if (isPanning.current) {
         const { x: nowX, y: nowY } = pointer;
         const { x: lastX, y: lastY } = lastPosition.current;
