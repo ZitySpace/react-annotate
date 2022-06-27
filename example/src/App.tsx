@@ -1,7 +1,6 @@
 import React from 'react';
 
-import { Annotator, ImageData } from 'react-annotate-image';
-import 'react-annotate-image/dist/index.css';
+import { Annotator, ImageData } from '@ZitySpace/react-annotate';
 
 // import { data as rect } from './rectangles';
 // import { RectLabel } from 'react-annotate-image';
@@ -14,7 +13,7 @@ import 'react-annotate-image/dist/index.css';
 // }));
 
 import { data as segm } from './segmentations';
-import { PolygonLabel } from 'react-annotate-image';
+import { PolygonLabel } from '@ZitySpace/react-annotate';
 const imagesList: ImageData[] = segm.map((img) => ({
   ...img,
   annotations: img.annotations.map((anno: any, id: number) => {

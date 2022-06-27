@@ -85,13 +85,13 @@ export const useData = ({
     prevImg: () => {
       const updatedData = { ...imageData, annotations: curState };
       updateImageData(updatedData);
-      onSwitch && onSwitch(updatedData, imageIndex, imagesList, 'prev');
+      // onSwitch && onSwitch(updatedData, imageIndex, imagesList, 'prev');
       prev();
     },
     nextImg: () => {
       const updatedData = { ...imageData, annotations: curState };
       updateImageData(updatedData);
-      onSwitch && onSwitch(updatedData, imageIndex, imagesList, 'next');
+      // onSwitch && onSwitch(updatedData, imageIndex, imagesList, 'next');
       next();
     },
   };

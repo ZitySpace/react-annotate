@@ -4,7 +4,6 @@ import { useData } from '../hooks/useData';
 import { useKeyboard } from '../hooks/useKeyboard';
 import { useSynchronizer } from '../hooks/useSynchronizer';
 import { ImageData } from '../interfaces/basic';
-import '../tailwind.css';
 import { ButtonBar } from './ButtonBar';
 import { OperationPanel } from './OperationPanel';
 

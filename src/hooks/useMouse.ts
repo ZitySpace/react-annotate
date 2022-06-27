@@ -80,7 +80,7 @@ export const useMouse = (syncCanvasToState: () => void) => {
   const getColor = useStore(ColorStore, (s: ColorStoreProps) => s.getColor);
 
   // mount gestures event listener
-  usePinch(() => {}, { target: canvas?.getElement().parentElement });
+  usePinch(() => {}, { target: canvas?.getElement().parentElement! });
 
   if (!canvas) return {};
 
