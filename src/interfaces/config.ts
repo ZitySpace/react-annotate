@@ -111,3 +111,5 @@ export const TEXTBOX_DEFAULT_CONFIG: fabric.ITextboxOptions = {
   hoverCursor: 'default',
   fontSize: 14,
 };
+
+export const deleteCursor = `url('${XImg}'), auto`;
