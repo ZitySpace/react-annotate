@@ -41,14 +41,13 @@ export const POINT_DEFAULT_CONFIG: fabric.ICircleOptions = {
   perPixelTargetFind: false,
 };
 
-export const LINE_DEFAULT_CONFIG: fabric.ILineOptions | any = {
+export const LINE_DEFAULT_CONFIG: fabric.ILineOptions = {
   ...ANCHOR_CENTER,
   ...NO_BORDER,
   ...NOT_DIRECTED_OPERATABLE,
   strokeWidth: STROKE_WIDTH,
   selectable: true,
   perPixelTargetFind: true,
-  targetFindTolerance: RADIUS + STROKE_WIDTH,
 };
 
 export const RECT_DEFAULT_CONFIG: fabric.IRectOptions | any = {

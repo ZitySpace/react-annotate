@@ -38,6 +38,7 @@ export const useSynchronizer = () => {
 
   const {
     drawType,
+    AIMode,
     visibleType,
     objects: selectedObjects,
     isSelected,
@@ -145,7 +146,7 @@ export const useSynchronizer = () => {
 
   /**
    * Sync selection to the canvas
-   * recalculate the objects' visibility and the active of the canvas
+   * recalculate the objects' properties and the active of the canvas
    */
   useEffect(() => {
     if (!canvas) return;
@@ -156,6 +157,7 @@ export const useSynchronizer = () => {
 
     canvas.forEachObject((obj: any) => {
       obj.visible = isVisible(obj.labelType, obj.type, obj.id, isShowText);
+      obj.selectable = !(AIMode && adjustMode);
     });
 
     const selectedRect = canvas
@@ -167,8 +169,11 @@ export const useSynchronizer = () => {
     else canvas.discardActiveObject();
 
     canvas.requestRenderAll();
-  }, [drawType, visibleType, selectedObjects]);
+  }, [drawType, AIMode, visibleType, selectedObjects]);
 
+  /**
+   * load opencvjs library
+   */
   useEffect(() => {
     if (!window['cv']) {
       const script = document.createElement('script');

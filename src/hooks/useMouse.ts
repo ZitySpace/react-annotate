@@ -198,8 +198,12 @@ export const useMouse = (syncCanvasToState: () => void) => {
    */
   const getPointsOfPathFromIntelligentScissor = (end: Point) => {
     let contour = new cv.Mat();
-    intelligentScissor.getContour(end, contour);
-    cv.approxPolyDP(contour, contour, 0.01 * contour.rows, false);
+    try {
+      intelligentScissor.getContour(end, contour);
+      cv.approxPolyDP(contour, contour, 0.01 * contour.rows, false);
+    } catch (e) {
+      onAlterObj.current = null;
+    }
     const _points: number[] = Array.from(contour.data32S);
     const points = [];
     while (_points.length) {
@@ -399,12 +403,13 @@ export const useMouse = (syncCanvasToState: () => void) => {
 
     const { cursor } = parseEvent(event);
     const obj = onAlterObj.current as any;
+    const color = getColor(obj.category);
     const thePoint = cursor.translate(offset.inverse()).zoom(1 / scale);
     const points = getPointsOfPathFromIntelligentScissor(thePoint);
 
     const polyline = new fabric.Polyline(points, {
       ...POLYLINE_DEFAULT_OPTIONS,
-      stroke: obj.fill,
+      stroke: color,
       fill: TRANSPARENT,
     });
     const lastPolyline = canvas.getObjects('polyline').slice(-1)[0];
@@ -416,6 +421,7 @@ export const useMouse = (syncCanvasToState: () => void) => {
 
     const { target, cursor } = parseEvent(event);
     const obj = onAlterObj.current as any;
+    const color = getColor(obj.category);
 
     if (target && (target as any).id === obj.id) alterStop(target);
     else {
@@ -426,7 +432,7 @@ export const useMouse = (syncCanvasToState: () => void) => {
         ...BREAKPOINT_DEFAULT_OPTIONS,
         left,
         top,
-        fill: obj.fill,
+        fill: color,
       });
       const cachePolyline = new fabric.Polyline([cursor]);
       canvas.add(breakpoint, cachePolyline);
@@ -509,10 +515,16 @@ export const useMouse = (syncCanvasToState: () => void) => {
     onConfirmDelete.current = (e: fabric.IEvent<MouseEvent>) => {
       const { target } = parseEvent(e) as any;
       const points = (
-        ObjsOfPath_1.includes(target) ? pointsOfPolygon_2 : pointsOfPolygon_1
+        ObjsOfPath_1.includes(target)
+          ? pointsOfPolygon_2
+          : ObjsOfPath_2.includes(target)
+          ? pointsOfPolygon_1
+          : []
       )
         .map(Object.values)
         .flat();
+
+      if (!points.length) return;
 
       const oldObjs = canvas.getObjects().filter((o: any) => o.id === id);
       const newObjs = new PolygonLabel({
@@ -522,6 +534,7 @@ export const useMouse = (syncCanvasToState: () => void) => {
       }).getFabricObjects(getColor(category), false);
 
       canvas.remove(...oldObjs).add(...newObjs);
+      syncCanvasToState();
       onConfirmDelete.current = null;
     };
 
@@ -537,7 +550,7 @@ export const useMouse = (syncCanvasToState: () => void) => {
       if (!obj) return;
 
       if (obj.onOver) obj.onOver(e);
-      else {
+      else if (!onDrawObj.current && !onAlterObj.current) {
         setHoverEffectOfEndpoint(obj);
         isSelected(obj.id) && isPolygonLine(obj) && canvas.add(obj.midpoint);
       }
@@ -550,7 +563,7 @@ export const useMouse = (syncCanvasToState: () => void) => {
       if (!obj) return;
 
       if (obj.onOut) obj.onOut(e);
-      else {
+      else if (!onDrawObj.current && !onAlterObj.current) {
         setHoverEffectOfEndpoint(obj);
         if (isPolygonLine(obj)) {
           const isMoveToMidpoint = (e as any).nextTarget === obj.midpoint;
