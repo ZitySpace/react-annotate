@@ -129,7 +129,11 @@ export const ButtonBar = ({
           <SaveIcon />
         </Button>
 
-        <Button canUse={CVReady} isUsing={AIMode} onClick={toggleAIMode}>
+        <Button
+          canUse={CVReady}
+          isUsing={AIMode}
+          onClick={() => toggleAIMode(!AIMode)}
+        >
           <AIIcon />
         </Button>
       </div>

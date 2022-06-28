@@ -26,7 +26,7 @@ interface Store extends StoreData {
   selectObjects: (objects?: Label[], keepCategory?: boolean) => void;
   toggleMulti: () => void;
   toggleVisibility: () => void;
-  toggleAIMode: () => void;
+  toggleAIMode: (AIMode: boolean) => void;
   isVisible: (
     labelType: LabelType,
     type: string,
@@ -61,7 +61,7 @@ const store = createStore<Store>((set, get) => ({
       visibleType: s.visibleType.length ? [] : StoreDataDefault.visibleType,
     })),
 
-  toggleAIMode: () => set((s: Store) => ({ AIMode: !s.AIMode })),
+  toggleAIMode: (AIMode: boolean) => set(() => ({ AIMode })),
 
   isVisible: (labelType, type, id, isShowText) => {
     const s = get();

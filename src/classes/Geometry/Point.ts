@@ -23,10 +23,6 @@ export class Point implements Point {
     }
   }
 
-  clone(): Point {
-    return new Point(this.x, this.y);
-  }
-
   /**
    *
    * @param ratio zoom ratio
