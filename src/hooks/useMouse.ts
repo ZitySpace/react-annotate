@@ -400,16 +400,7 @@ export const useMouse = (syncCanvasToState: () => void) => {
     const { cursor } = parseEvent(event);
     const obj = onAlterObj.current as any;
     const thePoint = cursor.translate(offset.inverse()).zoom(1 / scale);
-    let contour = new cv.Mat();
-    intelligentScissor.getContour(thePoint, contour);
-    cv.approxPolyDP(contour, contour, 0.01 * contour.rows, false);
-    const _points: number[] = Array.from(contour.data32S);
-    const points = [];
-    while (_points.length) {
-      const [x, y] = _points.splice(0, 2);
-      points.push(new Point(x, y).zoom(scale).translate(offset));
-    }
-    contour.delete();
+    const points = getPointsOfPathFromIntelligentScissor(thePoint);
 
     const polyline = new fabric.Polyline(points, {
       ...POLYLINE_DEFAULT_OPTIONS,
