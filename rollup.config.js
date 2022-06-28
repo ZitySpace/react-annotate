@@ -45,10 +45,9 @@ export default [
           path: './postcss.config.js',
         },
         extensions: ['.css'],
-        minimize: true,
-        inject: {
-          insertAt: 'top',
-        },
+        minimize: isProdution,
+        extract: true,
+        inject: false,
       }),
     ],
     external: [
