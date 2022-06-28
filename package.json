@@ -10,8 +10,8 @@
     "test": "jest",
     "test:watch": "jest --watch"
   },
-  "main": "dist/cjs/index.js",
-  "module": "dist/esm/index.js",
+  "main": "dist/index.js",
+  "module": "dist/index.esm.js",
   "files": [
     "dist"
   ],
