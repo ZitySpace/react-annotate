@@ -9,6 +9,8 @@ import postcss from 'rollup-plugin-postcss';
 
 const packageJson = require('./package.json');
 
+const isProdution = process.env.NODE_ENV === 'production';
+
 export default [
   {
     input: 'src/index.ts',
@@ -20,7 +22,7 @@ export default [
       },
       {
         file: packageJson.module,
-        format: 'esm',
+        format: 'es',
         sourcemap: true,
       },
     ],
@@ -28,8 +30,16 @@ export default [
       peerDepsExternal(),
       resolve(),
       commonjs(),
-      typescript({ tsconfig: './tsconfig.json' }),
-      terser(),
+      typescript({
+        tsconfig: './tsconfig.json',
+        ...(!isProdution && { compilerOptions: { target: 'esnext' } }),
+      }),
+      isProdution &&
+        terser({
+          format: {
+            comments: /^\s*([@#]__[A-Z]+__\s*$|@cc_on)/,
+          },
+        }),
       postcss({
         config: {
           path: './postcss.config.js',
@@ -41,10 +51,17 @@ export default [
         },
       }),
     ],
-    external: ['react', 'react-dom', 'fabric'],
+    external: [
+      'react',
+      'react-dom',
+      '@use-gesture/react',
+      'fabric',
+      'randomcolor',
+      'react-draggable',
+    ],
   },
   {
-    input: 'dist/esm/types/index.d.ts',
+    input: 'dist/esm/index.d.ts',
     output: [{ file: 'dist/index.d.ts', format: 'esm' }],
     plugins: [dts()],
     external: [/\.css$/],

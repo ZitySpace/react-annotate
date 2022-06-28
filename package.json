@@ -5,8 +5,8 @@
   "author": "ZitySpace",
   "license": "Apache-2.0",
   "scripts": {
-    "dev": "rollup -c -w",
-    "build": "rollup -c",
+    "dev": "NODE_ENV=development rollup -c -w",
+    "build": "NODE_ENV=production rollup -c",
     "test": "jest",
     "test:watch": "jest --watch"
   },
