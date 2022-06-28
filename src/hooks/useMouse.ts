@@ -185,12 +185,10 @@ export const useMouse = (syncCanvasToState: () => void) => {
     const { button, target, pointer: poi, e: evt } = e;
     evt.preventDefault();
     evt.stopPropagation();
-    const cursorPosi = new Point(
-      imageBoundary.within(canvas?.getPointer(evt)!)
-    );
+    const cursor = new Point(imageBoundary.within(canvas?.getPointer(evt)!));
     const pointer = new Point(poi);
 
-    return { target, evt, button, pointer, cursorPosi };
+    return { target, evt, button, pointer, cursor };
   }
 
   /**
@@ -216,39 +214,31 @@ export const useMouse = (syncCanvasToState: () => void) => {
   const drawingStart = (event: fabric.IEvent<MouseEvent>) => {
     console.log('drawingStart');
 
-    const { cursorPosi } = parseEvent(event);
+    const { cursor } = parseEvent(event);
+    lastPosition.current = cursor;
+
     const category = selectedCategory || NEW_CATEGORY_NAME;
     const id = Math.max(-1, ...curState.map(({ id }) => id)) + 1;
     const color = getColor(category);
 
-    if (!AIMode) {
-      lastPosition.current = cursorPosi;
+    const fabricObjects = newLabel({
+      labelType: drawType,
+      position: cursor,
+      category,
+      id,
+      scale,
+      offset,
+    }).getFabricObjects(color, false);
 
-      const fabricObjects = newLabel({
-        labelType: drawType,
-        position: cursorPosi,
-        category,
-        id,
-        scale,
-        offset,
-      }).getFabricObjects(color, false);
+    onDrawObj.current = fabricObjects[0];
 
-      canvas.add(...fabricObjects);
-      onDrawObj.current = fabricObjects[0];
-    } else if (drawType === LabelType.Polygon) {
-      const { x: left, y: top } = cursorPosi;
-      const thePoint = cursorPosi.translate(offset.inverse()).zoom(1 / scale);
-      intelligentScissor.buildMap(thePoint);
-      const breakpoint = new fabric.Circle({
-        ...BREAKPOINT_DEFAULT_OPTIONS,
-        left,
-        top,
-        fill: color,
-      });
-
-      canvas.add(breakpoint);
-      onDrawObj.current = breakpoint;
-    }
+    if (AIMode) {
+      if (drawType === LabelType.Polygon) {
+        const thePoint = cursor.translate(offset.inverse()).zoom(1 / scale);
+        intelligentScissor.buildMap(thePoint);
+        canvas.add(...fabricObjects.slice(2)); // add two generated points
+      }
+    } else canvas.add(...fabricObjects);
   };
 
   const drawOnMouseMove = (event: fabric.IEvent<MouseEvent>) => {
@@ -258,66 +248,86 @@ export const useMouse = (syncCanvasToState: () => void) => {
     const obj = onDrawObj.current as any;
     if (!obj) return;
 
-    const { cursorPosi } = parseEvent(event);
+    const { cursor } = parseEvent(event);
+    const { x: nowX, y: nowY } = cursor;
+    const { x: lastX, y: lastY } = lastPosition.current;
 
-    if (!AIMode) {
-      const { x: nowX, y: nowY } = cursorPosi;
-      const { x: lastX, y: lastY } = lastPosition.current;
-
-      if (isRect(obj)) {
-        const left = Math.min(lastX, nowX);
-        const top = Math.min(lastY, nowY);
-        const right = Math.max(lastX, nowX) - STROKE_WIDTH; // width and height will add stroke width automatically so we need to subtract it
-        const bottom = Math.max(lastY, nowY) - STROKE_WIDTH;
-        obj.set({ left, top, width: right - left, height: bottom - top });
-      } else if (isPoint(obj)) {
-        obj.set({ left: nowX, top: nowY });
-      } else if (isLine(obj) || isPolygon(obj)) {
-        const { points, endpoints } = obj;
-        const lastEndpoint = endpoints[endpoints.length - 1];
-        lastEndpoint.set({ left: nowX, top: nowY });
+    if (isRect(obj)) {
+      const left = Math.min(lastX, nowX);
+      const top = Math.min(lastY, nowY);
+      const right = Math.max(lastX, nowX) - STROKE_WIDTH; // width and height will add stroke width automatically so we need to subtract it
+      const bottom = Math.max(lastY, nowY) - STROKE_WIDTH;
+      obj.set({ left, top, width: right - left, height: bottom - top });
+    } else if (isPoint(obj)) {
+      obj.set({ left: nowX, top: nowY });
+    } else if (isLine(obj) || isPolygon(obj)) {
+      const { points, endpoints } = obj;
+      const lastEndpoint = endpoints[endpoints.length - 1];
+      lastEndpoint.set({ left: nowX, top: nowY });
+      if (AIMode && drawType === LabelType.Polygon) {
+        const thePoint = cursor.translate(offset.inverse()).zoom(1 / scale);
+        const points = getPointsOfPathFromIntelligentScissor(thePoint);
+        const newPolyline = new fabric.Polyline(points, {
+          ...POLYLINE_DEFAULT_OPTIONS,
+          stroke: obj.fill,
+          fill: TRANSPARENT,
+        });
+        const oldPolyline = canvas.getObjects('polyline').slice(-1)[0];
+        canvas.remove(oldPolyline).add(newPolyline);
+      } else {
         updateEndpointAssociatedLinesPosition(lastEndpoint);
         if (points) points[points.length - 1] = new Point(nowX, nowY);
       }
-      canvas.requestRenderAll();
-    } else if (drawType === LabelType.Polygon) {
-      const thePoint = cursorPosi.translate(offset.inverse()).zoom(1 / scale);
-      const points = getPointsOfPathFromIntelligentScissor(thePoint);
-      const polyline = new fabric.Polyline(points, {
-        ...POLYLINE_DEFAULT_OPTIONS,
-        stroke: obj.fill,
-        fill: TRANSPARENT,
-      });
-      const lastPolyline = canvas.getObjects('polyline').slice(-1)[0];
-      canvas.remove(lastPolyline).add(polyline);
     }
+
+    canvas.requestRenderAll();
   };
 
   const drawingBreak = (event: fabric.IEvent<MouseEvent>) => {
     console.log('drawingBreak');
     const obj = onDrawObj.current as any;
-    const { cursorPosi } = parseEvent(event);
+    const { cursor } = parseEvent(event);
+    const { x: left, y: top } = cursor;
 
-    if (!AIMode) {
-      // for segmentation, drawing is not done in once
-      if (isPolygon(obj)) {
-        const { points, endpoints, lines, labelType, category, id } = obj;
-        const color = getColor(category);
-        const { x: left, y: top } = cursorPosi;
+    if (isPolygon(obj)) {
+      const { points, endpoints, labelType, category, id } = obj;
+      const color = getColor(category);
+      const currentPolyline = canvas
+        .getObjects('polyline')
+        .slice(-1)[0] as fabric.Polyline;
 
-        if (cursorPosi.distanceFrom(points[0]) < RADIUS) {
-          // if the last click is close to the starting point, stop drawing
-          // remove the last point because it is used to show the cursor and has no practical meaning
-          points.pop();
-          const newFabricObjs = new PolygonLabel({
-            obj,
-            scale,
-            offset,
-          }).getFabricObjects(color, false);
-          canvas.remove(obj, ...endpoints, ...lines).add(...newFabricObjs);
-          drawingStop();
+      if (cursor.distanceFrom(points[0]) < RADIUS) {
+        if (AIMode) {
+          points.push.apply(points, [...currentPolyline.points?.slice(1, -1)!]);
+        } else points.pop();
+
+        const newFabricObjs = new PolygonLabel({
+          obj,
+          scale,
+          offset,
+        }).getFabricObjects(color, false);
+        canvas
+          .remove(...canvas.getObjects().filter((o: any) => o.id === id))
+          .add(...newFabricObjs);
+        drawingStop();
+      } else {
+        if (AIMode) {
+          points.push.apply(points, [...currentPolyline.points?.slice(1)!]);
+
+          const thePoint = cursor.translate(offset.inverse()).zoom(1 / scale);
+          intelligentScissor.buildMap(thePoint);
+
+          const breakpoint = new fabric.Circle({
+            ...BREAKPOINT_DEFAULT_OPTIONS,
+            left,
+            top,
+            fill: obj.fill,
+          });
+          breakpoint.setOptions({ id });
+          const cachePolyline = new fabric.Polyline([cursor], { id } as any);
+          canvas.add(breakpoint, cachePolyline);
         } else {
-          points.push(cursorPosi);
+          points.push(cursor);
           const newEndpoint = new fabric.Circle({
             ...POINT_DEFAULT_CONFIG,
             left,
@@ -326,9 +336,13 @@ export const useMouse = (syncCanvasToState: () => void) => {
             stroke: TRANSPARENT,
             selectable: false,
           });
-          newEndpoint.setOptions({ _id: endpoints.length, lines: [] });
+          newEndpoint.setOptions({
+            labelType,
+            id,
+            _id: endpoints.length,
+            lines: [],
+          });
           endpoints.push(newEndpoint);
-
           const endpointsOfNewLine = endpoints.slice(
             endpoints.length - 2,
             endpoints.length
@@ -337,79 +351,29 @@ export const useMouse = (syncCanvasToState: () => void) => {
             ...LINE_DEFAULT_CONFIG,
             stroke: color,
           });
-          newLine.setOptions({ endpoints: endpointsOfNewLine });
-          lines.push(newLine);
+          newLine.setOptions({ id, endpoints: endpointsOfNewLine });
           endpointsOfNewLine.forEach((endpoint: fabric.Circle) => {
             (endpoint as any).lines.push(newLine);
           });
-          const products = [newLine, newEndpoint];
-          products.forEach((obj) =>
-            obj.setOptions({ labelType, category, id })
-          );
-          canvas.add(...products);
+
+          canvas.add(newEndpoint, newLine);
         }
-        updateCoords(obj);
-      } else drawingStop();
-    } else if (drawType === LabelType.Polygon) {
-      if (RADIUS < cursorPosi.distanceFrom(obj)) {
-        const { x: left, y: top } = cursorPosi;
-        const thePoint = cursorPosi.translate(offset.inverse()).zoom(1 / scale);
-        intelligentScissor.buildMap(thePoint);
-        const breakpoint = new fabric.Circle({
-          ...BREAKPOINT_DEFAULT_OPTIONS,
-          left,
-          top,
-          fill: obj.fill,
-        });
-        const cachePolyline = new fabric.Polyline([cursorPosi]);
-        canvas.add(breakpoint, cachePolyline);
-      } else drawingStop();
-    }
+      }
+      updateCoords(obj);
+    } else drawingStop();
   };
 
   const drawingStop = () => {
     console.log('drawingStop');
     const obj = onDrawObj.current as any;
 
-    if (!AIMode) {
-      if (isInvalid(obj) || drawType === LabelType.None)
-        canvas.remove(
-          ...canvas.getObjects().filter((o: any) => o.id === obj.id)
-        );
-      else {
-        updateCoords(obj);
-        selectObjects([newLabel({ obj, offset, scale })]);
-        isRect(obj) && canvas.setActiveObject(obj);
-        syncCanvasToState();
-      }
-    } else if (drawType === LabelType.Polygon) {
-      const category = selectedCategory || NEW_CATEGORY_NAME;
-      const id = Math.max(-1, ...curState.map(({ id }) => id)) + 1;
-      const color = getColor(category);
-
-      const allBreakpoints = canvas.getObjects('breakpoint');
-      const allPoints = canvas
-        .getObjects('polyline')
-        .map((pl: any) => pl.points.slice(0, -1).map(Object.values).flat())
-        .flat();
-
-      const fabricObjects = new PolygonLabel({
-        points: allPoints,
-        category,
-        id,
-      }).getFabricObjects(color, false);
-
-      const allPolyline = canvas.getObjects('polyline');
-      canvas
-        .remove(...allPolyline, ...allBreakpoints)
-        .add(...fabricObjects)
-        .requestRenderAll();
+    if (isInvalid(obj) || drawType === LabelType.None)
+      canvas.remove(...canvas.getObjects().filter((o: any) => o.id === obj.id));
+    else {
+      updateCoords(obj);
+      selectObjects([newLabel({ obj, offset, scale })]);
+      isRect(obj) && canvas.setActiveObject(obj);
       syncCanvasToState();
-      initIntelligentScissor(
-        (
-          canvas.backgroundImage as fabric.Image
-        ).getElement() as HTMLImageElement
-      );
     }
 
     onDrawObj.current = null;
@@ -419,10 +383,10 @@ export const useMouse = (syncCanvasToState: () => void) => {
   const alterStart = (event: fabric.IEvent<MouseEvent>) => {
     console.log('alterStart');
 
-    const { target, cursorPosi } = parseEvent(event);
+    const { target, cursor } = parseEvent(event);
     if (target && isPolygonEndpoint(target) && !onAlterObj.current) {
       onAlterObj.current = target;
-      const thePoint = cursorPosi.translate(offset.inverse()).zoom(1 / scale);
+      const thePoint = cursor.translate(offset.inverse()).zoom(1 / scale);
       intelligentScissor.buildMap(thePoint);
       (target as any).polygon.endpoints.forEach((ep: any) =>
         ep.set({ selectable: false })
@@ -433,9 +397,9 @@ export const useMouse = (syncCanvasToState: () => void) => {
   const alterRecommend = (event: fabric.IEvent<MouseEvent>) => {
     console.log('alterRecommend');
 
-    const { cursorPosi } = parseEvent(event);
+    const { cursor } = parseEvent(event);
     const obj = onAlterObj.current as any;
-    const thePoint = cursorPosi.translate(offset.inverse()).zoom(1 / scale);
+    const thePoint = cursor.translate(offset.inverse()).zoom(1 / scale);
     let contour = new cv.Mat();
     intelligentScissor.getContour(thePoint, contour);
     cv.approxPolyDP(contour, contour, 0.01 * contour.rows, false);
@@ -459,13 +423,13 @@ export const useMouse = (syncCanvasToState: () => void) => {
   const alterBreak = (event: fabric.IEvent<MouseEvent>) => {
     console.log('alterBreak');
 
-    const { target, cursorPosi } = parseEvent(event);
+    const { target, cursor } = parseEvent(event);
     const obj = onAlterObj.current as any;
 
     if (target && (target as any).id === obj.id) alterStop(target);
     else {
-      const { x: left, y: top } = cursorPosi;
-      const thePoint = cursorPosi.translate(offset.inverse()).zoom(1 / scale);
+      const { x: left, y: top } = cursor;
+      const thePoint = cursor.translate(offset.inverse()).zoom(1 / scale);
       intelligentScissor.buildMap(thePoint);
       const breakpoint = new fabric.Circle({
         ...BREAKPOINT_DEFAULT_OPTIONS,
@@ -473,7 +437,7 @@ export const useMouse = (syncCanvasToState: () => void) => {
         top,
         fill: obj.fill,
       });
-      const cachePolyline = new fabric.Polyline([cursorPosi]);
+      const cachePolyline = new fabric.Polyline([cursor]);
       canvas.add(breakpoint, cachePolyline);
     }
   };
