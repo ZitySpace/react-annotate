@@ -8,7 +8,7 @@ import postcss from 'rollup-plugin-postcss';
 
 const packageJson = require('./package.json');
 
-const isProdution = process.env.NODE_ENV === 'production';
+const isProduction = process.env.NODE_ENV === 'production';
 
 export default [
   {
@@ -36,9 +36,9 @@ export default [
       commonjs(),
       typescript({
         tsconfig: './tsconfig.json',
-        ...(!isProdution && { compilerOptions: { target: 'esnext' } }),
+        ...(!isProduction && { compilerOptions: { target: 'esnext' } }),
       }),
-      isProdution &&
+      isProduction &&
         terser({
           format: {
             comments: /^\s*([@#]__[A-Z]+__\s*$|@cc_on)/,
@@ -49,7 +49,7 @@ export default [
           path: './postcss.config.js',
         },
         extensions: ['.css'],
-        minimize: isProdution,
+        minimize: isProduction,
         extract: 'index.css',
         inject: false,
       }),

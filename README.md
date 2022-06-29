@@ -1,8 +1,8 @@
-# react-annotate-image
+# react-annotate
 
-[![NPM](https://img.shields.io/npm/v/react-annotate-image.svg)](https://www.npmjs.com/package/react-annotate-image) [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
+[![NPM](https://img.shields.io/npm/v/react-annotate-image.svg)](https://www.npmjs.com/package/react-annotate) [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
 
-React library for annotating image dataset. Currently it supports annotating points, lines, boxes, segmentation masks.
+React library for annotating computer vision dataset. Currently it supports annotating points, lines, boxes, segmentation masks.
 
 ## Status
 
@@ -10,14 +10,14 @@ Still in development.
 
 ## Install
 
-For production version: `yarn add @ZitySpace/react-annotate-image`, or `npm install @ZitySpace/react-annotate-image --save`. For development version: `yarn link @ZitySpace/react-annotate-image`.
+For production: `yarn add @ZitySpace/react-annotate`, or `npm install @ZitySpace/react-annotate --save`. For development: `yarn link @ZitySpace/react-annotate`.
 
 #### Simple Example
 
 ```ts
 // import the component and css
-import { Annotator } from 'react-annotate-image';
-import 'react-annotate-image/dist/index.css';
+import { Annotator } from '@ZitySpace/react-annotate';
+import '@ZitySpace/react-annotate/dist/index.css';
 ...
 
 const App = () => {
@@ -49,9 +49,9 @@ For specific example, visit [here](./example/README.md)
 
 ## Development in the repo
 
-1. run `yarn` under root path to install dependencies.
-2. run `yarn start` to watch and hot build the library.
-3. run `yarn` and `yarn start` under example folder to hot build the example.
+1. run `yarn install` under root path to install dependencies.
+2. run `yarn dev` to watch and hot build the library.
+3. run `yarn install` and `yarn start` under example folder to hot build the example.
 4. edit library source code and see changes in the example UI.
 
 ## Documentation
