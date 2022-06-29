@@ -26,6 +26,11 @@ export default [
         sourcemap: true,
       },
     ],
+    watch: {
+      clearScreen: false,
+      include: 'src/**',
+      exclude: 'node_modules/**',
+    },
     plugins: [
       peerDepsExternal(),
       resolve(),
@@ -64,5 +69,7 @@ export default [
     output: [{ file: 'dist/index.d.ts', format: 'esm' }],
     plugins: [dts()],
     external: [/\.css$/],
+    // https://github.com/rollup/rollup/issues/1666#issuecomment-1163091988
+    watch: false,
   },
 ];

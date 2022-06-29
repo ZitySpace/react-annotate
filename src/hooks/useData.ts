@@ -88,6 +88,7 @@ export const useData = ({
       // onSwitch && onSwitch(updatedData, imageIndex, imagesList, 'prev');
       prev();
     },
+
     nextImg: () => {
       const updatedData = { ...imageData, annotations: curState };
       updateImageData(updatedData);
