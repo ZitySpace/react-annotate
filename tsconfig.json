@@ -9,7 +9,7 @@
     "jsx": "react",
     "module": "ESNext",
     "declaration": true,
-    "declarationDir": "types",
+    "declarationDir": ".",
     "sourceMap": true,
     "inlineSources": true,
     "outDir": "dist",
