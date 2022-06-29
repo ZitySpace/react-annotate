@@ -1,4 +1,4 @@
-import { XImg } from '../components/Icons';
+import { checkImg, XImg } from '../components/Icons';
 
 export const IS_TOUCH_SCREEN = 'ontouchstart' in window;
 // || (navigator as any).maxTouchPoints > 0
@@ -94,3 +94,4 @@ export const BREAKPOINT_DEFAULT_OPTIONS: fabric.ICircleOptions = {
 };
 
 export const deleteCursor = `url('${XImg}'), auto`;
+export const checkCursor = `url('${checkImg}'), auto`;
