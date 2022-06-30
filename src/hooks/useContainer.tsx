@@ -27,7 +27,7 @@ export const useContainer = () => {
     setInitDims: setCanvasInitDims,
   } = useStore(CanvasMetaStore, (s: CanvasMetaStoreProps) => s);
 
-  const { dataReady, dataError } = useStore(
+  const { name, isCached, dataReady, dataError } = useStore(
     ImageMetaStore,
     (s: ImageMetaStoreProps) => s
   );
@@ -87,7 +87,11 @@ export const useContainer = () => {
       id='canvas_extended'
     >
       <canvas ref={canvasElmRef} className='hidden' />
-      <SpinnerIcon className={`${dataReady || dataError ? 'hidden' : ''}`} />
+      <SpinnerIcon
+        className={`${
+          isCached(name) || dataReady || dataError ? 'hidden' : ''
+        }`}
+      />
       <div
         className={`flex flex-col text-gray-800 ${dataError ? '' : 'hidden'}`}
         style={{ zIndex: 999 }}

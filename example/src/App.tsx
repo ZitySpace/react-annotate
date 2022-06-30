@@ -16,6 +16,7 @@ import { data as segm } from './segmentations';
 import { PolygonLabel } from '@ZitySpace/react-annotate';
 const imagesList: ImageData[] = segm.map((img) => ({
   ...img,
+  name: img.filename,
   annotations: img.annotations.map((anno: any, id: number) => {
     const { points, category } = anno;
     return new PolygonLabel({ points, id, category });

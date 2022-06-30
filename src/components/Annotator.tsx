@@ -10,12 +10,15 @@ import { OperationPanel } from './OperationPanel';
 export const Annotator = ({
   imagesList,
   initIndex = 0,
+  getImage = async () =>
+    'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs%3D',
   onSave,
   onSwitch,
   onError,
 }: {
   imagesList: ImageData[];
   initIndex?: number;
+  getImage?: (imageName: string) => Promise<string>;
   onSave?: (
     curImageData: ImageData,
     curIndex: number,
@@ -35,6 +38,7 @@ export const Annotator = ({
   const dataOperation = useData({
     imagesList,
     initIndex,
+    getImage,
     onSave,
     onSwitch,
     onError,

@@ -24,12 +24,15 @@ export interface DataOperation {
 export const useData = ({
   imagesList,
   initIndex = 0,
+  getImage = async () =>
+    'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs%3D',
   onSave,
   onSwitch,
   onError,
 }: {
   imagesList: ImageData[];
   initIndex: number;
+  getImage?: (imageName: string) => Promise<string>;
   onSave?: (
     curImageData: ImageData,
     curIndex: number,
@@ -64,16 +67,17 @@ export const useData = ({
     (s: CanvasMetaStoreProps) => s
   );
 
-  const { setImage, setImageMeta, setDataLoadingState } = useStore(
-    ImageMetaStore,
-    (s: ImageMetaStoreProps) => s
-  );
+  const { setImage, setImageMeta, setDataLoadingState, dataReady, setName } =
+    useStore(ImageMetaStore, (s: ImageMetaStoreProps) => s);
 
   const {
     selectObjects,
     setOperationStatus,
     category: selectedCategory,
   } = useStore(SelectionStore, (s: SelectionStoreProps) => s);
+
+  const theLastLoadImageName = useRef<string>();
+  theLastLoadImageName.current = imageData.name;
 
   const operation: DataOperation = {
     save: () => {
@@ -84,24 +88,25 @@ export const useData = ({
     },
 
     prevImg: () => {
-      const updatedData = { ...imageData, annotations: curState };
-      updateImageData(updatedData);
-      setOperationStatus('none');
-      onSwitch && onSwitch(updatedData, imageIndex, imagesList, 'prev');
+      if (dataReady) {
+        const updatedData = { ...imageData, annotations: curState };
+        updateImageData(updatedData);
+        setOperationStatus('none');
+        onSwitch && onSwitch(updatedData, imageIndex, imagesList, 'prev');
+      }
       prev();
     },
 
     nextImg: () => {
-      const updatedData = { ...imageData, annotations: curState };
-      updateImageData(updatedData);
-      setOperationStatus('none');
-      onSwitch && onSwitch(updatedData, imageIndex, imagesList, 'next');
+      if (dataReady) {
+        const updatedData = { ...imageData, annotations: curState };
+        updateImageData(updatedData);
+        setOperationStatus('none');
+        onSwitch && onSwitch(updatedData, imageIndex, imagesList, 'next');
+      }
       next();
     },
   };
-
-  const theLastLoadImageUrl = useRef<string>();
-  const imageCache = useRef<HTMLImageElement[]>(new Array(imagesList.length));
 
   useEffect(() => {
     updateCanSave(
@@ -112,76 +117,72 @@ export const useData = ({
   useEffect(() => {
     if (!canvas) return;
 
-    // calculate the image dimensions and boundary, its scale and the offset between canvas and image
-    const { width: image_w, height: image_h } = imageData;
-    const [canvas_w, canvas_h] = [canvas.width!, canvas.height!];
-    const scale_x = canvas_w / image_w;
-    const scale_y = canvas_h / image_h;
-    const scale = Math.min(scale_x, scale_y);
-    const imageDims = new Dimension(image_w, image_h).zoom(scale);
-    const canvasDims = new Dimension(canvas_w, canvas_h);
-    const imageBoundary = imageDims.boundaryIn(canvasDims);
-    const offset = imageDims.offsetTo(canvasDims);
-    setImageMeta({ dims: imageDims, scale, offset, boundary: imageBoundary });
-    setCanvasInitDims(new Dimension(canvas_w, canvas_h));
+    setName(imageData.name);
+    setDataLoadingState(DataState.Loading);
 
-    // load image
-    const { x: left, y: top } = offset;
-    const [scaleX, scaleY] = [scale, scale];
-    theLastLoadImageUrl.current = imageData.url; // record the last target image to prevent the loading dislocation
-    const curImgCache = imageCache.current[imageIndex];
-
-    if (curImgCache) {
-      setDataLoadingState({ annosState: DataState.Loading });
-      const img = new fabric.Image(curImgCache, { left, top, scaleX, scaleY });
-      setImage(img);
-      initIntelligentScissor(curImgCache);
-    } else {
-      setDataLoadingState({
-        imageState: DataState.Loading,
-        annosState: DataState.Loading,
-      });
-
-      const image = new Image(image_w, image_h);
+    (async () => {
+      const image = new Image();
       image.onload = () => {
-        if (theLastLoadImageUrl.current === imageData.url) {
-          initIntelligentScissor(image);
-          const img = new fabric.Image(image, { left, top, scaleX, scaleY });
-          imageCache.current[imageIndex] = image;
-          setImage(img);
-          setDataLoadingState({ imageState: DataState.Ready });
-        }
+        if (theLastLoadImageName.current !== imageData.name) return;
+
+        // calculate the image dimensions and boundary, its scale and the offset
+        // between canvas and image
+        const [canvas_w, canvas_h] = [canvas.width!, canvas.height!];
+        setCanvasInitDims(new Dimension(canvas_w, canvas_h));
+        const [image_w, image_h] = [image.naturalWidth, image.naturalHeight];
+
+        const scale_x = canvas_w / image_w;
+        const scale_y = canvas_h / image_h;
+        const scale = Math.min(scale_x, scale_y);
+        const imageDims = new Dimension(image_w, image_h).zoom(scale);
+        const canvasDims = new Dimension(canvas_w, canvas_h);
+        const imageBoundary = imageDims.boundaryIn(canvasDims);
+        const offset = imageDims.offsetTo(canvasDims);
+        setImageMeta({
+          dims: imageDims,
+          scale,
+          offset,
+          boundary: imageBoundary,
+        });
+
+        // load annotations
+        const annos = imageData.annotations;
+        annos.forEach((anno) => anno.scaleTransform(scale, offset));
+        annos.sort((a, b) => {
+          if (isPolygon(a) && !isPolygon(b)) return -1;
+          else if (isPolygon(b) && !isPolygon(a)) return 1;
+          else if (!isPolygon(a) && !isPolygon(b)) return 0;
+          else
+            return (
+              (b as PolygonLabel).boundary.getSize() -
+              (a as PolygonLabel).boundary.getSize()
+            );
+        });
+        setStack([annos]);
+
+        const categoryInterestedAnnos = annos.filter(
+          ({ category }) => category === selectedCategory
+        );
+        selectObjects(categoryInterestedAnnos, true);
+
+        const { x: left, y: top } = offset;
+        const [scaleX, scaleY] = [scale, scale];
+
+        initIntelligentScissor(image);
+        const img = new fabric.Image(image, { left, top, scaleX, scaleY });
+        setImage(img, imageData.name);
+
+        setDataLoadingState(DataState.Ready);
       };
       image.onerror = () => {
         onError &&
           onError('Load image failed', {
-            url: imageData.url,
+            name: imageData.name,
           });
-        setDataLoadingState({ imageState: DataState.Error });
+        setDataLoadingState(DataState.Error);
       };
-      image.src = imageData.url;
-    }
-
-    // load annotations
-    const annos = imageData.annotations;
-    annos.forEach((anno) => anno.scaleTransform(scale, offset));
-    annos.sort((a, b) => {
-      if (isPolygon(a) && !isPolygon(b)) return -1;
-      else if (isPolygon(b) && !isPolygon(a)) return 1;
-      else if (!isPolygon(a) && !isPolygon(b)) return 0;
-      else
-        return (
-          (b as PolygonLabel).boundary.getSize() -
-          (a as PolygonLabel).boundary.getSize()
-        );
-    });
-    setStack([annos]);
-
-    const categoryInterestedAnnos = annos.filter(
-      ({ category }) => category === selectedCategory
-    );
-    selectObjects(categoryInterestedAnnos, true);
-    setDataLoadingState({ annosState: DataState.Ready });
+      image.src = imageData.url || (await getImage(imageData.name));
+    })();
   }, [imageIndex, canvas]);
 
   return operation;

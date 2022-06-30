@@ -73,7 +73,7 @@ export const ButtonBar = ({
   const isDrawingPolygon = isDrawingMe(LabelType.Polygon);
 
   return (
-    <div className='h-9 flex justify-center space-x-8 items-center absolute bottom-0'>
+    <div className='h-9 flex justify-center space-x-8 items-center absolute bottom-0 select-none'>
       <div className='flex justify-center space-x-1'>
         <Button
           onClick={() => {

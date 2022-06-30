@@ -1,11 +1,12 @@
 import { Label } from '../classes/Label';
 
 export interface ImageData {
-  filename: string;
-  width: number;
-  height: number;
+  name: string;
+  width?: number;
+  height?: number;
   annotations: Label[];
-  url: string;
+  url?: string;
+  [k: string]: unknown;
 }
 
 export enum DataState {

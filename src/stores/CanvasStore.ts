@@ -15,7 +15,7 @@ interface StoreData extends State {
 }
 
 const StoreCoreDefault = {
-  stack: [],
+  stack: [[]],
   index: 1,
   canRedo: false,
   canUndo: false,
@@ -51,7 +51,7 @@ const store = createStore<Store>((set, get) => {
   return {
     ...StoreCoreDefault,
 
-    curState: () => get().stack[get().index - 1] || [],
+    curState: () => get().stack[get().index - 1],
     setStack: (stack) => update(stack, stack.length),
     pushState: (state) => {
       const stack = get().stack.slice(0, get().index);
