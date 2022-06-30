@@ -98,7 +98,7 @@ export const useData = ({
   };
 
   const theLastLoadImageUrl = useRef<string>();
-  const imageCache = useRef<fabric.Image[]>(new Array(imagesList.length));
+  const imageCache = useRef<HTMLImageElement[]>(new Array(imagesList.length));
 
   useEffect(() => {
     updateCanSave(
@@ -123,27 +123,28 @@ export const useData = ({
     setCanvasInitDims(new Dimension(canvas_w, canvas_h));
 
     // load image
+    const { x: left, y: top } = offset;
+    const [scaleX, scaleY] = [scale, scale];
     theLastLoadImageUrl.current = imageData.url; // record the last target image to prevent the loading dislocation
-    const img = imageCache.current[imageIndex];
-    if (img) {
+    const curImgCache = imageCache.current[imageIndex];
+
+    if (curImgCache) {
       setDataLoadingState({ annosState: DataState.Loading });
+      const img = new fabric.Image(curImgCache, { left, top, scaleX, scaleY });
       setImage(img);
-      initIntelligentScissor(img.getElement() as HTMLImageElement);
+      initIntelligentScissor(curImgCache);
     } else {
       setDataLoadingState({
         imageState: DataState.Loading,
         annosState: DataState.Loading,
       });
 
-      const { x: left, y: top } = offset;
-      const [scaleX, scaleY] = [scale, scale];
-
       const image = new Image(image_w, image_h);
       image.onload = () => {
         if (theLastLoadImageUrl.current === imageData.url) {
           initIntelligentScissor(image);
           const img = new fabric.Image(image, { left, top, scaleX, scaleY });
-          imageCache.current[imageIndex] = img;
+          imageCache.current[imageIndex] = image;
           setImage(img);
           setDataLoadingState({ imageState: DataState.Ready });
         }
