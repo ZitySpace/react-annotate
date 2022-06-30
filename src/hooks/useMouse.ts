@@ -42,9 +42,6 @@ import {
 export const useMouse = (syncCanvasToState: () => void) => {
   const lastPosition = useRef<Point>(new Point());
   const operatingObj = useRef<fabric.Object | null>(null);
-  // const [operationStatus, setOperationStatus] = useState<
-  //   'none' | 'panning' | 'drawing' | 'adjusting'
-  // >('none');
 
   const curState = useStore(CanvasStore, (s: CanvasStoreProps) => s.curState());
 
