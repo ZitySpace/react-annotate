@@ -69,10 +69,11 @@ export const useData = ({
     (s: ImageMetaStoreProps) => s
   );
 
-  const [selectObjects, selectedCategory] = useStore(
-    SelectionStore,
-    (s: SelectionStoreProps) => [s.selectObjects, s.category]
-  );
+  const {
+    selectObjects,
+    setOperationStatus,
+    category: selectedCategory,
+  } = useStore(SelectionStore, (s: SelectionStoreProps) => s);
 
   const operation: DataOperation = {
     save: () => {
@@ -85,14 +86,16 @@ export const useData = ({
     prevImg: () => {
       const updatedData = { ...imageData, annotations: curState };
       updateImageData(updatedData);
-      // onSwitch && onSwitch(updatedData, imageIndex, imagesList, 'prev');
+      setOperationStatus('none');
+      onSwitch && onSwitch(updatedData, imageIndex, imagesList, 'prev');
       prev();
     },
 
     nextImg: () => {
       const updatedData = { ...imageData, annotations: curState };
       updateImageData(updatedData);
-      // onSwitch && onSwitch(updatedData, imageIndex, imagesList, 'next');
+      setOperationStatus('none');
+      onSwitch && onSwitch(updatedData, imageIndex, imagesList, 'next');
       next();
     },
   };

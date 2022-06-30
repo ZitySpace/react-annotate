@@ -9,8 +9,9 @@ import { Point } from '../classes/Geometry/Point';
  * @returns is the obj invalid
  */
 export const isInvalid = (obj: any) => {
-  const { labelType } = obj;
-  switch (labelType) {
+  switch (obj?.labelType) {
+    case undefined:
+      return true;
     case LabelType.Rect:
       return obj.width <= STROKE_WIDTH || obj.height <= STROKE_WIDTH;
     case LabelType.Line:

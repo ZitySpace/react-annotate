@@ -3,9 +3,12 @@ import { createStore, State, StoreApi } from 'zustand';
 import { Label, LabelType } from '../classes/Label';
 import { mostRepeatedValue } from '../utils';
 
+type OperationStatus = 'none' | 'panning' | 'drawing' | 'adjusting';
+
 interface StoreData extends State {
   multi: boolean;
   AIMode: boolean;
+  operationStatus: OperationStatus;
   drawType: LabelType;
   visibleType: LabelType[];
   category: string | null;
@@ -14,7 +17,8 @@ interface StoreData extends State {
 
 const StoreDataDefault = {
   multi: false,
-  AIMode: false,
+  AIMode: true,
+  operationStatus: 'none' as OperationStatus,
   drawType: LabelType.None,
   visibleType: Object.keys(LabelType).map((key) => LabelType[key]),
   category: null,
@@ -23,6 +27,7 @@ const StoreDataDefault = {
 
 interface Store extends StoreData {
   setDrawType: (drawType?: LabelType) => void;
+  setOperationStatus: (operationStatus: OperationStatus) => void;
   selectObjects: (objects?: Label[], keepCategory?: boolean) => void;
   toggleMulti: () => void;
   toggleVisibility: () => void;
@@ -41,6 +46,9 @@ const store = createStore<Store>((set, get) => ({
 
   setDrawType: (t = LabelType.None) =>
     set((s: Store) => ({ drawType: t, objects: t ? [] : s.objects })),
+
+  setOperationStatus: (operationStatus: OperationStatus) =>
+    set(() => ({ operationStatus })),
 
   selectObjects: (objs = [], keepCategory = false) => {
     if (keepCategory) set({ drawType: LabelType.None, objects: objs });
