@@ -52,11 +52,15 @@ export const ButtonBar = ({
     setDrawType,
     toggleVisibility,
     objects: selectedObjects,
+    selectObjects,
   } = useStore(SelectionStore, (s: SelectionStoreProps) => s);
 
   const { prevImg, nextImg, save } = dataOperation;
 
-  const deleteObj = () => deleteObjects(selectedObjects.map(({ id }) => id));
+  const deleteObj = () => {
+    selectObjects([]);
+    deleteObjects(selectedObjects.map(({ id }) => id));
+  };
 
   const draw = (labelType: LabelType) => () =>
     setDrawType(drawType === labelType ? LabelType.None : labelType);
