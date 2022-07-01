@@ -180,7 +180,7 @@ export const useSynchronizer = () => {
       script.onload = setCVReady;
       script.type = 'text/javascript';
       script.async = true;
-      script.src = '/opencv.js';
+      script.src = 'https://docs.opencv.org/4.x/opencv.js';
       document.body.appendChild(script);
     }
   }, [window['cv']]);

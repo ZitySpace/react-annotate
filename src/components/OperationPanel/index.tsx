@@ -54,14 +54,14 @@ export const OperationPanel = () => {
   };
 
   return (
-    <div className='absolute w-full h-full pb-7 md:pb-9 invisible'>
+    <div className='absolute w-full h-full pb-9 invisible'>
       <div className='relative h-full p-2 overflow-hidden'>
         <Draggable
           bounds='parent'
           handle='.cate_handle'
           cancel='.selbar-state-icon'
         >
-          <div className='bg-gray-100 bg-opacity-0 absolute bottom-2 right-2 visible max-h-full w-34 flex flex-col items-end text-xs select-none'>
+          <div className='bg-gray-100 bg-opacity-0 absolute top-2 right-2 visible max-h-full w-34 flex flex-col items-end text-xs select-none'>
             <div className='bg-indigo-400 py-2 px-2 w-28 rounded-t-md flex justify-between cate_handle'>
               <span className='mx-auto'> Category </span>
               <MultipleSelectIcon
