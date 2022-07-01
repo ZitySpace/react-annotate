@@ -10,8 +10,7 @@ import { OperationPanel } from './OperationPanel';
 export const Annotator = ({
   imagesList,
   initIndex = 0,
-  getImage = async () =>
-    'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs%3D',
+  getImage,
   onSave,
   onSwitch,
   onError,

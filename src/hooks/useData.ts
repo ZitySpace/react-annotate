@@ -24,8 +24,7 @@ export interface DataOperation {
 export const useData = ({
   imagesList,
   initIndex = 0,
-  getImage = async () =>
-    'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs%3D',
+  getImage,
   onSave,
   onSwitch,
   onError,
@@ -181,7 +180,24 @@ export const useData = ({
           });
         setDataLoadingState(DataState.Error);
       };
-      image.src = imageData.url || (await getImage(imageData.name));
+
+      try {
+        if (imageData.url) image.src = imageData.url;
+        else {
+          if (!getImage)
+            throw new Error(
+              'Image url or getImage method has to be set to display images.'
+            );
+          image.src = await getImage(imageData.name);
+        }
+      } catch (err) {
+        onError &&
+          onError('Request image failed', {
+            name: imageData.name,
+            error: err instanceof Error ? err.message : (err as string),
+          });
+        setDataLoadingState(DataState.Error);
+      }
     })();
   }, [imageIndex, canvas]);
 
