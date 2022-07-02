@@ -19,12 +19,10 @@ export function useStateList<T>(
   const index = useRef(initIndex);
 
   // If new state list is shorter that before - switch to the last element
-  useEffect(() => {
-    if (list.length <= index.current) {
-      index.current = list.length - 1;
-      update();
-    }
-  }, [list.length]);
+  if (list.length <= index.current) {
+    index.current = list.length - 1;
+    update();
+  }
 
   const actions = useMemo(
     () => ({

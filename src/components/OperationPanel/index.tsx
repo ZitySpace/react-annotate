@@ -61,8 +61,8 @@ export const OperationPanel = () => {
           handle='.cate_handle'
           cancel='.selbar-state-icon'
         >
-          <div className='bg-gray-100 bg-opacity-0 absolute top-2 right-2 visible max-h-full w-34 flex flex-col items-end text-xs select-none'>
-            <div className='bg-indigo-400 py-2 px-2 w-28 rounded-t-md flex justify-between cate_handle'>
+          <div className='bg-gray-100 w-28 bg-opacity-0 absolute top-2 right-2 visible max-h-full w-34 flex flex-col items-end text-xs select-none'>
+            <div className='bg-indigo-400 py-2 px-2 w-full rounded-t-md flex justify-between cate_handle'>
               <span className='mx-auto'> Category </span>
               <MultipleSelectIcon
                 className={`text-indigo-200 ${multi ? 'text-indigo-600' : ''}`}
