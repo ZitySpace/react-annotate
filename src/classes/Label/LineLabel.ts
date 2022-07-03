@@ -1,5 +1,6 @@
 import { fabric } from 'fabric';
-import { Label, LabelType } from '.';
+import md5 from 'md5';
+import { Label, LabelType, getLocalTimeISOString } from '.';
 import {
   LINE_DEFAULT_CONFIG,
   POINT_DEFAULT_CONFIG,
@@ -21,6 +22,8 @@ interface LineLabelArgs {
   _x?: number;
   _y?: number;
   obj?: fabric.Line;
+  timestamp?: string;
+  hash?: string;
 }
 
 export class LineLabel extends Label {
@@ -38,15 +41,43 @@ export class LineLabel extends Label {
     id = 0,
     scale = 1,
     offset = new Point(),
+    timestamp,
+    hash,
     obj,
   }: LineLabelArgs) {
     const labelType = LabelType.Line;
+    const now = getLocalTimeISOString();
     if (obj) {
-      const { x1: x, y1: y, x2: _x, y2: _y, category, id } = obj as any;
-      super({ labelType, category, id, scale, offset });
+      const {
+        x1: x,
+        y1: y,
+        x2: _x,
+        y2: _y,
+        category,
+        id,
+        timestamp: timestamp_,
+        hash: hash_,
+      } = obj as any;
+      super({
+        labelType,
+        category,
+        id,
+        scale,
+        offset,
+        timestamp: timestamp || timestamp_ || now,
+        hash: hash || hash_ || md5(now),
+      });
       this.line = new Line(x, y, _x, _y);
     } else {
-      super({ labelType, category, id, scale, offset });
+      super({
+        labelType,
+        category,
+        id,
+        scale,
+        offset,
+        timestamp: timestamp || now,
+        hash: hash || md5(now),
+      });
       this.line = new Line(x, y, _x!, _y!);
     }
   }
@@ -86,6 +117,8 @@ export class LineLabel extends Label {
       id,
       category,
       labelType,
+      timestamp,
+      hash,
     } = this;
 
     const line = new fabric.Line([x, y, _x, _y], {
@@ -123,7 +156,9 @@ export class LineLabel extends Label {
     const products = needText
       ? [textbox, line, ...endpoints]
       : [line, ...endpoints];
-    products.forEach((obj) => obj.setOptions({ labelType, category, id }));
+    products.forEach((obj) =>
+      obj.setOptions({ labelType, category, id, timestamp, hash })
+    );
     return products;
   }
 }

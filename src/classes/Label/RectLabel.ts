@@ -1,5 +1,6 @@
 import { fabric } from 'fabric';
-import { Label, LabelType } from '.';
+import md5 from 'md5';
+import { Label, LabelType, getLocalTimeISOString } from '.';
 import {
   RECT_DEFAULT_CONFIG,
   STROKE_WIDTH,
@@ -19,6 +20,8 @@ interface RectLabelArgs {
   w?: number;
   h?: number;
   obj?: fabric.Rect;
+  timestamp?: string;
+  hash?: string;
 }
 
 export class RectLabel extends Label {
@@ -36,18 +39,44 @@ export class RectLabel extends Label {
     id = 0,
     scale = 1,
     offset = new Point(),
+    timestamp,
+    hash,
     obj,
   }: RectLabelArgs) {
     const labelType = LabelType.Rect;
+    const now = getLocalTimeISOString();
     if (obj) {
-      const { left: x, top: y, category, id } = obj as any;
+      const {
+        left: x,
+        top: y,
+        category,
+        id,
+        timestamp: timestamp_,
+        hash: hash_,
+      } = obj as any;
       const w = obj.getScaledWidth(); // stroke width had been added
       const h = obj.getScaledHeight(); // stroke width had been added
 
-      super({ labelType, category, id, scale, offset });
+      super({
+        labelType,
+        category,
+        id,
+        scale,
+        offset,
+        timestamp: timestamp || timestamp_ || now,
+        hash: hash || hash_ || md5(now),
+      });
       this.rect = new Rect(x, y, w, h);
     } else {
-      super({ labelType, category, id, scale, offset });
+      super({
+        labelType,
+        category,
+        id,
+        scale,
+        offset,
+        timestamp: timestamp || now,
+        hash: hash || md5(now),
+      });
       this.rect = new Rect(x, y, w, h);
     }
   }
@@ -87,7 +116,10 @@ export class RectLabel extends Label {
       labelType,
       category,
       id,
+      timestamp,
+      hash,
     } = this;
+    console.log(timestamp);
     const rect = new fabric.Rect({
       ...RECT_DEFAULT_CONFIG,
       left: x,
@@ -106,7 +138,9 @@ export class RectLabel extends Label {
     });
 
     const products = needText ? [textbox, rect] : [rect];
-    products.forEach((obj) => obj.setOptions({ labelType, category, id }));
+    products.forEach((obj) =>
+      obj.setOptions({ labelType, category, id, timestamp, hash })
+    );
     return products;
   }
 }

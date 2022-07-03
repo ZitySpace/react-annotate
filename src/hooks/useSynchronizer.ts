@@ -1,6 +1,7 @@
+import md5 from 'md5';
 import { useEffect, useMemo, useRef } from 'react';
 import { useStore } from 'zustand';
-import { Label } from '../classes/Label';
+import { Label, getLocalTimeISOString } from '../classes/Label';
 import {
   CanvasMetaStore,
   CanvasMetaStoreProps,
@@ -77,9 +78,14 @@ export const useSynchronizer = () => {
         console.log('syncCanvasToState called'); // TODO: remove
 
         const allCanvasObjects = canvas!.getObjects().filter(isLabel);
-        const newState: Label[] = allCanvasObjects.map((obj) =>
-          newLabel({ obj, offset, scale })
-        );
+        const activeObject = canvas!.getActiveObject();
+        const newState: Label[] = allCanvasObjects.map((obj) => {
+          if (obj === activeObject) {
+            const now = getLocalTimeISOString();
+            obj.setOptions({ timestamp: now, hash: md5(now) });
+          }
+          return newLabel({ obj, offset, scale });
+        });
         pushState(newState);
         setRenderLock(); // avoid useEffect hook invoke syncStateToCanvas method
       },

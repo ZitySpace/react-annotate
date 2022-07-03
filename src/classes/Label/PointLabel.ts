@@ -1,5 +1,6 @@
 import { fabric } from 'fabric';
-import { Label, LabelType } from '.';
+import md5 from 'md5';
+import { Label, LabelType, getLocalTimeISOString } from '.';
 import {
   POINT_DEFAULT_CONFIG,
   RADIUS,
@@ -17,6 +18,8 @@ interface PointLabelArgs {
   x?: number;
   y?: number;
   obj?: fabric.Circle;
+  timestamp?: string;
+  hash?: string;
 }
 export class PointLabel extends Label {
   point: Point;
@@ -31,15 +34,41 @@ export class PointLabel extends Label {
     id = 0,
     scale = 1,
     offset = new Point(),
+    timestamp,
+    hash,
     obj,
   }: PointLabelArgs) {
     const labelType = LabelType.Point;
+    const now = getLocalTimeISOString();
     if (obj) {
-      const { left: x, top: y, category, id } = obj as any;
-      super({ labelType, category, id, scale, offset });
+      const {
+        left: x,
+        top: y,
+        category,
+        id,
+        timestamp: timestamp_,
+        hash: hash_,
+      } = obj as any;
+      super({
+        labelType,
+        category,
+        id,
+        scale,
+        offset,
+        timestamp: timestamp || timestamp_ || now,
+        hash: hash || hash_ || md5(now),
+      });
       this.point = new Point(x, y);
     } else {
-      super({ labelType, category, id, scale, offset });
+      super({
+        labelType,
+        category,
+        id,
+        scale,
+        offset,
+        timestamp: timestamp || now,
+        hash: hash || md5(now),
+      });
       this.point = new Point(x, y);
     }
   }
@@ -79,6 +108,8 @@ export class PointLabel extends Label {
       id,
       category,
       labelType,
+      timestamp,
+      hash,
     } = this;
     const point = new fabric.Circle({
       ...POINT_DEFAULT_CONFIG,
@@ -97,7 +128,9 @@ export class PointLabel extends Label {
     });
 
     const products = needText ? [textbox, point] : [point];
-    products.forEach((obj) => obj.setOptions({ labelType, category, id }));
+    products.forEach((obj) =>
+      obj.setOptions({ labelType, category, id, timestamp, hash })
+    );
     return products;
   }
 }

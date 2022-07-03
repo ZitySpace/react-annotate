@@ -1,5 +1,6 @@
 import { fabric } from 'fabric';
-import { Label, LabelType } from '.';
+import md5 from 'md5';
+import { Label, LabelType, getLocalTimeISOString } from '.';
 import {
   LINE_DEFAULT_CONFIG,
   POINT_DEFAULT_CONFIG,
@@ -23,6 +24,8 @@ interface PolygonLabelArgs {
   y?: number;
   points?: number[];
   obj?: fabric.Polygon;
+  timestamp?: string;
+  hash?: string;
 }
 
 export class PolygonLabel extends Label {
@@ -40,19 +43,47 @@ export class PolygonLabel extends Label {
     scale = 1,
     offset = new Point(),
     points,
+    timestamp,
+    hash,
     obj,
   }: PolygonLabelArgs) {
     const labelType = LabelType.Polygon;
+    const now = getLocalTimeISOString();
     if (obj) {
-      const { points, scaleX, scaleY, category, id } = obj as any;
-      super({ labelType, category, id, scale, offset });
+      const {
+        points,
+        scaleX,
+        scaleY,
+        category,
+        id,
+
+        timestamp: timestamp_,
+        hash: hash_,
+      } = obj as any;
+      super({
+        labelType,
+        category,
+        id,
+        scale,
+        offset,
+        timestamp: timestamp || timestamp_ || now,
+        hash: hash || hash_ || md5(now),
+      });
       this.points = points.map(
         ({ x, y }: Point) => new Point(x * scaleX, y * scaleY)
       );
       const { x, y, w, h } = boundaryOfPolygon(this.points);
       this.boundary = new Rect(x, y, w, h);
     } else {
-      super({ labelType, category, id, scale, offset });
+      super({
+        labelType,
+        category,
+        id,
+        scale,
+        offset,
+        timestamp: timestamp || now,
+        hash: hash || md5(now),
+      });
       const splitPoints: Point[] | undefined = points ? [] : undefined;
       while (splitPoints && points?.length) {
         const [_x, _y] = points.splice(0, 2);
@@ -100,7 +131,7 @@ export class PolygonLabel extends Label {
    * @returns
    */
   getFabricObjects(color: string, needText: boolean = true) {
-    const { boundary, points, id, category, labelType } = this;
+    const { boundary, points, id, category, labelType, timestamp, hash } = this;
     const isPolygonClosed = points.length > 2;
 
     // generate polygon
@@ -185,7 +216,9 @@ export class PolygonLabel extends Label {
       ? [textbox, polygon, ...lines, ...endpoints]
       : [polygon, ...lines, ...endpoints];
 
-    products.forEach((obj) => obj.setOptions({ labelType, category, id }));
+    products.forEach((obj) =>
+      obj.setOptions({ labelType, category, id, timestamp, hash })
+    );
     return products;
   }
 }
