@@ -199,7 +199,7 @@ export const useData = ({
         setDataLoadingState(DataState.Error);
       }
     })();
-  }, [imageIndex, canvas]);
+  }, [imageData.name, canvas]);
 
   return operation;
 };
