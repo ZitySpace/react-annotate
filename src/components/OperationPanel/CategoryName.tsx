@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useStore } from 'zustand';
 import {
   SelectionStore,
@@ -17,28 +17,29 @@ export const CategoryName = ({
     (s: SelectionStoreProps) => s.isSelected
   );
 
-  const [inputValue, setInputValue] = useState<string>(categoryName);
-  const handleInput = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setInputValue(event.target.value);
-  };
+  const inputRef = useRef<HTMLInputElement>(null);
+
   const rename = () => {
-    if (!inputValue || inputValue === categoryName) setInputValue(categoryName);
-    else renameCategory(categoryName, inputValue);
+    const inputEle = inputRef.current;
+    if (!inputEle) return;
+    if (!inputEle.value) inputEle.value = categoryName;
+    else renameCategory(categoryName, inputEle.value);
   };
 
   const handleKeyPress = (event: React.KeyboardEvent) =>
     event.key === 'Enter' && rename();
+
+  useEffect(() => {
+    inputRef.current?.addEventListener('blur', () => rename());
+  }, [inputRef]);
 
   return (
     <div className='pb-1 static w-full flex justify-end'>
       <input
         className='w-full truncate bg-transparent text-center px-0.5'
         type='text'
-        tabIndex={-1}
-        value={inputValue}
-        onInput={handleInput}
-        onChange={() => {}}
-        onBlur={rename}
+        ref={inputRef}
+        defaultValue={categoryName}
         disabled={!isSelected(categoryName)}
         onClick={(e) => e.stopPropagation()}
         onKeyPress={handleKeyPress}
