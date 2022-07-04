@@ -80,7 +80,7 @@ export const useData = ({
 
   const operation: DataOperation = {
     save: () => {
-      const updatedData = { ...imageData, annotations: curState };
+      const updatedData = { ...imageData, annotations: [...curState] };
       updateImageData(updatedData);
       updateCanSave(false);
       onSave && onSave(updatedData, imageIndex, imagesList);
@@ -88,7 +88,7 @@ export const useData = ({
 
     prevImg: () => {
       if (dataReady) {
-        const updatedData = { ...imageData, annotations: curState };
+        const updatedData = { ...imageData, annotations: [...curState] };
         updateImageData(updatedData);
         setOperationStatus('none');
         onSwitch && onSwitch(updatedData, imageIndex, imagesList, 'prev');
@@ -98,7 +98,7 @@ export const useData = ({
 
     nextImg: () => {
       if (dataReady) {
-        const updatedData = { ...imageData, annotations: curState };
+        const updatedData = { ...imageData, annotations: [...curState] };
         updateImageData(updatedData);
         setOperationStatus('none');
         onSwitch && onSwitch(updatedData, imageIndex, imagesList, 'next');
@@ -145,7 +145,7 @@ export const useData = ({
         });
 
         // load annotations
-        const annos = imageData.annotations;
+        const annos = [...imageData.annotations];
         annos.forEach((anno) => anno.scaleTransform(scale, offset));
         annos.sort((a, b) => {
           if (isPolygon(a) && !isPolygon(b)) return -1;
