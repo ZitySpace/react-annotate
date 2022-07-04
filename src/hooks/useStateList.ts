@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useMemo, useRef } from 'react';
 import useUpdate from './useUpdate';
 
 export interface UseStateListReturnProps<T> {

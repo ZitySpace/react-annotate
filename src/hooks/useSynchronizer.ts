@@ -1,7 +1,7 @@
 import md5 from 'md5';
 import { useEffect, useMemo, useRef } from 'react';
 import { useStore } from 'zustand';
-import { Label, getLocalTimeISOString } from '../classes/Label';
+import { Label } from '../classes/Label';
 import {
   CanvasMetaStore,
   CanvasMetaStoreProps,
@@ -15,6 +15,7 @@ import { ColorStore, ColorStoreProps } from '../stores/ColorStore';
 import { CVStore, CVStoreProps } from '../stores/CVStore';
 import { ImageMetaStore, ImageMetaStoreProps } from '../stores/ImageMetaStore';
 import { SelectionStore, SelectionStoreProps } from '../stores/SelectionStore';
+import { getLocalTimeISOString } from '../utils';
 import { isLabel, newLabel } from '../utils/label';
 import { useCanvas } from './useCanvas';
 import { useMouse } from './useMouse';

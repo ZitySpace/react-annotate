@@ -111,3 +111,15 @@ export const boundaryOfPolygon = (points: Point[]) => {
  * @returns a deep copy of the object
  */
 export const deepClone = <T>(obj: T): T => JSON.parse(JSON.stringify(obj));
+
+/**
+ * Get the now local time ISO string
+ * @returns now time of local timezone in ISO string format
+ */
+export const getLocalTimeISOString = () => {
+  const tzoffset = new Date().getTimezoneOffset() * 60000;
+  const localISOString = new Date(Date.now() - tzoffset)
+    .toISOString()
+    .slice(0, -5);
+  return localISOString;
+};

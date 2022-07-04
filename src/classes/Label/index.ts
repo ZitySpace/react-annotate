@@ -1,13 +1,4 @@
-import md5 from 'md5';
 import { Point } from '../Geometry/Point';
-
-export const getLocalTimeISOString = () => {
-  const tzoffset = new Date().getTimezoneOffset() * 60000;
-  const localISOString = new Date(Date.now() - tzoffset)
-    .toISOString()
-    .slice(0, -5);
-  return localISOString;
-};
 
 export enum LabelType {
   None,
@@ -32,8 +23,8 @@ export abstract class Label {
     id,
     scale,
     offset,
-    timestamp = getLocalTimeISOString(),
-    hash = md5(getLocalTimeISOString()),
+    timestamp,
+    hash,
   }: {
     labelType: LabelType;
     category: string;

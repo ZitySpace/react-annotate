@@ -1,6 +1,6 @@
 import { fabric } from 'fabric';
 import md5 from 'md5';
-import { Label, LabelType, getLocalTimeISOString } from '.';
+import { Label, LabelType } from '.';
 import {
   LINE_DEFAULT_CONFIG,
   POINT_DEFAULT_CONFIG,
@@ -10,7 +10,11 @@ import {
   TEXTBOX_DEFAULT_CONFIG,
   TRANSPARENT,
 } from '../../interfaces/config';
-import { boundaryOfPolygon, deepClone } from '../../utils';
+import {
+  boundaryOfPolygon,
+  deepClone,
+  getLocalTimeISOString,
+} from '../../utils';
 import { Point } from '../Geometry/Point';
 import { Rect } from '../Geometry/Rect';
 import { getFontSize } from '../../utils';

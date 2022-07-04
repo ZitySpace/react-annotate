@@ -1,12 +1,12 @@
 import { fabric } from 'fabric';
 import md5 from 'md5';
-import { Label, LabelType, getLocalTimeISOString } from '.';
+import { Label, LabelType } from '.';
 import {
   RECT_DEFAULT_CONFIG,
   STROKE_WIDTH,
   TEXTBOX_DEFAULT_CONFIG,
 } from '../../interfaces/config';
-import { getFontSize } from '../../utils';
+import { getFontSize, getLocalTimeISOString } from '../../utils';
 import { Point } from '../Geometry/Point';
 import { Rect } from '../Geometry/Rect';
 
@@ -119,7 +119,6 @@ export class RectLabel extends Label {
       timestamp,
       hash,
     } = this;
-    console.log(timestamp);
     const rect = new fabric.Rect({
       ...RECT_DEFAULT_CONFIG,
       left: x,

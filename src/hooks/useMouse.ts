@@ -297,8 +297,8 @@ export const useMouse = (syncCanvasToState: () => void) => {
       canvas.requestRenderAll();
     },
 
-    breck: (cursorInImage: Point) => {
-      console.log('drawing breck');
+    break: (cursorInImage: Point) => {
+      console.log('drawing break');
 
       const obj = operatingObj.current as any;
       const { x: left, y: top } = cursorInImage;
@@ -616,7 +616,7 @@ export const useMouse = (syncCanvasToState: () => void) => {
             if (drawType) drawing.start(cursor);
             else panning.start(pointer);
           }
-        } else if (operationStatus === 'drawing') drawing.breck(cursor);
+        } else if (operationStatus === 'drawing') drawing.break(cursor);
         else if (operationStatus === 'adjusting') adjusting.break(e);
       }
 

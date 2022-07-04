@@ -1,6 +1,6 @@
 import { fabric } from 'fabric';
 import md5 from 'md5';
-import { Label, LabelType, getLocalTimeISOString } from '.';
+import { Label, LabelType } from '.';
 import {
   POINT_DEFAULT_CONFIG,
   RADIUS,
@@ -8,6 +8,7 @@ import {
   TEXTBOX_DEFAULT_CONFIG,
   TRANSPARENT,
 } from '../../interfaces/config';
+import { getLocalTimeISOString } from '../../utils';
 import { Point } from '../Geometry/Point';
 
 interface PointLabelArgs {
