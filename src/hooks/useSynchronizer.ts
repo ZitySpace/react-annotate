@@ -164,7 +164,7 @@ export const useSynchronizer = () => {
 
     canvas.forEachObject((obj: any) => {
       obj.visible = isVisible(obj.labelType, obj.type, obj.id, isShowText);
-      obj.selectable = !(AIMode && adjustMode);
+      obj.selectable = obj.type === 'textbox' ? false : !(AIMode && adjustMode);
     });
 
     const selectedRect = canvas
