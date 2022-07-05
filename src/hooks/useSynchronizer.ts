@@ -46,69 +46,42 @@ export const useSynchronizer = () => {
     isSelected,
     selectObjects,
     isVisible,
+    category,
   } = useStore(SelectionStore, (s: SelectionStoreProps) => s);
 
-  // render lock used to avoid whole cycle callback caused by canvas changed which will ruin the canvas
-  const renderLock = useRef<boolean>(false);
+  const syncCanvasToState = () => {
+    console.log('syncCanvasToState called'); // TODO: remove
 
-  const setRenderLock = () => {
-    renderLock.current = true;
+    const allCanvasObjects = canvas!.getObjects().filter(isLabel);
+    const activeObject = canvas!.getActiveObject();
+    const newState: Label[] = allCanvasObjects.map((obj) => {
+      if (obj === activeObject) {
+        const now = getLocalTimeISOString();
+        obj.setOptions({ timestamp: now, hash: md5(now) });
+      }
+      return newLabel({ obj, offset, scale });
+    });
+    pushState(newState);
   };
 
-  const getRenderLock = () => {
-    const nowLock = renderLock.current;
-    renderLock.current = false; // if it was queried, unlock
-    return nowLock;
-  };
-
-  /**
-   * Update all labels' fabric objects via regenerate them
-   */
-  const updateFabricObjects = () => {
+  const syncStateToCanvas = (state: CanvasState) => {
     if (!canvas) return;
-    const currentLabelObjs = canvas.getObjects().filter(isLabel);
-    const newObjects = currentLabelObjs.map((obj: any) =>
-      newLabel({ obj, offset, scale }).getFabricObjects(getColor(obj.category))
-    );
-    canvas.remove(...canvas.getObjects()).add(...newObjects.flat());
+    console.log('syncStateToCanvas called'); // TODO: remove
+
+    canvas.remove(...canvas.getObjects());
+    state.forEach((anno: Label) => {
+      const currentColor = getColor(anno.category);
+      const fabricObjects = anno.getFabricObjects(currentColor);
+      fabricObjects.forEach((obj) => {
+        obj.visible = isVisible(obj);
+      });
+      canvas.add(...fabricObjects);
+    });
+    const activeObjects = canvas
+      .getObjects('rect')
+      .filter((obj) => isSelected((obj as any).id));
+    if (activeObjects.length === 1) canvas.setActiveObject(activeObjects[0]);
   };
-
-  const { syncStateToCanvas, syncCanvasToState } = useMemo(
-    () => ({
-      syncCanvasToState: () => {
-        console.log('syncCanvasToState called'); // TODO: remove
-
-        const allCanvasObjects = canvas!.getObjects().filter(isLabel);
-        const activeObject = canvas!.getActiveObject();
-        const newState: Label[] = allCanvasObjects.map((obj) => {
-          if (obj === activeObject) {
-            const now = getLocalTimeISOString();
-            obj.setOptions({ timestamp: now, hash: md5(now) });
-          }
-          return newLabel({ obj, offset, scale });
-        });
-        pushState(newState);
-        setRenderLock(); // avoid useEffect hook invoke syncStateToCanvas method
-      },
-
-      syncStateToCanvas: (state: CanvasState) => {
-        if (!canvas || getRenderLock()) return;
-        console.log('syncStateToCanvas called'); // TODO: remove
-
-        canvas.remove(...canvas.getObjects());
-        state.forEach((anno: Label) => {
-          const currentColor = getColor(anno.category);
-          const fabricObjects = anno.getFabricObjects(currentColor);
-          fabricObjects.forEach((obj) => {
-            const { labelType, type, id } = obj as any;
-            obj.visible = isVisible(labelType, type, id, false);
-          });
-          canvas.add(...fabricObjects);
-        });
-      },
-    }),
-    [canvas, scale, offset]
-  );
 
   const canvasListeners = useCanvas(syncCanvasToState);
   const mouseListeners = useMouse(syncCanvasToState);
@@ -143,40 +116,14 @@ export const useSynchronizer = () => {
    */
   useEffect(() => {
     if (!dataReady) return;
-
     syncStateToCanvas(curState); // sync state
-    selectObjects(
-      curState.filter(({ id }) => isSelected(id)),
-      true
-    ); // sync to the selection
-  }, [JSON.stringify(curState), dataReady]); // Deep compare
-
-  /**
-   * Sync selection to the canvas
-   * recalculate the objects' properties and the active of the canvas
-   */
-  useEffect(() => {
-    if (!canvas) return;
-
-    const adjustMode = selectedObjects.length === 1;
-    const isShowText = !(drawType || adjustMode);
-    if (isShowText) updateFabricObjects();
-
-    canvas.forEachObject((obj: any) => {
-      obj.visible = isVisible(obj.labelType, obj.type, obj.id, isShowText);
-      obj.selectable = obj.type === 'textbox' ? false : !(AIMode && adjustMode);
-    });
-
-    const selectedRect = canvas
-      .getObjects('rect')
-      .filter((obj) => isSelected((obj as any).id));
-
-    if (adjustMode && selectedRect.length && visibleType.length)
-      canvas.setActiveObject(selectedRect[0]);
-    else canvas.discardActiveObject();
-
-    canvas.requestRenderAll();
-  }, [drawType, AIMode, visibleType, selectedObjects]);
+  }, [
+    dataReady,
+    JSON.stringify(curState),
+    selectedObjects,
+    drawType,
+    visibleType,
+  ]);
 
   /**
    * load opencvjs library

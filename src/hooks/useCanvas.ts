@@ -32,7 +32,7 @@ export const useCanvas = (syncCanvasToState: () => void) => {
     offset,
   } = useStore(ImageMetaStore, (s: ImageMetaStoreProps) => s);
 
-  const { selectObjects } = useStore(
+  const { objects: selectedObjects, selectObjects } = useStore(
     SelectionStore,
     (s: SelectionStoreProps) => s
   );
@@ -101,12 +101,14 @@ export const useCanvas = (syncCanvasToState: () => void) => {
       'selection:created': (e: any) => {
         const target = e.selected[0];
         const obj = target?.polygon || target;
-        const anno = newLabel({ obj, offset, scale });
-        selectObjects([anno]);
+        if (!selectedObjects.length) {
+          const anno = newLabel({ obj, offset, scale });
+          selectObjects([anno]);
+        }
       },
       'selection:cleared': (e: any) => e.e && selectObjects(),
     }),
-    [canvas, imageBoundary]
+    [canvas, imageBoundary, selectedObjects]
   );
 
   return listeners;

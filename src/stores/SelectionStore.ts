@@ -15,6 +15,8 @@ interface StoreData extends State {
   objects: Label[];
 }
 
+const NoObjectsSelected: Label[] = [];
+
 const StoreDataDefault = {
   multi: false,
   AIMode: false,
@@ -22,7 +24,7 @@ const StoreDataDefault = {
   drawType: LabelType.None,
   visibleType: Object.keys(LabelType).map((key) => LabelType[key]),
   category: null,
-  objects: [],
+  objects: NoObjectsSelected,
 };
 
 interface Store extends StoreData {
@@ -32,12 +34,7 @@ interface Store extends StoreData {
   toggleMulti: () => void;
   toggleVisibility: () => void;
   toggleAIMode: (AIMode: boolean) => void;
-  isVisible: (
-    labelType: LabelType,
-    type: string,
-    id: number,
-    isShowText: boolean
-  ) => boolean;
+  isVisible: (canvasObject: any) => boolean;
   isSelected: (target: number | string) => boolean;
 }
 
@@ -45,17 +42,25 @@ const store = createStore<Store>((set, get) => ({
   ...StoreDataDefault,
 
   setDrawType: (t = LabelType.None) =>
-    set((s: Store) => ({ drawType: t, objects: t ? [] : s.objects })),
+    set((s: Store) => ({
+      drawType: t,
+      objects: t ? NoObjectsSelected : s.objects,
+      operationStatus: 'none',
+    })),
 
   setOperationStatus: (operationStatus: OperationStatus) =>
     set(() => ({ operationStatus })),
 
-  selectObjects: (objs = [], keepCategory = false) => {
-    if (keepCategory) set({ drawType: LabelType.None, objects: objs });
+  selectObjects: (objs = NoObjectsSelected, keepCategory = false) => {
+    if (keepCategory)
+      set({
+        drawType: LabelType.None,
+        objects: objs.length ? objs : NoObjectsSelected,
+      });
     else
       set({
         drawType: LabelType.None,
-        objects: objs,
+        objects: objs.length ? objs : NoObjectsSelected,
         category:
           mostRepeatedValue(objs.map(({ category }) => category)) || null,
       });
@@ -71,23 +76,31 @@ const store = createStore<Store>((set, get) => ({
 
   toggleAIMode: (AIMode: boolean) => set(() => ({ AIMode })),
 
-  isVisible: (labelType, type, id, isShowText) => {
+  isVisible: (canvasObject) => {
     const s = get();
 
-    const globalCondition = s.visibleType.includes(labelType);
-    const isPanoramic = !s.objects.length && !s.drawType;
-    const filterPointsAndLinesOfPolygon = !(
-      labelType === LabelType.Polygon && ['circle', 'line'].includes(type)
-    );
-    const filterTextAndMask = !['textbox', 'polygon'].includes(type);
-    const isMatchId = s.objects.some((o: Label) => o.id === id);
+    const inVisibleType = s.visibleType.includes(canvasObject.labelType);
 
-    return (
-      globalCondition &&
-      ((isPanoramic && filterPointsAndLinesOfPolygon) ||
-        (isMatchId &&
-          (isShowText ? filterPointsAndLinesOfPolygon : filterTextAndMask)))
-    );
+    if (!inVisibleType) return false;
+
+    if (s.drawType) return false;
+
+    if (!s.objects.length)
+      return !(
+        canvasObject.labelType === LabelType.Polygon &&
+        ['circle', 'line'].includes(canvasObject.type)
+      );
+
+    if (s.objects.some((o) => o.id === canvasObject.id)) {
+      if (s.objects.length > 1)
+        return !(
+          canvasObject.labelType === LabelType.Polygon &&
+          ['circle', 'line'].includes(canvasObject.type)
+        );
+      else return !['textbox', 'polygon'].includes(canvasObject.type);
+    }
+
+    return false;
   },
 
   isSelected: (t) =>

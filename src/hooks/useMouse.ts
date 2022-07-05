@@ -218,8 +218,6 @@ export const useMouse = (syncCanvasToState: () => void) => {
 
   const drawing = {
     start: (cursorInImage: Point) => {
-      console.log('drawing start');
-
       lastPosition.current = cursorInImage;
       const category = selectedCategory || NEW_CATEGORY_NAME;
       const id = Math.max(-1, ...curState.map(({ id }) => id)) + 1;
@@ -247,9 +245,6 @@ export const useMouse = (syncCanvasToState: () => void) => {
     },
 
     move: (cursorInImage: Point) => {
-      console.log('drawing move');
-
-      if (drawType === LabelType.None) return drawing.stop();
       const drawingObj = operatingObj.current as any;
       const { x: nowX, y: nowY } = cursorInImage;
       const { x: lastX, y: lastY } = lastPosition.current;
@@ -298,8 +293,6 @@ export const useMouse = (syncCanvasToState: () => void) => {
     },
 
     break: (cursorInImage: Point) => {
-      console.log('drawing break');
-
       const obj = operatingObj.current as any;
       const { x: left, y: top } = cursorInImage;
 
@@ -387,8 +380,6 @@ export const useMouse = (syncCanvasToState: () => void) => {
     },
 
     stop: () => {
-      console.log('drawing stop');
-
       const obj = operatingObj.current as any;
 
       if (isInvalid(obj) || drawType === LabelType.None) {
@@ -398,21 +389,18 @@ export const useMouse = (syncCanvasToState: () => void) => {
         canvas.remove(...oldObjs);
       } else {
         updateCoords(obj);
-        selectObjects([newLabel({ obj, offset, scale })]);
-        isRect(obj) && canvas.setActiveObject(obj);
         syncCanvasToState();
+        setDrawType();
+        selectObjects([newLabel({ obj, offset, scale })]);
       }
 
       operatingObj.current = null;
-      setDrawType();
       setOperationStatus('none');
     },
   };
 
   const adjusting = {
     start: (startingObject: fabric.Object, cursorInImage: Point) => {
-      console.log('adjusting start');
-
       if (isPolygonEndpoint(startingObject)) {
         operatingObj.current = startingObject;
         setOperationStatus('adjusting');
@@ -423,8 +411,6 @@ export const useMouse = (syncCanvasToState: () => void) => {
     },
 
     move: (cursorInImage: Point) => {
-      console.log('adjusting move');
-
       const pointOnOriginalImage = getPointOnOriginalImage(cursorInImage);
       const points = getPointsOfPathFromAI(pointOnOriginalImage);
 
@@ -438,7 +424,6 @@ export const useMouse = (syncCanvasToState: () => void) => {
     },
 
     break: (event: fabric.IEvent<MouseEvent>) => {
-      console.log('adjusting break');
       const { target, cursor: cursorInImage } = parseEvent(event);
 
       // click the generated polygon
@@ -521,8 +506,6 @@ export const useMouse = (syncCanvasToState: () => void) => {
     },
 
     stop: (seletedPolygon: fabric.Polygon) => {
-      console.log('adjustint stop');
-
       const { id, category } = seletedPolygon as any;
       const color = getColor(category);
       const oldObjs = canvas.getObjects().filter((o: any) => o.id === id);
@@ -539,16 +522,12 @@ export const useMouse = (syncCanvasToState: () => void) => {
 
   const panning = {
     start: (curPosition: Point) => {
-      console.log('panning start');
-
       lastPosition.current = curPosition;
       canvas.setCursor('grabbing');
       setOperationStatus('panning');
       selectedObjects.length && selectObjects(); // TODO: might be as a individual function
     },
     move: (curPosition: Point) => {
-      console.log('panning move');
-
       const { x: nowX, y: nowY } = curPosition;
       const { x: lastX, y: lastY } = lastPosition.current;
       const offset = new Point(nowX - lastX, nowY - lastY);
@@ -558,8 +537,6 @@ export const useMouse = (syncCanvasToState: () => void) => {
       canvas.setCursor('grabbing');
     },
     stop: () => {
-      console.log('panning stop');
-
       operatingObj.current = null;
       setOperationStatus('none');
     },
@@ -568,7 +545,6 @@ export const useMouse = (syncCanvasToState: () => void) => {
   const listeners = {
     'mouse:over': (e: fabric.IEvent<MouseEvent>) => {
       const { target } = e as any;
-      console.log('mouse:over');
 
       if (operationStatus === 'adjusting')
         setHoverEffectOfAdjustingPolygon(target);
@@ -582,7 +558,6 @@ export const useMouse = (syncCanvasToState: () => void) => {
 
     'mouse:out': (e: fabric.IEvent<MouseEvent>) => {
       const { target } = e as any;
-      console.log('mouse:out');
 
       if (operationStatus === 'adjusting') {
         setHoverEffectOfAdjustingPolygon(target);

@@ -60,7 +60,6 @@ export class PolygonLabel extends Label {
         scaleY,
         category,
         id,
-
         timestamp: timestamp_,
         hash: hash_,
       } = obj as any;
