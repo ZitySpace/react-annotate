@@ -46,7 +46,10 @@ export const useMouse = (syncCanvasToState: () => void) => {
   const curState = useStore(CanvasStore, (s: CanvasStoreProps) => s.curState());
 
   const cv = window['cv'];
-  const { intelligentScissor } = useStore(CVStore, (s: CVStoreProps) => s);
+  const { intelligentScissor, AIMode } = useStore(
+    CVStore,
+    (s: CVStoreProps) => s
+  );
 
   const { canvas, initDims: canvasInitDims } = useStore(
     CanvasMetaStore,
@@ -61,7 +64,6 @@ export const useMouse = (syncCanvasToState: () => void) => {
 
   const {
     drawType,
-    AIMode,
     setDrawType,
     operationStatus,
     setOperationStatus,
@@ -232,12 +234,10 @@ export const useMouse = (syncCanvasToState: () => void) => {
         offset,
       }).getFabricObjects(color, false);
 
-      if (AIMode) {
-        if (drawType === LabelType.Polygon) {
-          const pointOnOriginalImage = getPointOnOriginalImage(cursorInImage);
-          intelligentScissor.buildMap(pointOnOriginalImage);
-          canvas.add(...fabricObjects.slice(2)); // add two generated points
-        } else return drawing.stop(); // other types are not currently supported
+      if (AIMode && drawType === LabelType.Polygon) {
+        const pointOnOriginalImage = getPointOnOriginalImage(cursorInImage);
+        intelligentScissor.buildMap(pointOnOriginalImage);
+        canvas.add(...fabricObjects.slice(2)); // add two generated points
       } else canvas.add(...fabricObjects);
 
       operatingObj.current = fabricObjects[0];
@@ -273,6 +273,16 @@ export const useMouse = (syncCanvasToState: () => void) => {
           const lastEndpoint = endpoints[endpoints.length - 1];
           lastEndpoint.set({ left: nowX, top: nowY });
           if (AIMode && drawType === LabelType.Polygon) {
+            if (endpoints.length === drawingObj.points.length) {
+              drawingObj.points.pop();
+              const oldLine = canvas.getObjects('line').slice(-1)[0];
+              canvas.remove(oldLine);
+              intelligentScissor.buildMap(
+                getPointOnOriginalImage(
+                  new Point(drawingObj.points[drawingObj.points.length - 1])
+                )
+              );
+            }
             const pointOnOriginalImg = getPointOnOriginalImage(cursorInImage);
             const points = getPointsOfPathFromAI(pointOnOriginalImg);
             const newPolyline = new fabric.Polyline(points, {
@@ -283,6 +293,10 @@ export const useMouse = (syncCanvasToState: () => void) => {
             const oldPolyline = canvas.getObjects('polyline').slice(-1)[0];
             canvas.remove(oldPolyline).add(newPolyline);
           } else {
+            const lastObj = canvas.getObjects().slice(-1)[0];
+            if (lastObj.type === 'polyline') {
+              canvas.remove(lastObj);
+            }
             updateEndpointAssociatedLinesPosition(lastEndpoint);
             if (points) points[points.length - 1] = new Point(nowX, nowY);
           }

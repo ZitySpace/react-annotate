@@ -31,7 +31,11 @@ export const ButtonBar = ({
   dataOperation: DataOperation;
 }) => {
   const { dataReady } = useStore(ImageMetaStore, (s: ImageMetaStoreProps) => s);
-  const { ready: CVReady } = useStore(CVStore, (s: CVStoreProps) => s);
+  const {
+    ready: CVReady,
+    AIMode,
+    toggleAIMode,
+  } = useStore(CVStore, (s: CVStoreProps) => s);
 
   const {
     undo,
@@ -47,8 +51,6 @@ export const ButtonBar = ({
   const {
     drawType,
     visibleType,
-    AIMode,
-    toggleAIMode,
     setDrawType,
     toggleVisibility,
     objects: selectedObjects,
@@ -133,11 +135,7 @@ export const ButtonBar = ({
           <SaveIcon />
         </Button>
 
-        <Button
-          canUse={CVReady}
-          isUsing={AIMode}
-          onClick={() => toggleAIMode(!AIMode)}
-        >
+        <Button canUse={CVReady} isUsing={AIMode} onClick={toggleAIMode}>
           <AIIcon />
         </Button>
       </div>

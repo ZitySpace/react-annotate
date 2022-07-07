@@ -5,17 +5,20 @@ interface StoreData extends State {
   ready: boolean;
   intelligentScissor: any;
   img: any;
+  AIMode: boolean;
 }
 
 const StoreDataDefault = {
   ready: false,
   intelligentScissor: null,
   img: null,
+  AIMode: false,
 };
 
 interface Store extends StoreData {
   setReady: () => void;
   initIntelligentScissor: (image: HTMLImageElement) => void;
+  toggleAIMode: () => void;
 }
 
 let cvReadyCallback: Function | null = null;
@@ -46,6 +49,7 @@ const store = createStore<Store>((set, get) => ({
     if (get().ready) operation();
     else cvReadyCallback = operation;
   },
+  toggleAIMode: () => set((s) => ({ AIMode: !s.AIMode })),
 }));
 
 const StoreContext = createContext<StoreApi<Store>>(store);

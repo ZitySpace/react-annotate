@@ -7,7 +7,6 @@ type OperationStatus = 'none' | 'panning' | 'drawing' | 'adjusting';
 
 interface StoreData extends State {
   multi: boolean;
-  AIMode: boolean;
   operationStatus: OperationStatus;
   drawType: LabelType;
   visibleType: LabelType[];
@@ -19,7 +18,6 @@ const NoObjectsSelected: Label[] = [];
 
 const StoreDataDefault = {
   multi: false,
-  AIMode: false,
   operationStatus: 'none' as OperationStatus,
   drawType: LabelType.None,
   visibleType: Object.keys(LabelType).map((key) => LabelType[key]),
@@ -33,7 +31,6 @@ interface Store extends StoreData {
   selectObjects: (objects?: Label[], keepCategory?: boolean) => void;
   toggleMulti: () => void;
   toggleVisibility: () => void;
-  toggleAIMode: (AIMode: boolean) => void;
   isVisible: (canvasObject: any) => boolean;
   isSelected: (target: number | string) => boolean;
 }
@@ -73,8 +70,6 @@ const store = createStore<Store>((set, get) => ({
     set((s: Store) => ({
       visibleType: s.visibleType.length ? [] : StoreDataDefault.visibleType,
     })),
-
-  toggleAIMode: (AIMode: boolean) => set(() => ({ AIMode })),
 
   isVisible: (canvasObject) => {
     const s = get();

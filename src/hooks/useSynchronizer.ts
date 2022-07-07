@@ -40,13 +40,10 @@ export const useSynchronizer = () => {
 
   const {
     drawType,
-    AIMode,
     visibleType,
     objects: selectedObjects,
     isSelected,
-    selectObjects,
     isVisible,
-    category,
   } = useStore(SelectionStore, (s: SelectionStoreProps) => s);
 
   const syncCanvasToState = () => {
