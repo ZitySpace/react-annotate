@@ -1,6 +1,5 @@
 import { MAX_FONT_SIZE, RADIUS, STROKE_WIDTH } from '../interfaces/config';
-import { Label, LabelType } from '../classes/Label';
-import { Point } from '../classes/Geometry/Point';
+import { Label, LabelType } from '../labels';
 
 /**
  * Judge that is the label invalid

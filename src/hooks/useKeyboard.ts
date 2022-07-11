@@ -1,5 +1,5 @@
 import { useStore } from 'zustand';
-import { LabelType } from '../classes/Label';
+import { LabelType } from '../labels';
 import { CanvasStore, CanvasStoreProps } from '../stores/CanvasStore';
 import { ImageMetaStore, ImageMetaStoreProps } from '../stores/ImageMetaStore';
 import { SelectionStore, SelectionStoreProps } from '../stores/SelectionStore';
@@ -23,15 +23,15 @@ export const useKeyboard = (dataOperation: DataOperation) => {
     drawType,
     setDrawType,
     toggleVisibility,
-    objects: selectedObjects,
-    selectObjects,
+    labels: selectedLabels,
+    selectLabels,
   } = useStore(SelectionStore, (s: SelectionStoreProps) => s);
 
   const { prevImg, nextImg, save } = dataOperation;
 
   const deleteObj = () => {
-    selectObjects([]);
-    deleteObjects(selectedObjects.map(({ id }) => id));
+    selectLabels([]);
+    deleteObjects(selectedLabels.map(({ id }) => id));
   };
 
   const draw = (labelType: LabelType) => () =>

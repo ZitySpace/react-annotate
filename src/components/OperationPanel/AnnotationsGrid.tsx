@@ -1,6 +1,6 @@
 import React from 'react';
 import { useStore } from 'zustand';
-import { Label } from '../../classes/Label';
+import { Label } from '../../labels';
 import {
   SelectionStore,
   SelectionStoreProps,
@@ -9,9 +9,9 @@ import {
 export const AnnotationsGrid = ({ annotations }: { annotations: Label[] }) => {
   const {
     multi,
-    objects: selectedObjects,
+    labels: selectedLabels,
     isSelected,
-    selectObjects,
+    selectLabels,
   } = useStore(SelectionStore, (s: SelectionStoreProps) => s);
 
   const handleClick = (e: React.MouseEvent) => {
@@ -19,12 +19,12 @@ export const AnnotationsGrid = ({ annotations }: { annotations: Label[] }) => {
     const annoIndex = e.currentTarget['dataset']['annoIndex'];
     const anno = annotations[annoIndex];
     const doesFocused = isSelected(anno.id);
-    const newObjects = multi
-      ? selectedObjects.filter(({ id }: { id: number }) => id !== anno.id)
+    const newLabels = multi
+      ? selectedLabels.filter(({ id }: { id: number }) => id !== anno.id)
       : [];
 
-    if (doesFocused) selectObjects(newObjects);
-    else selectObjects([...newObjects, anno]);
+    if (doesFocused) selectLabels(newLabels);
+    else selectLabels([...newLabels, anno]);
   };
 
   return (

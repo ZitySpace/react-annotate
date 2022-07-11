@@ -1,34 +1,29 @@
 import { createContext } from 'react';
 import { createStore, State, StoreApi } from 'zustand';
-import { Label, LabelType } from '../classes/Label';
+import { Label, LabelType } from '../labels';
 import { mostRepeatedValue } from '../utils';
-
-type OperationStatus = 'none' | 'panning' | 'drawing' | 'adjusting';
 
 interface StoreData extends State {
   multi: boolean;
-  operationStatus: OperationStatus;
   drawType: LabelType;
   visibleType: LabelType[];
   category: string | null;
-  objects: Label[];
+  labels: Label[];
 }
 
-const NoObjectsSelected: Label[] = [];
+const NoLabelsSelected: Label[] = [];
 
 const StoreDataDefault = {
   multi: false,
-  operationStatus: 'none' as OperationStatus,
   drawType: LabelType.None,
   visibleType: Object.keys(LabelType).map((key) => LabelType[key]),
   category: null,
-  objects: NoObjectsSelected,
+  labels: NoLabelsSelected,
 };
 
 interface Store extends StoreData {
   setDrawType: (drawType?: LabelType) => void;
-  setOperationStatus: (operationStatus: OperationStatus) => void;
-  selectObjects: (objects?: Label[], keepCategory?: boolean) => void;
+  selectLabels: (labels?: Label[], keepCategory?: boolean) => void;
   toggleMulti: () => void;
   toggleVisibility: () => void;
   isVisible: (canvasObject: any) => boolean;
@@ -41,25 +36,21 @@ const store = createStore<Store>((set, get) => ({
   setDrawType: (t = LabelType.None) =>
     set((s: Store) => ({
       drawType: t,
-      objects: t ? NoObjectsSelected : s.objects,
-      operationStatus: 'none',
+      labels: t ? NoLabelsSelected : s.labels,
     })),
 
-  setOperationStatus: (operationStatus: OperationStatus) =>
-    set(() => ({ operationStatus })),
-
-  selectObjects: (objs = NoObjectsSelected, keepCategory = false) => {
+  selectLabels: (labels = NoLabelsSelected, keepCategory = false) => {
     if (keepCategory)
       set({
         drawType: LabelType.None,
-        objects: objs.length ? objs : NoObjectsSelected,
+        labels: labels.length ? labels : NoLabelsSelected,
       });
     else
       set({
         drawType: LabelType.None,
-        objects: objs.length ? objs : NoObjectsSelected,
+        labels: labels.length ? labels : NoLabelsSelected,
         category:
-          mostRepeatedValue(objs.map(({ category }) => category)) || null,
+          mostRepeatedValue(labels.map(({ category }) => category)) || null,
       });
   },
 
@@ -80,14 +71,14 @@ const store = createStore<Store>((set, get) => ({
 
     if (s.drawType) return false;
 
-    if (!s.objects.length)
+    if (!s.labels.length)
       return !(
         canvasObject.labelType === LabelType.Polygon &&
         ['circle', 'line'].includes(canvasObject.type)
       );
 
-    if (s.objects.some((o) => o.id === canvasObject.id)) {
-      if (s.objects.length > 1)
+    if (s.labels.some((o) => o.id === canvasObject.id)) {
+      if (s.labels.length > 1)
         return !(
           canvasObject.labelType === LabelType.Polygon &&
           ['circle', 'line'].includes(canvasObject.type)
@@ -100,10 +91,10 @@ const store = createStore<Store>((set, get) => ({
 
   isSelected: (t) =>
     typeof t === 'string'
-      ? get().objects.some(
+      ? get().labels.some(
           ({ category }: { category: string }) => category === t
         )
-      : get().objects.some(({ id }: { id: number }) => id === t),
+      : get().labels.some(({ id }: { id: number }) => id === t),
 }));
 
 const StoreContext = createContext<StoreApi<Store>>(store);

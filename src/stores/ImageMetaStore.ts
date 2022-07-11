@@ -1,9 +1,6 @@
 import produce, { enableMapSet } from 'immer';
 import { createContext } from 'react';
 import { createStore, State, StoreApi } from 'zustand';
-import { Boundary } from '../classes/Geometry/Boundary';
-import { Dimension } from '../classes/Geometry/Dimension';
-import { Point } from '../classes/Geometry/Point';
 import { DataState } from '../interfaces/basic';
 
 enableMapSet();
@@ -11,10 +8,9 @@ enableMapSet();
 interface StoreData extends State {
   image: fabric.Image | null;
   name: string | null;
-  dims: Dimension | null;
+  size: { w: number; h: number } | null;
   scale: number;
-  offset: Point;
-  boundary: Boundary;
+  offset: { x: number; y: number };
   dataReady: boolean;
   dataError: boolean;
   cached: Set<string>;
@@ -23,10 +19,9 @@ interface StoreData extends State {
 const StoreDataDefault = {
   image: null,
   name: null,
-  dims: null,
+  size: null,
   scale: 1,
-  offset: new Point(0, 0),
-  boundary: new Boundary(0, 0, 0, 0),
+  offset: { x: 0, y: 0 },
   dataReady: false,
   dataError: false,
   cached: new Set<string>(),
@@ -34,16 +29,13 @@ const StoreDataDefault = {
 
 interface Store extends StoreData {
   setImage: (image: fabric.Image, name: string | null) => void;
-  setImageMeta: ({
-    dims,
+  setImageSize: (w: number, h: number) => void;
+  setScaleOffset: ({
     scale,
     offset,
-    boundary,
   }: {
-    dims?: Dimension;
-    scale?: number;
-    offset?: Point;
-    boundary?: Boundary;
+    scale: number;
+    offset: { x: number; y: number };
   }) => void;
   setDataLoadingState: (state: DataState) => void;
   isCached: (name: string | null) => boolean;
@@ -60,10 +52,11 @@ const store = createStore<Store>((set, get) => ({
         name !== null && s.cached.add(name);
       })
     ),
-  setImageMeta: (meta) => {
-    // remove keys with value == undefined
-    Object.keys(meta).forEach((k) => meta[k] === undefined && delete meta[k]);
-    set(meta);
+  setImageSize: (w, h) => {
+    set({ size: { w, h } });
+  },
+  setScaleOffset: ({ scale, offset }) => {
+    set({ scale, offset });
   },
   setDataLoadingState: (state: DataState = DataState.Loading) => {
     const dataReady = state === DataState.Ready;

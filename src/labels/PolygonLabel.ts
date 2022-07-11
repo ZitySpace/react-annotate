@@ -1,6 +1,6 @@
 import { fabric } from 'fabric';
 import md5 from 'md5';
-import { Label, LabelType } from '.';
+import { Label, LabelType } from './BaseLabel';
 import {
   LINE_DEFAULT_CONFIG,
   POINT_DEFAULT_CONFIG,
@@ -9,15 +9,9 @@ import {
   STROKE_WIDTH,
   TEXTBOX_DEFAULT_CONFIG,
   TRANSPARENT,
-} from '../../interfaces/config';
-import {
-  boundaryOfPolygon,
-  deepClone,
-  getLocalTimeISOString,
-} from '../../utils';
-import { Point } from '../Geometry/Point';
-import { Rect } from '../Geometry/Rect';
-import { getFontSize } from '../../utils';
+} from '../interfaces/config';
+import { boundaryOfPolygon, deepClone, getLocalTimeISOString } from '../utils';
+import { getFontSize } from '../utils';
 
 interface PolygonLabelArgs {
   category?: string;

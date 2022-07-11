@@ -1,6 +1,6 @@
 import React, { MouseEvent } from 'react';
 import Draggable from 'react-draggable';
-import { Label } from '../../classes/Label';
+import { Label } from '../../labels';
 import { MultipleSelectIcon } from '../Icons';
 import { AnnotationsGrid } from './AnnotationsGrid';
 import { CategoryName } from './CategoryName';
@@ -16,9 +16,9 @@ import { ColorStore, ColorStoreProps } from '../../stores/ColorStore';
 export const OperationPanel = () => {
   const {
     multi,
-    objects: selectedObjects,
+    labels: selectedLabels,
     isSelected,
-    selectObjects,
+    selectLabels,
     toggleMulti,
   } = useStore(SelectionStore, (s: SelectionStoreProps) => s);
 
@@ -44,13 +44,13 @@ export const OperationPanel = () => {
     );
 
     const isAllFocused = annotations.every((label) => isSelected(label.id));
-    const newObjects = multi
-      ? selectedObjects.filter(
+    const newLabels = multi
+      ? selectedLabels.filter(
           ({ id }: { id: number }) =>
             !annotations.map(({ id }) => id).includes(id)
         )
       : [];
-    selectObjects(newObjects.concat(isAllFocused ? [] : annotations));
+    selectLabels(newLabels.concat(isAllFocused ? [] : annotations));
   };
 
   return (

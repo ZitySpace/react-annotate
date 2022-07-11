@@ -1,6 +1,6 @@
 import React from 'react';
 import { useStore } from 'zustand';
-import { LabelType } from '../classes/Label';
+import { LabelType } from '../labels';
 import { DataOperation } from '../hooks/useData';
 import { CanvasStore, CanvasStoreProps } from '../stores/CanvasStore';
 import { CVStore, CVStoreProps } from '../stores/CVStore';
@@ -53,15 +53,15 @@ export const ButtonBar = ({
     visibleType,
     setDrawType,
     toggleVisibility,
-    objects: selectedObjects,
-    selectObjects,
+    labels: selectedLabels,
+    selectLabels,
   } = useStore(SelectionStore, (s: SelectionStoreProps) => s);
 
   const { prevImg, nextImg, save } = dataOperation;
 
   const deleteObj = () => {
-    selectObjects([]);
-    deleteObjects(selectedObjects.map(({ id }) => id));
+    selectLabels([]);
+    deleteObjects(selectedLabels.map(({ id }) => id));
   };
 
   const draw = (labelType: LabelType) => () =>
@@ -95,7 +95,7 @@ export const ButtonBar = ({
       </div>
 
       <div className='flex justify-center space-x-1'>
-        <Button canUse={!!selectedObjects.length} onClick={deleteObj}>
+        <Button canUse={!!selectedLabels.length} onClick={deleteObj}>
           <TrashIcon />
         </Button>
 

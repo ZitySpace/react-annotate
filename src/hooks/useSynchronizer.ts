@@ -1,7 +1,7 @@
 import md5 from 'md5';
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect } from 'react';
 import { useStore } from 'zustand';
-import { Label } from '../classes/Label';
+import { Label, LabeledObject } from '../labels';
 import {
   CanvasMetaStore,
   CanvasMetaStoreProps,
@@ -16,7 +16,7 @@ import { CVStore, CVStoreProps } from '../stores/CVStore';
 import { ImageMetaStore, ImageMetaStoreProps } from '../stores/ImageMetaStore';
 import { SelectionStore, SelectionStoreProps } from '../stores/SelectionStore';
 import { getLocalTimeISOString } from '../utils';
-import { isLabel, newLabel } from '../utils/label';
+import { LabeledObject, newLabelFromCanvasObject } from '../labels';
 import { useCanvas } from './useCanvas';
 import { useMouse } from './useMouse';
 
@@ -41,23 +41,31 @@ export const useSynchronizer = () => {
   const {
     drawType,
     visibleType,
-    objects: selectedObjects,
+    labels: selectedLabels,
     isSelected,
     isVisible,
   } = useStore(SelectionStore, (s: SelectionStoreProps) => s);
 
   const syncCanvasToState = () => {
+    if (!canvas) return;
     console.log('syncCanvasToState called'); // TODO: remove
 
-    const allCanvasObjects = canvas!.getObjects().filter(isLabel);
-    const activeObject = canvas!.getActiveObject();
-    const newState: Label[] = allCanvasObjects.map((obj) => {
-      if (obj === activeObject) {
-        const now = getLocalTimeISOString();
-        obj.setOptions({ timestamp: now, hash: md5(now) });
-      }
-      return newLabel({ obj, offset, scale });
-    });
+    const activeObject = canvas.getActiveObject();
+    const newState: Label[] = canvas
+      .getObjects()
+      .filter((obj) => obj.type !== 'textbox')
+      .map((obj) => {
+        if (obj === activeObject) {
+          const now = getLocalTimeISOString();
+          obj.setOptions({ timestamp: now, hash: md5(now) });
+        }
+        return newLabelFromCanvasObject({
+          obj: obj as LabeledObject,
+          offset,
+          scale,
+        })!;
+      });
+
     pushState(newState);
   };
 
@@ -67,12 +75,14 @@ export const useSynchronizer = () => {
 
     canvas.remove(...canvas.getObjects());
     state.forEach((anno: Label) => {
-      const currentColor = getColor(anno.category);
-      const fabricObjects = anno.getFabricObjects(currentColor);
-      fabricObjects.forEach((obj) => {
-        obj.visible = isVisible(obj);
+      const color = getColor(anno.category);
+      const canvasObjects = anno.toCanvasObjects(color);
+      canvasObjects.forEach((obj) => {
+        const visible = isVisible(obj);
+        obj.visible = visible;
+        if (!visible) obj.hasControls = false;
       });
-      canvas.add(...fabricObjects);
+      canvas.add(...canvasObjects);
     });
     const activeObjects = canvas
       .getObjects('rect')
@@ -117,7 +127,7 @@ export const useSynchronizer = () => {
   }, [
     dataReady,
     JSON.stringify(curState),
-    selectedObjects,
+    selectedLabels,
     drawType,
     visibleType,
   ]);

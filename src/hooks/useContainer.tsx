@@ -1,6 +1,5 @@
 import { fabric } from 'fabric';
 import React, { useEffect, useRef } from 'react';
-import { Dimension } from '../classes/Geometry/Dimension';
 import { CANVAS_CONFIG } from '../interfaces/config';
 
 import {
@@ -11,20 +10,14 @@ import { useStore } from 'zustand';
 import { SpinnerIcon, WarningIcon } from '../components/Icons';
 import { ImageMetaStore, ImageMetaStoreProps } from '../stores/ImageMetaStore';
 
-export interface UseContainerReturnProps {
-  Container: JSX.Element; // canvas dom
-  canvas: fabric.Canvas | null;
-  canvasDims: Dimension | null;
-}
-
 export const useContainer = () => {
   const canvasElmRef = useRef<HTMLCanvasElement | null>(null);
 
   const {
     canvas,
-    initDims: canvasInitDims,
+    initSize: canvasInitSize,
     setCanvas,
-    setInitDims: setCanvasInitDims,
+    setInitSize: setCanvasInitSize,
   } = useStore(CanvasMetaStore, (s: CanvasMetaStoreProps) => s);
 
   const { name, isCached, dataReady, dataError } = useStore(
@@ -37,14 +30,13 @@ export const useContainer = () => {
     const { width: canvas_w, height: _canvas_h } =
       extendElm.getBoundingClientRect(); // get canvas extend element dimensions
     const canvas_h = _canvas_h - 36; // minus the buttons bar's height
-    return new Dimension(canvas_w, canvas_h);
+    return [canvas_w, canvas_h];
   };
 
   const initCanvas = () => {
     const canvas = new fabric.Canvas(canvasElmRef.current, CANVAS_CONFIG);
 
-    const canvasDims = calcCanvasDims();
-    const { w: canvas_w, h: canvas_h } = canvasDims;
+    const [canvas_w, canvas_h] = calcCanvasDims();
     canvas.setWidth(canvas_w);
     canvas.setHeight(canvas_h);
 
@@ -60,7 +52,7 @@ export const useContainer = () => {
     upperCanvasElm.classList.remove('hidden');
 
     setCanvas(canvas);
-    setCanvasInitDims(canvasDims);
+    setCanvasInitSize(canvas_w, canvas_h);
   };
 
   useEffect(initCanvas, [canvasElmRef]);
@@ -68,13 +60,13 @@ export const useContainer = () => {
   window.onresize = () => {
     if (!canvas) return;
 
-    const { w: curW, h: curH } = calcCanvasDims();
+    const [curW, curH] = calcCanvasDims();
     canvas.setWidth(curW);
     canvas.setHeight(curH);
 
     const vpt = canvas.viewportTransform as number[];
     const zoom = canvas.getZoom();
-    const { w: initW, h: initH } = canvasInitDims!;
+    const { w: initW, h: initH } = canvasInitSize!;
 
     if (curW >= initW * zoom) vpt[4] = (curW - initW * zoom) / 2;
     if (curH >= initH * zoom) vpt[5] = (curH - initH * zoom) / 2;

@@ -1,8 +1,6 @@
 import { fabric } from 'fabric';
 import { useEffect, useRef } from 'react';
 import { useStore } from 'zustand';
-import { Dimension } from '../classes/Geometry/Dimension';
-import { PolygonLabel } from '../classes/Label/PolygonLabel';
 import { DataState, ImageData } from '../interfaces/basic';
 import {
   CanvasMetaStore,
@@ -12,7 +10,10 @@ import { CanvasStore, CanvasStoreProps } from '../stores/CanvasStore';
 import { CVStore, CVStoreProps } from '../stores/CVStore';
 import { ImageMetaStore, ImageMetaStoreProps } from '../stores/ImageMetaStore';
 import { SelectionStore, SelectionStoreProps } from '../stores/SelectionStore';
-import { isPolygon } from '../utils/label';
+import {
+  InteractionStore,
+  InteractionStoreProps,
+} from '../stores/InteractionStore';
 import { useStateList } from './useStateList';
 
 export interface DataOperation {
@@ -61,19 +62,29 @@ export const useData = ({
     (s: CanvasStoreProps) => [s.curState(), s.setStack, s.updateCanSave]
   );
 
-  const { canvas, setInitDims: setCanvasInitDims } = useStore(
+  const { canvas, setInitSize: setCanvasInitSize } = useStore(
     CanvasMetaStore,
     (s: CanvasMetaStoreProps) => s
   );
 
-  const { setImage, setImageMeta, setDataLoadingState, dataReady, setName } =
-    useStore(ImageMetaStore, (s: ImageMetaStoreProps) => s);
-
   const {
-    selectObjects,
-    setOperationStatus,
-    category: selectedCategory,
-  } = useStore(SelectionStore, (s: SelectionStoreProps) => s);
+    setImage,
+    setImageSize,
+    setScaleOffset,
+    setDataLoadingState,
+    dataReady,
+    setName,
+  } = useStore(ImageMetaStore, (s: ImageMetaStoreProps) => s);
+
+  const { selectLabels, category: selectedCategory } = useStore(
+    SelectionStore,
+    (s: SelectionStoreProps) => s
+  );
+
+  const { setMode: setInteractionMode } = useStore(
+    InteractionStore,
+    (s: InteractionStoreProps) => s
+  );
 
   const theLastLoadImageName = useRef<string>();
   theLastLoadImageName.current = imageData.name;
@@ -90,7 +101,7 @@ export const useData = ({
       if (dataReady) {
         const updatedData = { ...imageData, annotations: [...curState] };
         updateImageData(updatedData);
-        setOperationStatus('none');
+        setInteractionMode('none');
         onSwitch && onSwitch(updatedData, imageIndex, imagesList, 'prev');
       }
       prev();
@@ -100,7 +111,7 @@ export const useData = ({
       if (dataReady) {
         const updatedData = { ...imageData, annotations: [...curState] };
         updateImageData(updatedData);
-        setOperationStatus('none');
+        setInteractionMode('none');
         onSwitch && onSwitch(updatedData, imageIndex, imagesList, 'next');
       }
       next();
@@ -127,42 +138,33 @@ export const useData = ({
         // calculate the image dimensions and boundary, its scale and the offset
         // between canvas and image
         const [canvas_w, canvas_h] = [canvas.width!, canvas.height!];
-        setCanvasInitDims(new Dimension(canvas_w, canvas_h));
+        setCanvasInitSize(canvas_w, canvas_h);
         const [image_w, image_h] = [image.naturalWidth, image.naturalHeight];
+        setImageSize(image_w, image_h);
 
         const scale_x = canvas_w / image_w;
         const scale_y = canvas_h / image_h;
         const scale = Math.min(scale_x, scale_y);
-        const imageDims = new Dimension(image_w, image_h).zoom(scale);
-        const canvasDims = new Dimension(canvas_w, canvas_h);
-        const imageBoundary = imageDims.boundaryIn(canvasDims);
-        const offset = imageDims.offsetTo(canvasDims);
-        setImageMeta({
-          dims: imageDims,
-          scale,
-          offset,
-          boundary: imageBoundary,
-        });
+        const offset = {
+          x: (canvas_w - image_w * scale) / 2,
+          y: (canvas_h - image_h * scale) / 2,
+        };
+        setScaleOffset({ scale, offset });
 
         // load annotations
         const annos = [...imageData.annotations];
-        annos.forEach((anno) => anno.scaleTransform(scale, offset));
-        annos.sort((a, b) => {
-          if (isPolygon(a) && !isPolygon(b)) return -1;
-          else if (isPolygon(b) && !isPolygon(a)) return 1;
-          else if (!isPolygon(a) && !isPolygon(b)) return 0;
-          else
-            return (
-              (b as PolygonLabel).boundary.getSize() -
-              (a as PolygonLabel).boundary.getSize()
-            );
-        });
+        annos.forEach((anno) =>
+          anno.toCanvasCoordSystem({ scale, offset }, true)
+        );
+
+        // TODO: sort annotations by ascending size
+
         setStack([annos]);
 
-        const categoryInterestedAnnos = annos.filter(
-          ({ category }) => category === selectedCategory
+        selectLabels(
+          annos.filter(({ category }) => category === selectedCategory),
+          true
         );
-        selectObjects(categoryInterestedAnnos, true);
 
         const { x: left, y: top } = offset;
         const [scaleX, scaleY] = [scale, scale];

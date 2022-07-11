@@ -43,7 +43,7 @@ export const Annotator = ({
     onError,
   });
 
-  useKeyboard(dataOperation); // listeners for keyboard for support shortcuts.
+  // useKeyboard(dataOperation); // listeners for keyboard for support shortcuts.
 
   useSynchronizer(); // Core entrance
 

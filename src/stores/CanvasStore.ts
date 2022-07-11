@@ -1,6 +1,6 @@
 import { createContext } from 'react';
 import { createStore, State, StoreApi } from 'zustand';
-import { Label } from '../classes/Label';
+import { Label } from '../labels';
 import produce from 'immer';
 
 interface CanvasState extends Array<Label> {}

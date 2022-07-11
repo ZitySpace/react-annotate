@@ -1,9 +1,4 @@
-import { Point } from '../classes/Geometry/Point';
-import { Label, LabelType } from '../classes/Label';
-import { LineLabel } from '../classes/Label/LineLabel';
-import { PointLabel } from '../classes/Label/PointLabel';
-import { PolygonLabel } from '../classes/Label/PolygonLabel';
-import { RectLabel } from '../classes/Label/RectLabel';
+import { Label, LabelType, PointLabel, LineLabel, RectLabel } from '../labels';
 
 interface something {
   type: string;
