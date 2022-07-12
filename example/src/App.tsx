@@ -3,14 +3,14 @@ import React from 'react';
 import { Annotator, ImageData } from '@ZitySpace/react-annotate';
 
 import { data as rect } from './rectangles';
-import { RectLabel } from '@ZitySpace/react-annotate';
+import { BoxLabel } from '@ZitySpace/react-annotate';
 const imagesList: ImageData[] = rect.map((img) => ({
   ...img,
   name: img.filename,
   url: img.url.replace('images.cocodataset.org', 'localhost:3000'),
   annotations: img.annotations.map((anno: any, id: number) => {
     const { x, y, w, h, category } = anno;
-    return new RectLabel({ x, y, w, h, id, category });
+    return new BoxLabel({ x, y, w, h, id, category });
   }),
 }));
 

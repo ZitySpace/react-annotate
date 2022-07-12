@@ -10,10 +10,6 @@ import { CanvasStore, CanvasStoreProps } from '../stores/CanvasStore';
 import { CVStore, CVStoreProps } from '../stores/CVStore';
 import { ImageMetaStore, ImageMetaStoreProps } from '../stores/ImageMetaStore';
 import { SelectionStore, SelectionStoreProps } from '../stores/SelectionStore';
-import {
-  InteractionStore,
-  InteractionStoreProps,
-} from '../stores/InteractionStore';
 import { useStateList } from './useStateList';
 
 export interface DataOperation {
@@ -81,11 +77,6 @@ export const useData = ({
     (s: SelectionStoreProps) => s
   );
 
-  const { setMode: setInteractionMode } = useStore(
-    InteractionStore,
-    (s: InteractionStoreProps) => s
-  );
-
   const theLastLoadImageName = useRef<string>();
   theLastLoadImageName.current = imageData.name;
 
@@ -101,7 +92,6 @@ export const useData = ({
       if (dataReady) {
         const updatedData = { ...imageData, annotations: [...curState] };
         updateImageData(updatedData);
-        setInteractionMode('none');
         onSwitch && onSwitch(updatedData, imageIndex, imagesList, 'prev');
       }
       prev();
@@ -111,7 +101,6 @@ export const useData = ({
       if (dataReady) {
         const updatedData = { ...imageData, annotations: [...curState] };
         updateImageData(updatedData);
-        setInteractionMode('none');
         onSwitch && onSwitch(updatedData, imageIndex, imagesList, 'next');
       }
       next();
@@ -152,9 +141,8 @@ export const useData = ({
         setScaleOffset({ scale, offset });
 
         // load annotations
-        const annos = [...imageData.annotations];
-        annos.forEach((anno) =>
-          anno.toCanvasCoordSystem({ scale, offset }, true)
+        const annos = imageData.annotations.map((anno) =>
+          anno.toCanvasCoordSystem({ scale, offset }, false)
         );
 
         // TODO: sort annotations by ascending size

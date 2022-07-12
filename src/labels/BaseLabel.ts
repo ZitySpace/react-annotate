@@ -1,9 +1,9 @@
 export enum LabelType {
-  None,
-  Point,
-  Line,
-  Rect,
-  Polygon,
+  None = 'none',
+  Point = 'point',
+  Line = 'line',
+  Box = 'box',
+  Mask = 'mask',
 }
 
 export enum CoordSystemType {

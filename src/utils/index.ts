@@ -11,7 +11,7 @@ export const isInvalid = (obj: any) => {
   switch (obj?.labelType) {
     case undefined:
       return true;
-    case LabelType.Rect:
+    case LabelType.Box:
       return obj.width <= STROKE_WIDTH || obj.height <= STROKE_WIDTH;
     case LabelType.Line:
       return (
@@ -20,7 +20,7 @@ export const isInvalid = (obj: any) => {
           .distanceFrom(obj.endpoints[1].getPointByOrigin()) <
         (RADIUS + STROKE_WIDTH) * 2
       );
-    case LabelType.Polygon:
+    case LabelType.Mask:
       return obj.points.length <= 2;
     default:
       return false;
@@ -92,7 +92,7 @@ export const getFontSize = (width: number, height: number) => {
  * @param points points coordinates of the polygon
  * @returns boundary of polygon
  */
-export const boundaryOfPolygon = (points: Point[]) => {
+export const boundaryOfPolygon = (points: fabric.Point[]) => {
   const xSet = points.map((p) => p.x);
   const ySet = points.map((p) => p.y);
 

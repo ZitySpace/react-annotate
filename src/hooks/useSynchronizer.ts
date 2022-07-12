@@ -1,7 +1,7 @@
 import md5 from 'md5';
 import { useEffect } from 'react';
 import { useStore } from 'zustand';
-import { Label, LabeledObject } from '../labels';
+import { Label, LabeledObject, newLabelFromCanvasObject } from '../labels';
 import {
   CanvasMetaStore,
   CanvasMetaStoreProps,
@@ -16,9 +16,7 @@ import { CVStore, CVStoreProps } from '../stores/CVStore';
 import { ImageMetaStore, ImageMetaStoreProps } from '../stores/ImageMetaStore';
 import { SelectionStore, SelectionStoreProps } from '../stores/SelectionStore';
 import { getLocalTimeISOString } from '../utils';
-import { LabeledObject, newLabelFromCanvasObject } from '../labels';
-import { useCanvas } from './useCanvas';
-import { useMouse } from './useMouse';
+import { useListeners } from './useListeners';
 
 export const useSynchronizer = () => {
   const { canvas } = useStore(CanvasMetaStore, (s: CanvasMetaStoreProps) => s);
@@ -90,24 +88,12 @@ export const useSynchronizer = () => {
     if (activeObjects.length === 1) canvas.setActiveObject(activeObjects[0]);
   };
 
-  const canvasListeners = useCanvas(syncCanvasToState);
-  const mouseListeners = useMouse(syncCanvasToState);
+  const setListeners = useListeners(syncCanvasToState);
 
-  /**
-   * mount listeners to canvas when canvas was exist
-   */
   useEffect(() => {
-    if (!canvas) return;
-    canvas.off();
-    Object.entries({ ...canvasListeners, ...mouseListeners }).forEach(
-      ([event, handler]) => canvas.on(event, handler)
-    );
-  }, [canvas, canvasListeners, mouseListeners]);
+    if (canvas) setListeners('default');
+  }, [canvas]);
 
-  /**
-   * when image and annotations was ready for render, render them then reset the viewport
-   * otherwise clear them
-   */
   useEffect(() => {
     if (!canvas) return;
 
@@ -118,9 +104,6 @@ export const useSynchronizer = () => {
     else canvas.clear();
   }, [imageObj, dataReady]);
 
-  /**
-   * Sync the currrent state to the canvas and the selection
-   */
   useEffect(() => {
     if (!dataReady) return;
     syncStateToCanvas(curState); // sync state
@@ -132,9 +115,6 @@ export const useSynchronizer = () => {
     visibleType,
   ]);
 
-  /**
-   * load opencvjs library
-   */
   useEffect(() => {
     if (!window['cv']) {
       const script = document.createElement('script');

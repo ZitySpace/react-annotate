@@ -1,4 +1,4 @@
-import { Label, LabelType, PointLabel, LineLabel, RectLabel } from '../labels';
+import { Label, LabelType, PointLabel, LineLabel, BoxLabel } from '../labels';
 
 interface something {
   type: string;
@@ -8,8 +8,8 @@ interface something {
 const _newLabel = {
   [LabelType.Point]: (args: any) => new PointLabel(args),
   [LabelType.Line]: (args: any) => new LineLabel(args),
-  [LabelType.Rect]: (args: any) => new RectLabel(args),
-  [LabelType.Polygon]: (args: any) => new PolygonLabel(args),
+  [LabelType.Box]: (args: any) => new BoxLabel(args),
+  // [LabelType.Polygon]: (args: any) => new PolygonLabel(args),
 };
 
 export function newLabel({
@@ -69,7 +69,7 @@ const isSomething = (target: something, type: string, labelType: LabelType[]) =>
   labelType.includes(target.labelType);
 
 export const isRect = (target: any) =>
-  target && isSomething(target, 'rect', [LabelType.Rect]);
+  target && isSomething(target, 'rect', [LabelType.Box]);
 
 export const isPoint = (target: any) =>
   target && isSomething(target, 'circle', [LabelType.Point]);
@@ -78,18 +78,18 @@ export const isLine = (target: any) =>
   target && isSomething(target, 'line', [LabelType.Line]);
 
 export const isPolygon = (target: any) =>
-  target && isSomething(target, 'polygon', [LabelType.Polygon]);
+  target && isSomething(target, 'polygon', [LabelType.Mask]);
 
 export const isMidpoint = (target: any) => target && target.type === 'midpoint';
 
 export const isEndpoint = (target: any) =>
-  target && isSomething(target, 'circle', [LabelType.Line, LabelType.Polygon]);
+  target && isSomething(target, 'circle', [LabelType.Line, LabelType.Mask]);
 
 export const isPolygonLine = (target: any) =>
-  target && isSomething(target, 'line', [LabelType.Polygon]);
+  target && isSomething(target, 'line', [LabelType.Mask]);
 
 export const isPolygonEndpoint = (target: any) =>
-  target && isSomething(target, 'circle', [LabelType.Polygon]);
+  target && isSomething(target, 'circle', [LabelType.Mask]);
 
 export const isLabel = (target: any) =>
   [isRect, isLine, isPoint, isPolygon].some((fn) => fn(target));

@@ -40,16 +40,16 @@ export const useKeyboard = (dataOperation: DataOperation) => {
 
   const drawPoint = draw(LabelType.Point);
   const drawLine = draw(LabelType.Line);
-  const drawRect = draw(LabelType.Rect);
-  const drawPolygon = draw(LabelType.Polygon);
+  const drawBox = draw(LabelType.Box);
+  const drawMask = draw(LabelType.Mask);
 
   const plainShortcutMapping = {
     Backspace: deleteObj,
     Delete: deleteObj,
-    KeyR: drawRect,
+    KeyR: drawBox,
     KeyO: drawPoint,
     KeyL: drawLine,
-    KeyP: drawPolygon,
+    KeyP: drawMask,
     KeyV: toggleVisibility,
     Period: nextImg,
     ArrowRight: nextImg,

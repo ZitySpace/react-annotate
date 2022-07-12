@@ -1,12 +1,12 @@
 import { LabelType } from './BaseLabel';
 import { PointLabel } from './PointLabel';
 import { LineLabel } from './LineLabel';
-import { RectLabel } from './RectLabel';
+import { BoxLabel } from './BoxLabel';
 
 export { Label, LabelType } from './BaseLabel';
 export { PointLabel } from './PointLabel';
 export { LineLabel } from './LineLabel';
-export { RectLabel } from './RectLabel';
+export { BoxLabel } from './BoxLabel';
 
 export interface LabeledObject extends fabric.Object {
   labelType: LabelType;
@@ -45,8 +45,8 @@ export const newLabelFromCanvasObject = ({
         timestamp,
         hash,
       })
-    : obj.labelType === LabelType.Rect
-    ? RectLabel.newFromCanvasObject({
+    : obj.labelType === LabelType.Box
+    ? BoxLabel.newFromCanvasObject({
         obj,
         scale,
         offset,

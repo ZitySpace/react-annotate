@@ -69,18 +69,18 @@ const store = createStore<Store>((set, get) => ({
 
     if (!inVisibleType) return false;
 
-    if (s.drawType) return false;
+    if (s.drawType !== LabelType.None) return false;
 
     if (!s.labels.length)
       return !(
-        canvasObject.labelType === LabelType.Polygon &&
+        canvasObject.labelType === LabelType.Mask &&
         ['circle', 'line'].includes(canvasObject.type)
       );
 
     if (s.labels.some((o) => o.id === canvasObject.id)) {
       if (s.labels.length > 1)
         return !(
-          canvasObject.labelType === LabelType.Polygon &&
+          canvasObject.labelType === LabelType.Mask &&
           ['circle', 'line'].includes(canvasObject.type)
         );
       else return !['textbox', 'polygon'].includes(canvasObject.type);

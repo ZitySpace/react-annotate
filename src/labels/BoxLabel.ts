@@ -8,7 +8,7 @@ import {
 } from '../interfaces/config';
 import { getFontSize, getLocalTimeISOString } from '../utils';
 
-export class RectLabel extends Label {
+export class BoxLabel extends Label {
   x: number;
   y: number;
   w: number;
@@ -39,7 +39,7 @@ export class RectLabel extends Label {
     timestamp?: string;
     hash?: string;
   }) {
-    const labelType = LabelType.Rect;
+    const labelType = LabelType.Box;
     const now = getLocalTimeISOString();
     super({
       labelType,
@@ -83,7 +83,7 @@ export class RectLabel extends Label {
     const w = obj.getScaledWidth() - STROKE_WIDTH;
     const h = obj.getScaledHeight() - STROKE_WIDTH;
 
-    return new RectLabel({
+    return new BoxLabel({
       x,
       y,
       w,
@@ -99,7 +99,7 @@ export class RectLabel extends Label {
   };
 
   clone = () =>
-    new RectLabel({
+    new BoxLabel({
       x: this.x,
       y: this.y,
       w: this.w,
@@ -127,8 +127,8 @@ export class RectLabel extends Label {
       x: this.x,
       y: this.y,
     });
-    const cw = this.w * scale;
-    const ch = this.h * scale;
+    const cw = (this.w * scale) / this.scale;
+    const ch = (this.h * scale) / this.scale;
 
     const t = inplace ? this : this.clone();
     t.x = cx;

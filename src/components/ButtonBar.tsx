@@ -69,14 +69,14 @@ export const ButtonBar = ({
 
   const drawPoint = draw(LabelType.Point);
   const drawLine = draw(LabelType.Line);
-  const drawRect = draw(LabelType.Rect);
-  const drawPolygon = draw(LabelType.Polygon);
+  const drawRect = draw(LabelType.Box);
+  const drawPolygon = draw(LabelType.Mask);
 
   const isDrawingMe = (labelType: LabelType | null) => drawType === labelType;
   const isDrawingPoint = isDrawingMe(LabelType.Point);
   const isDrawingLine = isDrawingMe(LabelType.Line);
-  const isDrawingRect = isDrawingMe(LabelType.Rect);
-  const isDrawingPolygon = isDrawingMe(LabelType.Polygon);
+  const isDrawingRect = isDrawingMe(LabelType.Box);
+  const isDrawingPolygon = isDrawingMe(LabelType.Mask);
 
   return (
     <div className='h-9 flex justify-center space-x-8 items-center absolute bottom-0 select-none'>
