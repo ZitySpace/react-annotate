@@ -6,7 +6,7 @@ import {
   STROKE_WIDTH,
   TEXTBOX_DEFAULT_CONFIG,
 } from '../interfaces/config';
-import { getFontSize, getLocalTimeISOString } from '../utils';
+import { getFontSize, getLocalTimeISOString } from './utils';
 
 export class BoxLabel extends Label {
   x: number;

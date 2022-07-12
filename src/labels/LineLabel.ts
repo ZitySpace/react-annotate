@@ -8,7 +8,7 @@ import {
   TEXTBOX_DEFAULT_CONFIG,
   TRANSPARENT,
 } from '../interfaces/config';
-import { getLocalTimeISOString } from '../utils';
+import { getLocalTimeISOString } from './utils';
 
 export class LineLabel extends Label {
   x1: number;
