@@ -88,20 +88,18 @@ export const useSynchronizer = () => {
     if (activeObjects.length === 1) canvas.setActiveObject(activeObjects[0]);
   };
 
-  const setListeners = useListeners(syncCanvasToState);
-
-  useEffect(() => {
-    if (canvas) setListeners('default');
-  }, [canvas]);
+  const resetListeners = useListeners(syncCanvasToState);
 
   useEffect(() => {
     if (!canvas) return;
 
-    if (dataReady && imageObj)
+    if (dataReady && imageObj) {
       canvas
         .setBackgroundImage(imageObj, () => {})
         .setViewportTransform([1, 0, 0, 1, 0, 0]);
-    else canvas.clear();
+
+      resetListeners();
+    } else canvas.clear();
   }, [imageObj, dataReady]);
 
   useEffect(() => {

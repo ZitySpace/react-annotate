@@ -1,13 +1,13 @@
 import { fabric } from 'fabric';
 import { useStore } from 'zustand';
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import {
   CanvasMetaStore,
   CanvasMetaStoreProps,
 } from '../stores/CanvasMetaStore';
 import { ImageMetaStore, ImageMetaStoreProps } from '../stores/ImageMetaStore';
 import { SelectionStore, SelectionStoreProps } from '../stores/SelectionStore';
-import { LabeledObject, LabelType, newLabelFromCanvasObject } from '../labels';
+import { LabeledObject, newLabelFromCanvasObject } from '../labels';
 import { getBetween } from '../utils';
 
 function parseEvent<T extends MouseEvent | WheelEvent>(e: fabric.IEvent<T>) {
@@ -38,6 +38,12 @@ export const useListeners = (syncCanvasToState: () => void) => {
 
   const lastPosition = useRef<fabric.Point>(new fabric.Point(0, 0));
   const isPanning = useRef<boolean>(false);
+  const listenerGroup = useRef<string>('default');
+
+  useEffect(() => {
+    if (!canvas) return;
+    refreshListeners();
+  }, [selectedLabels]);
 
   if (!canvas) return () => {};
 
@@ -88,11 +94,12 @@ export const useListeners = (syncCanvasToState: () => void) => {
 
   const defaultListeners = {
     'mouse:down': (e: fabric.IEvent<Event>) => {
-      const { button, pointer } = parseEvent(e as fabric.IEvent<MouseEvent>);
+      const { pointer } = parseEvent(e as fabric.IEvent<MouseEvent>);
 
       isPanning.current = true;
       lastPosition.current = pointer!;
       canvas.setCursor('grabbing');
+      selectLabels([]);
     },
 
     'mouse:move': (e: fabric.IEvent<Event>) => {
@@ -111,8 +118,6 @@ export const useListeners = (syncCanvasToState: () => void) => {
     },
 
     'mouse:up': (e: fabric.IEvent<Event>) => {
-      const { button } = parseEvent(e as fabric.IEvent<MouseEvent>);
-
       isPanning.current = false;
       canvas.setCursor('default');
     },
@@ -125,16 +130,11 @@ export const useListeners = (syncCanvasToState: () => void) => {
   };
 
   const editBoxListeners = {
-    'mouse:down': (e: fabric.IEvent<Event>) => {
-      console.log('edit rect mousedown');
-    },
     'mouse:move': (e: fabric.IEvent<Event>) => {
-      const { pointer, switched } = trySwitchGroup(e, 'box:edit');
-      if (switched) return;
+      trySwitchGroup(e, 'box:edit');
     },
-    'mouse:up': (e: fabric.IEvent<Event>) => {},
-    'mouse:over': (e: fabric.IEvent<Event>) => {
-      console.log('edit rect hover');
+    'mouse:up': (e: fabric.IEvent<Event>) => {
+      syncCanvasToState();
     },
   };
 
@@ -151,6 +151,8 @@ export const useListeners = (syncCanvasToState: () => void) => {
     Object.entries(listeners).forEach(([event, handler]) =>
       canvas.on(event, handler)
     );
+
+    listenerGroup.current = group;
   };
 
   const trySwitchGroup = (e: fabric.IEvent<Event>, currGroup: string) => {
@@ -170,5 +172,8 @@ export const useListeners = (syncCanvasToState: () => void) => {
     return { pointer, switched: true };
   };
 
-  return setListeners;
+  const refreshListeners = () => setListeners(listenerGroup.current);
+  const resetListeners = () => setListeners('default');
+
+  return resetListeners;
 };
