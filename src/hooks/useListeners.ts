@@ -167,31 +167,47 @@ export const useListeners = (syncCanvasToState: () => void) => {
 
   const drawBoxListeners = {
     'mouse:down': (e: fabric.IEvent<Event>) => {
-      const { evt } = parseEvent(e as fabric.IEvent<MouseEvent>);
-      const { x, y } = canvas.getPointer(evt);
+      if (!isDrawing.current) {
+        const { evt } = parseEvent(e as fabric.IEvent<MouseEvent>);
+        const { x, y } = canvas.getPointer(evt);
 
-      if (!inImageOI(x, y)) return;
+        if (!inImageOI(x, y)) return;
 
-      origPosition.current = { x, y };
+        origPosition.current = { x, y };
 
-      const category = selectedCategory || NEW_CATEGORY_NAME;
-      const id = Math.max(-1, ...curState.map(({ id }) => id)) + 1;
-      const color = getColor(category);
+        const category = selectedCategory || NEW_CATEGORY_NAME;
+        const id = Math.max(-1, ...curState.map(({ id }) => id)) + 1;
+        const color = getColor(category);
 
-      const rect = new BoxLabel({
-        x,
-        y,
-        w: 0,
-        h: 0,
-        category,
-        id,
-        scale,
-        offset,
-        coordSystem: CoordSystemType.Canvas,
-      }).toCanvasObjects(color, false)[0];
+        const rect = new BoxLabel({
+          x,
+          y,
+          w: 0,
+          h: 0,
+          category,
+          id,
+          scale,
+          offset,
+          coordSystem: CoordSystemType.Canvas,
+        }).toCanvasObjects(color, false)[0];
 
-      canvas.add(rect);
-      isDrawing.current = true;
+        canvas.add(rect);
+        isDrawing.current = true;
+      } else {
+        const rect = canvas.getObjects().at(-1)! as fabric.Rect;
+        const invalid =
+          rect.width! <= STROKE_WIDTH || rect.height! <= STROKE_WIDTH;
+
+        if (invalid) {
+          canvas.remove(rect);
+        } else {
+          syncCanvasToState();
+          setDrawType();
+          selectCanvasObject(rect as LabeledObject);
+        }
+
+        isDrawing.current = false;
+      }
     },
 
     'mouse:move': (e: fabric.IEvent<Event>) => {
@@ -216,24 +232,6 @@ export const useListeners = (syncCanvasToState: () => void) => {
       });
 
       canvas.requestRenderAll();
-    },
-
-    'mouse:up': (e: fabric.IEvent<Event>) => {
-      if (!isDrawing.current) return;
-
-      const rect = canvas.getObjects().at(-1)! as fabric.Rect;
-      const invalid =
-        rect.width! <= STROKE_WIDTH || rect.height! <= STROKE_WIDTH;
-
-      if (invalid) {
-        canvas.remove(rect);
-      } else {
-        syncCanvasToState();
-        setDrawType();
-        selectCanvasObject(rect as LabeledObject);
-      }
-
-      isDrawing.current = false;
     },
   };
 
@@ -439,6 +437,11 @@ export const useListeners = (syncCanvasToState: () => void) => {
   const editLineListeners = {};
 
   const setListeners = (group: string) => {
+    isPanning.current = false;
+    isDrawing.current = false;
+    isEditing.current = false;
+    isObjectMoving.current = false;
+
     let listeners: { [key: string]: (e: fabric.IEvent<Event>) => void } = {};
 
     if (group === 'default')
