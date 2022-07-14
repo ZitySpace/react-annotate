@@ -38,7 +38,7 @@ export const newLabelFromCanvasObject = ({
         hash,
       })
     : obj.labelType === LabelType.Line
-    ? PointLabel.newFromCanvasObject({
+    ? LineLabel.newFromCanvasObject({
         obj,
         scale,
         offset,

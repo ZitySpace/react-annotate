@@ -69,13 +69,13 @@ export const ButtonBar = ({
 
   const drawPoint = draw(LabelType.Point);
   const drawLine = draw(LabelType.Line);
-  const drawRect = draw(LabelType.Box);
+  const drawBox = draw(LabelType.Box);
   const drawPolygon = draw(LabelType.Mask);
 
   const isDrawingMe = (labelType: LabelType | null) => drawType === labelType;
   const isDrawingPoint = isDrawingMe(LabelType.Point);
   const isDrawingLine = isDrawingMe(LabelType.Line);
-  const isDrawingRect = isDrawingMe(LabelType.Box);
+  const isDrawingBox = isDrawingMe(LabelType.Box);
   const isDrawingPolygon = isDrawingMe(LabelType.Mask);
 
   return (
@@ -99,7 +99,7 @@ export const ButtonBar = ({
           <TrashIcon />
         </Button>
 
-        <Button canUse={dataReady} isUsing={isDrawingRect} onClick={drawRect}>
+        <Button canUse={dataReady} isUsing={isDrawingBox} onClick={drawBox}>
           <RectangleIcon />
         </Button>
 

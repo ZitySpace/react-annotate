@@ -20,6 +20,7 @@ export const OperationPanel = () => {
     isSelected,
     selectLabels,
     toggleMulti,
+    category: selectedCategory,
   } = useStore(SelectionStore, (s: SelectionStoreProps) => s);
 
   const { getColor, renameKey: renameColorKey } = useStore(
@@ -74,7 +75,9 @@ export const OperationPanel = () => {
               {labels.map(([categoryName, annotations]: [string, Label[]]) => (
                 <div className='flex flex-row' key={categoryName}>
                   <div
-                    className='w-28 p-2 flex flex-col items-end border-indigo-600'
+                    className={`w-28 p-2 flex flex-col items-end border-indigo-600 ${
+                      categoryName === selectedCategory ? 'border-b-4' : ''
+                    }`}
                     style={{
                       backgroundColor: getColor(categoryName),
                     }}

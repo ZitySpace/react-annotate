@@ -160,7 +160,7 @@ export class BoxLabel extends Label {
     return t;
   };
 
-  toCanvasObjects = (color: string) => {
+  toCanvasObjects = (color: string, withText: boolean = true) => {
     const { x, y, w, h, labelType, category, id, timestamp, hash } = this;
 
     const rect = new fabric.Rect({
@@ -173,6 +173,8 @@ export class BoxLabel extends Label {
     });
 
     rect.setOptions({ labelType, category, id, timestamp, hash });
+
+    if (!withText) return [rect];
 
     const textbox = new fabric.Textbox(this.id.toString(), {
       ...TEXTBOX_DEFAULT_CONFIG,

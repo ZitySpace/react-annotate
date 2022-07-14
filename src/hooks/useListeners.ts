@@ -5,10 +5,21 @@ import {
   CanvasMetaStore,
   CanvasMetaStoreProps,
 } from '../stores/CanvasMetaStore';
+import { CanvasStore, CanvasStoreProps } from '../stores/CanvasStore';
 import { ImageMetaStore, ImageMetaStoreProps } from '../stores/ImageMetaStore';
 import { SelectionStore, SelectionStoreProps } from '../stores/SelectionStore';
-import { LabeledObject, newLabelFromCanvasObject } from '../labels';
+import { ColorStore, ColorStoreProps } from '../stores/ColorStore';
+import {
+  LabeledObject,
+  LabelType,
+  newLabelFromCanvasObject,
+  BoxLabel,
+  PointLabel,
+  LineLabel,
+} from '../labels';
 import { getBetween } from '../utils';
+import { NEW_CATEGORY_NAME, STROKE_WIDTH } from '../interfaces/config';
+import { CoordSystemType } from '../labels/BaseLabel';
 
 function parseEvent<T extends MouseEvent | WheelEvent>(e: fabric.IEvent<T>) {
   const { button, target, pointer, e: evt } = e;
@@ -24,6 +35,8 @@ export const useListeners = (syncCanvasToState: () => void) => {
     (s: CanvasMetaStoreProps) => s
   );
 
+  const curState = useStore(CanvasStore, (s: CanvasStoreProps) => s.curState());
+
   const {
     size: imageSize,
     scale,
@@ -32,18 +45,37 @@ export const useListeners = (syncCanvasToState: () => void) => {
 
   const {
     drawType,
+    setDrawType,
     labels: selectedLabels,
     selectLabels,
+    category: selectedCategory,
   } = useStore(SelectionStore, (s: SelectionStoreProps) => s);
 
+  const getColor = useStore(ColorStore, (s: ColorStoreProps) => s.getColor);
+
+  // lastPosition is relative mouse coords on the viewport,
+  // e.g. top-left is always (0,0)
   const lastPosition = useRef<fabric.Point>(new fabric.Point(0, 0));
+  // origPosition is absolute coords on the canvas,
+  // e.g. top-left of image is always (offset.x, offset.y)
+  const origPosition = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
   const isPanning = useRef<boolean>(false);
+  const isDrawing = useRef<boolean>(false);
+  const isEditing = useRef<boolean>(false);
+  const isObjectMoving = useRef<boolean>(false);
   const listenerGroup = useRef<string>('default');
 
   useEffect(() => {
     if (!canvas) return;
     refreshListeners();
   }, [selectedLabels]);
+
+  useEffect(() => {
+    if (!canvas) return;
+
+    const group = drawType === LabelType.None ? 'default' : drawType + ':draw';
+    setListeners(group);
+  }, [drawType]);
 
   if (!canvas) return () => {};
 
@@ -68,15 +100,19 @@ export const useListeners = (syncCanvasToState: () => void) => {
     canvas.requestRenderAll();
   };
 
+  const selectCanvasObject = (obj: LabeledObject) => {
+    const label = newLabelFromCanvasObject({
+      obj,
+      scale,
+      offset,
+    })!;
+    selectLabels([label]);
+  };
+
   const sharedListeners = {
     'selection:created': (e: fabric.IEvent<Event>) => {
-      if (e.e && !selectedLabels.length) {
-        const anno = newLabelFromCanvasObject({
-          obj: (e as any).selected[0],
-          scale,
-          offset,
-        })!;
-        selectLabels([anno]);
+      if (e.e && selectedLabels.length !== 1) {
+        selectCanvasObject((e as any).selected[0]);
       }
     },
 
@@ -123,17 +159,147 @@ export const useListeners = (syncCanvasToState: () => void) => {
     },
   };
 
+  const inImageOI = (x: number, y: number) =>
+    x >= offset.x &&
+    y >= offset.y &&
+    x + offset.x < canvasInitSize!.w &&
+    y + offset.y < canvasInitSize!.h;
+
   const drawBoxListeners = {
-    'mouse:down': (e: fabric.IEvent<Event>) => {},
-    'mouse:move': (e: fabric.IEvent<Event>) => {},
-    'mouse:up': (e: fabric.IEvent<Event>) => {},
+    'mouse:down': (e: fabric.IEvent<Event>) => {
+      const { evt } = parseEvent(e as fabric.IEvent<MouseEvent>);
+      const { x, y } = canvas.getPointer(evt);
+
+      if (!inImageOI(x, y)) return;
+
+      origPosition.current = { x, y };
+
+      const category = selectedCategory || NEW_CATEGORY_NAME;
+      const id = Math.max(-1, ...curState.map(({ id }) => id)) + 1;
+      const color = getColor(category);
+
+      const rect = new BoxLabel({
+        x,
+        y,
+        w: 0,
+        h: 0,
+        category,
+        id,
+        scale,
+        offset,
+        coordSystem: CoordSystemType.Canvas,
+      }).toCanvasObjects(color, false)[0];
+
+      canvas.add(rect);
+      isDrawing.current = true;
+    },
+
+    'mouse:move': (e: fabric.IEvent<Event>) => {
+      if (!isDrawing.current) return;
+
+      const { evt } = parseEvent(e as fabric.IEvent<MouseEvent>);
+      const { x, y } = canvas.getPointer(evt);
+      const { x: origX, y: origY } = origPosition.current;
+      const { w: canvasW, h: canvasH } = canvasInitSize!;
+
+      const x_ = Math.max(offset.x, x < origX ? x : origX);
+      const x2_ = Math.min(canvasW - offset.x, x > origX ? x : origX);
+      const y_ = Math.max(offset.y, y < origY ? y : origY);
+      const y2_ = Math.min(canvasH - offset.y, y > origY ? y : origY);
+
+      const rect = canvas.getObjects().at(-1)!;
+      rect.set({
+        left: x_ - STROKE_WIDTH / 2,
+        top: y_ - STROKE_WIDTH / 2,
+        width: x2_ - x_,
+        height: y2_ - y_,
+      });
+
+      canvas.requestRenderAll();
+    },
+
+    'mouse:up': (e: fabric.IEvent<Event>) => {
+      if (!isDrawing.current) return;
+
+      const rect = canvas.getObjects().at(-1)! as fabric.Rect;
+      const invalid =
+        rect.width! <= STROKE_WIDTH || rect.height! <= STROKE_WIDTH;
+
+      if (invalid) {
+        canvas.remove(rect);
+      } else {
+        syncCanvasToState();
+        setDrawType();
+        selectCanvasObject(rect as LabeledObject);
+      }
+
+      isDrawing.current = false;
+    },
   };
 
   const editBoxListeners = {
-    'mouse:move': (e: fabric.IEvent<Event>) => {
-      trySwitchGroup(e, 'box:edit');
+    'mouse:down': (e: fabric.IEvent<Event>) => {
+      isEditing.current = true;
     },
+
     'mouse:up': (e: fabric.IEvent<Event>) => {
+      isEditing.current = false;
+      isObjectMoving.current = false;
+    },
+
+    'mouse:move': (e: fabric.IEvent<Event>) => {
+      const { switched } = trySwitchGroup(e, 'box:edit');
+      if (switched) return;
+
+      const rect = canvas.getActiveObject() as fabric.Rect;
+      if (!rect || !isEditing.current) return;
+
+      const { w: canvasW, h: canvasH } = canvasInitSize!;
+
+      const { left, top } = rect;
+      const x = left! + STROKE_WIDTH / 2;
+      const y = top! + STROKE_WIDTH / 2;
+      const w = rect.getScaledWidth() - STROKE_WIDTH;
+      const h = rect.getScaledHeight() - STROKE_WIDTH;
+      const x2 = x + w;
+      const y2 = y + h;
+
+      if (isObjectMoving.current) {
+        const x_ = Math.min(Math.max(offset.x, x), canvasW - offset.x - w!);
+        const y_ = Math.min(Math.max(offset.y, y), canvasH - offset.y - h!);
+        if (x === x_ && y === y_) return;
+
+        rect.set({
+          left: x_ - STROKE_WIDTH / 2,
+          top: y_ - STROKE_WIDTH / 2,
+        });
+      } else {
+        const x_ = Math.min(Math.max(offset.x, x), canvasW - offset.x);
+        const y_ = Math.min(Math.max(offset.y, y), canvasH - offset.y);
+        const x2_ = Math.min(Math.max(offset.x, x2), canvasW - offset.x);
+        const y2_ = Math.min(Math.max(offset.y, y2), canvasH - offset.y);
+
+        if (x === x_ && y === y_ && x2 === x2_ && y2 === y2_) return;
+
+        // has to update scaleX/Y as well to set width/height correctly !!!
+        rect.set({
+          left: x_ - STROKE_WIDTH / 2,
+          top: y_ - STROKE_WIDTH / 2,
+          width: x2_ - x_,
+          height: y2_ - y_,
+          scaleX: 1,
+          scaleY: 1,
+        });
+      }
+
+      canvas.requestRenderAll();
+    },
+
+    'object:moving': (e: fabric.IEvent<Event>) => {
+      isObjectMoving.current = true;
+    },
+
+    'object:modified': (e: fabric.IEvent<Event>) => {
       syncCanvasToState();
     },
   };
@@ -146,6 +312,9 @@ export const useListeners = (syncCanvasToState: () => void) => {
 
     if (group === 'box:edit')
       listeners = { ...sharedListeners, ...editBoxListeners };
+
+    if (group === 'box:draw')
+      listeners = { ...sharedListeners, ...drawBoxListeners };
 
     canvas.off();
     Object.entries(listeners).forEach(([event, handler]) =>
@@ -169,7 +338,7 @@ export const useListeners = (syncCanvasToState: () => void) => {
     if (e.e.type === 'mousemove')
       canvas.fire('mouse:over', { target, pointer });
 
-    return { pointer, switched: true };
+    return { pointer, switched: true, target };
   };
 
   const refreshListeners = () => setListeners(listenerGroup.current);
