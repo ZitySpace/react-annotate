@@ -18,7 +18,7 @@ import {
   LineLabel,
 } from '../labels';
 import { getBetween } from '../utils';
-import { NEW_CATEGORY_NAME, STROKE_WIDTH } from '../interfaces/config';
+import { NEW_CATEGORY_NAME, RADIUS, STROKE_WIDTH } from '../interfaces/config';
 import { CoordSystemType } from '../labels/BaseLabel';
 
 function parseEvent<T extends MouseEvent | WheelEvent>(e: fabric.IEvent<T>) {
@@ -207,7 +207,7 @@ export const useListeners = (syncCanvasToState: () => void) => {
       const y_ = Math.max(offset.y, y < origY ? y : origY);
       const y2_ = Math.min(canvasH - offset.y, y > origY ? y : origY);
 
-      const rect = canvas.getObjects().at(-1)!;
+      const rect = canvas.getObjects().at(-1)! as fabric.Rect;
       rect.set({
         left: x_ - STROKE_WIDTH / 2,
         top: y_ - STROKE_WIDTH / 2,
@@ -375,6 +375,69 @@ export const useListeners = (syncCanvasToState: () => void) => {
     },
   };
 
+  const drawLineListeners = {
+    'mouse:down': (e: fabric.IEvent<Event>) => {
+      if (!isDrawing.current) {
+        const { evt } = parseEvent(e as fabric.IEvent<MouseEvent>);
+        const { x, y } = canvas.getPointer(evt);
+
+        if (!inImageOI(x, y)) return;
+
+        const category = selectedCategory || NEW_CATEGORY_NAME;
+        const id = Math.max(-1, ...curState.map(({ id }) => id)) + 1;
+        const color = getColor(category);
+
+        const line = new LineLabel({
+          x1: x,
+          y1: y,
+          x2: x,
+          y2: y,
+          category,
+          id,
+          scale,
+          offset,
+          coordSystem: CoordSystemType.Canvas,
+        }).toCanvasObjects(color, false)[0];
+
+        canvas.add(line);
+        isDrawing.current = true;
+      } else {
+        const line = canvas.getObjects().at(-1)! as fabric.Line;
+        const invalid =
+          line.width! <= STROKE_WIDTH && line.height! <= STROKE_WIDTH;
+
+        if (invalid) {
+          canvas.remove(line);
+        } else {
+          syncCanvasToState();
+          setDrawType();
+          selectCanvasObject(line as fabric.Object as LabeledObject);
+        }
+
+        isDrawing.current = false;
+      }
+    },
+
+    'mouse:move': (e: fabric.IEvent<Event>) => {
+      if (!isDrawing.current) return;
+
+      const { evt } = parseEvent(e as fabric.IEvent<MouseEvent>);
+      const { x, y } = canvas.getPointer(evt);
+      const { w: canvasW, h: canvasH } = canvasInitSize!;
+
+      const line = canvas.getObjects().at(-1)! as fabric.Line;
+
+      line.set({
+        x2: Math.min(Math.max(offset.x, x), canvasW - offset.x),
+        y2: Math.min(Math.max(offset.y, y), canvasH - offset.y),
+      });
+
+      canvas.requestRenderAll();
+    },
+  };
+
+  const editLineListeners = {};
+
   const setListeners = (group: string) => {
     let listeners: { [key: string]: (e: fabric.IEvent<Event>) => void } = {};
 
@@ -392,6 +455,12 @@ export const useListeners = (syncCanvasToState: () => void) => {
 
     if (group === 'point:draw')
       listeners = { ...sharedListeners, ...drawPointListeners };
+
+    if (group === 'line:edit')
+      listeners = { ...sharedListeners, ...editLineListeners };
+
+    if (group === 'line:draw')
+      listeners = { ...sharedListeners, ...drawLineListeners };
 
     canvas.off();
     Object.entries(listeners).forEach(([event, handler]) =>

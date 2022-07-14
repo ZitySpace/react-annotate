@@ -5,6 +5,7 @@ import {
   LINE_DEFAULT_CONFIG,
   POINT_DEFAULT_CONFIG,
   RADIUS,
+  STROKE_WIDTH,
   TEXTBOX_DEFAULT_CONFIG,
   TRANSPARENT,
 } from '../interfaces/config';
@@ -166,60 +167,29 @@ export class LineLabel extends Label {
     return t;
   };
 
-  // /**
-  //  * generate fabric objects from the label
-  //  * @param color the color of the category
-  //  * @param needText is it need to show the text
-  //  * @returns
-  //  */
-  // getFabricObjects(color: string, needText: boolean = true) {
-  //   const {
-  //     line: { x, y, _x, _y },
-  //     id,
-  //     category,
-  //     labelType,
-  //     timestamp,
-  //     hash,
-  //   } = this;
+  toCanvasObjects = (color: string, withText: boolean = true) => {
+    const { x1, y1, x2, y2, labelType, category, id, timestamp, hash } = this;
 
-  //   const line = new fabric.Line([x, y, _x, _y], {
-  //     ...LINE_DEFAULT_CONFIG,
-  //     stroke: color,
-  //   });
+    const line = new fabric.Line([x1, y1, x2, y2], {
+      ...LINE_DEFAULT_CONFIG,
+      stroke: color,
+    });
 
-  //   const endpoints = [
-  //     [x, y],
-  //     [_x, _y],
-  //   ].map(([x, y], _id) => {
-  //     const endpoint = new fabric.Circle({
-  //       ...POINT_DEFAULT_CONFIG,
-  //       left: x,
-  //       top: y,
-  //       fill: color,
-  //       stroke: TRANSPARENT,
-  //     });
-  //     endpoint.setOptions({ _id, lines: [line] });
-  //     return endpoint;
-  //   });
+    line.setOptions({ labelType, category, id, timestamp, hash });
 
-  //   line.setOptions({ endpoints });
+    if (!withText) return [line];
 
-  //   const topPoint = deepClone(endpoints).sort((a, b) => a.top! - b.top!)[0];
-  //   const textbox = new fabric.Textbox(id.toString(), {
-  //     ...TEXTBOX_DEFAULT_CONFIG,
-  //     left: topPoint.left!,
-  //     top: topPoint.top! - RADIUS,
-  //     originX: 'center',
-  //     originY: 'bottom',
-  //     backgroundColor: color,
-  //   });
+    const textbox = new fabric.Textbox(this.id.toString(), {
+      ...TEXTBOX_DEFAULT_CONFIG,
+      left: y1 < y2 ? x1 : x2,
+      top: (y1 < y2 ? y1 : y2) - RADIUS - STROKE_WIDTH / 2,
+      originX: 'center',
+      originY: 'bottom',
+      backgroundColor: color,
+    });
 
-  //   const products = needText
-  //     ? [textbox, line, ...endpoints]
-  //     : [line, ...endpoints];
-  //   products.forEach((obj) =>
-  //     obj.setOptions({ labelType, category, id, timestamp, hash })
-  //   );
-  //   return products;
-  // }
+    textbox.setOptions({ labelType, category, id, timestamp, hash });
+
+    return [line, textbox];
+  };
 }
