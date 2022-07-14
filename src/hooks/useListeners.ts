@@ -274,10 +274,17 @@ export const useListeners = (syncCanvasToState: () => void) => {
           top: y_ - STROKE_WIDTH / 2,
         });
       } else {
-        const x_ = Math.min(Math.max(offset.x, x), canvasW - offset.x);
-        const y_ = Math.min(Math.max(offset.y, y), canvasH - offset.y);
-        const x2_ = Math.min(Math.max(offset.x, x2), canvasW - offset.x);
-        const y2_ = Math.min(Math.max(offset.y, y2), canvasH - offset.y);
+        const minGap = 2 * STROKE_WIDTH;
+        const x_ = Math.min(Math.max(offset.x, x), canvasW - offset.x - minGap);
+        const y_ = Math.min(Math.max(offset.y, y), canvasH - offset.y - minGap);
+        const x2_ = Math.min(
+          Math.max(offset.x + minGap, x2),
+          canvasW - offset.x
+        );
+        const y2_ = Math.min(
+          Math.max(offset.y + minGap, y2),
+          canvasH - offset.y
+        );
 
         if (x === x_ && y === y_ && x2 === x2_ && y2 === y2_) return;
 
@@ -304,6 +311,70 @@ export const useListeners = (syncCanvasToState: () => void) => {
     },
   };
 
+  const drawPointListeners = {
+    'mouse:up': (e: fabric.IEvent<Event>) => {
+      const { evt } = parseEvent(e as fabric.IEvent<MouseEvent>);
+      const { x, y } = canvas.getPointer(evt);
+
+      if (!inImageOI(x, y)) return;
+
+      const category = selectedCategory || NEW_CATEGORY_NAME;
+      const id = Math.max(-1, ...curState.map(({ id }) => id)) + 1;
+      const color = getColor(category);
+
+      const circle = new PointLabel({
+        x,
+        y,
+        category,
+        id,
+        scale,
+        offset,
+        coordSystem: CoordSystemType.Canvas,
+      }).toCanvasObjects(color, false)[0] as fabric.Circle;
+
+      canvas.add(circle);
+
+      syncCanvasToState();
+      setDrawType();
+      selectCanvasObject(circle as fabric.Object as LabeledObject);
+    },
+  };
+
+  const editPointListeners = {
+    'mouse:down': (e: fabric.IEvent<Event>) => {
+      const { target } = parseEvent(e as fabric.IEvent<MouseEvent>);
+      if (!target) selectLabels([]);
+
+      isEditing.current = true;
+    },
+
+    'mouse:up': (e: fabric.IEvent<Event>) => {
+      isEditing.current = false;
+    },
+
+    'mouse:move': (e: fabric.IEvent<Event>) => {
+      const { switched } = trySwitchGroup(e, 'point:edit');
+      if (switched) return;
+
+      const circle = canvas.getActiveObject() as fabric.Circle;
+      if (!circle || !isEditing.current) return;
+
+      const { w: canvasW, h: canvasH } = canvasInitSize!;
+      const { left, top } = circle;
+
+      circle.set({
+        left: Math.min(Math.max(offset.x, left!), canvasW - offset.x),
+        top: Math.min(Math.max(offset.y, top!), canvasH - offset.y),
+      });
+
+      canvas.requestRenderAll();
+    },
+
+    'object:modified': (e: fabric.IEvent<Event>) => {
+      syncCanvasToState();
+    },
+  };
+
   const setListeners = (group: string) => {
     let listeners: { [key: string]: (e: fabric.IEvent<Event>) => void } = {};
 
@@ -315,6 +386,12 @@ export const useListeners = (syncCanvasToState: () => void) => {
 
     if (group === 'box:draw')
       listeners = { ...sharedListeners, ...drawBoxListeners };
+
+    if (group === 'point:edit')
+      listeners = { ...sharedListeners, ...editPointListeners };
+
+    if (group === 'point:draw')
+      listeners = { ...sharedListeners, ...drawPointListeners };
 
     canvas.off();
     Object.entries(listeners).forEach(([event, handler]) =>

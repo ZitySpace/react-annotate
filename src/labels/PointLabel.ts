@@ -140,41 +140,32 @@ export class PointLabel extends Label {
     return t;
   };
 
-  // /**
-  //  * generate fabric objects from the label
-  //  * @param color the color of the category
-  //  * @param needText is it need to show the text
-  //  * @returns
-  //  */
-  // getFabricObjects(color: string, needText: boolean = true) {
-  //   const {
-  //     point: { x, y },
-  //     id,
-  //     category,
-  //     labelType,
-  //     timestamp,
-  //     hash,
-  //   } = this;
-  //   const point = new fabric.Circle({
-  //     ...POINT_DEFAULT_CONFIG,
-  //     left: x,
-  //     top: y,
-  //     fill: color,
-  //     stroke: TRANSPARENT,
-  //   });
+  toCanvasObjects = (color: string, withText: boolean = true) => {
+    const { x, y, labelType, category, id, timestamp, hash } = this;
 
-  //   const textbox = new fabric.Textbox(id.toString(), {
-  //     ...TEXTBOX_DEFAULT_CONFIG,
-  //     left: x + RADIUS - STROKE_WIDTH / 2,
-  //     top: y - RADIUS + STROKE_WIDTH / 2,
-  //     originY: 'bottom',
-  //     backgroundColor: color,
-  //   });
+    const circle = new fabric.Circle({
+      ...POINT_DEFAULT_CONFIG,
+      left: x,
+      top: y,
+      fill: color,
+      stroke: TRANSPARENT,
+    });
 
-  //   const products = needText ? [textbox, point] : [point];
-  //   products.forEach((obj) =>
-  //     obj.setOptions({ labelType, category, id, timestamp, hash })
-  //   );
-  //   return products;
-  // }
+    circle.setOptions({ labelType, category, id, timestamp, hash });
+
+    if (!withText) return [circle];
+
+    const textbox = new fabric.Textbox(this.id.toString(), {
+      ...TEXTBOX_DEFAULT_CONFIG,
+      left: x,
+      top: y - RADIUS - STROKE_WIDTH / 2,
+      originX: 'center',
+      originY: 'bottom',
+      backgroundColor: color,
+    });
+
+    textbox.setOptions({ labelType, category, id, timestamp, hash });
+
+    return [circle, textbox];
+  };
 }
