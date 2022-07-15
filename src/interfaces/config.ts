@@ -28,6 +28,7 @@ export const CANVAS_CONFIG: fabric.ICanvasOptions = {
   defaultCursor: 'default',
   selection: false,
   uniformScaling: false,
+  targetFindTolerance: 5,
   fireRightClick: true,
   stopContextMenu: true,
 };
@@ -44,7 +45,7 @@ export const POINT_DEFAULT_CONFIG: fabric.ICircleOptions = {
 export const LINE_DEFAULT_CONFIG: fabric.ILineOptions = {
   ...ANCHOR_CENTER,
   ...NO_BORDER,
-  ...NOT_DIRECTED_OPERATABLE,
+  // ...NOT_DIRECTED_OPERATABLE,
   strokeWidth: STROKE_WIDTH,
   selectable: true,
   perPixelTargetFind: true,
