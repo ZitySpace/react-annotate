@@ -151,7 +151,14 @@ export class PointLabel extends Label {
       stroke: TRANSPARENT,
     });
 
-    circle.setOptions({ labelType, category, id, timestamp, hash });
+    circle.setOptions({
+      labelType,
+      category,
+      id,
+      timestamp,
+      hash,
+      syncToLabel: true,
+    });
 
     if (!withText) return [circle];
 
@@ -164,7 +171,14 @@ export class PointLabel extends Label {
       backgroundColor: color,
     });
 
-    textbox.setOptions({ labelType, category, id, timestamp, hash });
+    textbox.setOptions({
+      labelType,
+      category,
+      id,
+      timestamp,
+      hash,
+      syncToLabel: false,
+    });
 
     return [circle, textbox];
   };

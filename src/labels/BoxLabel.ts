@@ -172,7 +172,14 @@ export class BoxLabel extends Label {
       stroke: color,
     });
 
-    rect.setOptions({ labelType, category, id, timestamp, hash });
+    rect.setOptions({
+      labelType,
+      category,
+      id,
+      timestamp,
+      hash,
+      syncToLabel: true,
+    });
 
     if (!withText) return [rect];
 
@@ -184,7 +191,14 @@ export class BoxLabel extends Label {
       fontSize: getFontSize(w, h),
     });
 
-    textbox.setOptions({ labelType, category, id, timestamp, hash });
+    textbox.setOptions({
+      labelType,
+      category,
+      id,
+      timestamp,
+      hash,
+      syncToLabel: false,
+    });
 
     return [rect, textbox];
   };

@@ -175,7 +175,14 @@ export class LineLabel extends Label {
       stroke: color,
     });
 
-    line.setOptions({ labelType, category, id, timestamp, hash });
+    line.setOptions({
+      labelType,
+      category,
+      id,
+      timestamp,
+      hash,
+      syncToLabel: true,
+    });
 
     if (!withText) return [line];
 
@@ -188,7 +195,14 @@ export class LineLabel extends Label {
       backgroundColor: color,
     });
 
-    textbox.setOptions({ labelType, category, id, timestamp, hash });
+    textbox.setOptions({
+      labelType,
+      category,
+      id,
+      timestamp,
+      hash,
+      syncToLabel: false,
+    });
 
     return [line, textbox];
   };

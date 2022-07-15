@@ -538,20 +538,21 @@ export const useListeners = (syncCanvasToState: () => void) => {
   };
 
   const trySwitchGroup = (e: fabric.IEvent<Event>, currGroup: string) => {
-    const { pointer, target } = parseEvent(e as fabric.IEvent<MouseEvent>);
+    const { pointer, target, evt } = parseEvent(e as fabric.IEvent<MouseEvent>);
     const newGroup =
       target && target.type !== 'textbox'
         ? (target as LabeledObject).labelType + ':edit'
         : 'default';
 
-    if (currGroup === newGroup) return { pointer, switched: false };
+    if (currGroup === newGroup)
+      return { pointer, switched: false, target, evt };
 
     setListeners(newGroup);
 
     if (e.e.type === 'mousemove')
       canvas.fire('mouse:over', { target, pointer });
 
-    return { pointer, switched: true, target };
+    return { pointer, switched: true, target, evt };
   };
 
   const refreshListeners = () => setListeners(listenerGroup.current);

@@ -14,6 +14,7 @@ export interface LabeledObject extends fabric.Object {
   id: number;
   timestamp: string;
   hash: string;
+  syncToLabel: boolean;
 }
 
 export const newLabelFromCanvasObject = ({

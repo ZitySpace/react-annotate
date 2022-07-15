@@ -51,7 +51,7 @@ export const useSynchronizer = () => {
     const activeObject = canvas.getActiveObject();
     const newState: Label[] = canvas
       .getObjects()
-      .filter((obj) => obj.type !== 'textbox')
+      .filter((obj) => (obj as LabeledObject).syncToLabel)
       .map((obj) => {
         if (obj === activeObject) {
           const now = getLocalTimeISOString();
