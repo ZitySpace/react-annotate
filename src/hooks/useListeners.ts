@@ -16,7 +16,7 @@ import {
   BoxLabel,
   PointLabel,
   LineLabel,
-  DefaultLabelMode,
+  LabelRenderMode,
 } from '../labels';
 import { getBetween } from '../utils';
 import { NEW_CATEGORY_NAME, RADIUS, STROKE_WIDTH } from '../interfaces/config';
@@ -190,9 +190,7 @@ export const useListeners = (syncCanvasToState: () => void) => {
           scale,
           offset,
           coordSystem: CoordSystemType.Canvas,
-        })
-          .setMode(DefaultLabelMode.Drawing)
-          .toCanvasObjects(color)[0];
+        }).toCanvasObjects(color, LabelRenderMode.Drawing)[0];
 
         canvas.add(rect);
         isDrawing.current = true;
@@ -331,9 +329,7 @@ export const useListeners = (syncCanvasToState: () => void) => {
         scale,
         offset,
         coordSystem: CoordSystemType.Canvas,
-      })
-        .setMode(DefaultLabelMode.Drawing)
-        .toCanvasObjects(color)[0] as fabric.Circle;
+      }).toCanvasObjects(color, LabelRenderMode.Drawing)[0] as fabric.Circle;
 
       canvas.add(circle);
 
@@ -400,9 +396,7 @@ export const useListeners = (syncCanvasToState: () => void) => {
           scale,
           offset,
           coordSystem: CoordSystemType.Canvas,
-        })
-          .setMode(DefaultLabelMode.Drawing)
-          .toCanvasObjects(color)[0];
+        }).toCanvasObjects(color, LabelRenderMode.Drawing)[0];
 
         canvas.add(line);
         isDrawing.current = true;
@@ -457,14 +451,14 @@ export const useListeners = (syncCanvasToState: () => void) => {
       const obj = canvas.getActiveObject();
       if (!obj || !isEditing.current) return;
 
+      const { w: canvasW, h: canvasH } = canvasInitSize!;
+
       if (obj.type === 'line') {
         const line = obj as fabric.Line;
         const [circle1, circle2] = (line as any).endpoints as [
           fabric.Circle,
           fabric.Circle
         ];
-
-        const { w: canvasW, h: canvasH } = canvasInitSize!;
 
         const { x1, y1, x2, y2, left, top } = line;
 
@@ -499,15 +493,43 @@ export const useListeners = (syncCanvasToState: () => void) => {
           y2: y2_ + translateY,
         });
 
-        circle1.setOptions({
+        circle1.set({
           left: x1_ + translateX,
           top: y1_ + translateY,
         });
 
-        circle2.setOptions({
+        circle2.set({
           left: x2_ + translateX,
           top: y2_ + translateY,
         });
+      } else {
+        const circle = obj as fabric.Circle;
+        const { line, endpointOfLine } = circle as any as {
+          line: fabric.Line;
+          endpointOfLine: number;
+        };
+
+        const { left, top } = circle;
+
+        const x_ = Math.min(Math.max(offset.x, left!), canvasW - offset.x);
+        const y_ = Math.min(Math.max(offset.y, top!), canvasH - offset.y);
+
+        circle.set({
+          left: x_,
+          top: y_,
+        });
+
+        line.set(
+          endpointOfLine === 1
+            ? {
+                x1: x_,
+                y1: y_,
+              }
+            : {
+                x2: x_,
+                y2: y_,
+              }
+        );
       }
 
       canvas.requestRenderAll();

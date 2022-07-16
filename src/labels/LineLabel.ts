@@ -4,7 +4,7 @@ import {
   Label,
   LabelType,
   CoordSystemType,
-  DefaultLabelMode,
+  LabelRenderMode,
 } from './BaseLabel';
 import {
   LINE_DEFAULT_CONFIG,
@@ -87,7 +87,6 @@ export class LineLabel extends Label {
       id,
       timestamp: timestamp_,
       hash: hash_,
-      mode,
     } = obj as any;
 
     return new LineLabel({
@@ -102,12 +101,7 @@ export class LineLabel extends Label {
       coordSystem: CoordSystemType.Canvas,
       timestamp: timestamp || timestamp_,
       hash: hash || hash_,
-    }).setMode(mode || DefaultLabelMode.Preview);
-  };
-
-  setMode = (mode: string) => {
-    this.mode = mode;
-    return this;
+    });
   };
 
   clone = () =>
@@ -123,7 +117,7 @@ export class LineLabel extends Label {
       coordSystem: this.coordSystem,
       timestamp: this.timestamp,
       hash: this.hash,
-    }).setMode(this.mode);
+    });
 
   toCanvasCoordSystem = (
     {
@@ -178,9 +172,8 @@ export class LineLabel extends Label {
     return t;
   };
 
-  toCanvasObjects = (color: string, withMode?: string) => {
+  toCanvasObjects = (color: string, mode: string) => {
     const { x1, y1, x2, y2, labelType, category, id, timestamp, hash } = this;
-    const mode = withMode || this.mode;
 
     const line = new fabric.Line([x1, y1, x2, y2], {
       ...LINE_DEFAULT_CONFIG,
@@ -196,9 +189,9 @@ export class LineLabel extends Label {
       syncToLabel: true,
     });
 
-    if (mode === DefaultLabelMode.Drawing) return [line];
+    if (mode === LabelRenderMode.Drawing) return [line];
 
-    if (mode === DefaultLabelMode.Hidden) {
+    if (mode === LabelRenderMode.Hidden) {
       line.visible = false;
       line.hasControls = false;
       return [line];
@@ -222,7 +215,7 @@ export class LineLabel extends Label {
       syncToLabel: false,
     });
 
-    if (mode === DefaultLabelMode.Preview) return [line, textbox];
+    if (mode === LabelRenderMode.Preview) return [line, textbox];
 
     const circle1 = new fabric.Circle({
       ...POINT_DEFAULT_CONFIG,
@@ -266,7 +259,7 @@ export class LineLabel extends Label {
       endpoints: [circle1, circle2],
     });
 
-    if (mode === DefaultLabelMode.Selected) return [line, circle1, circle2];
+    if (mode === LabelRenderMode.Selected) return [line, circle1, circle2];
 
     return [];
   };

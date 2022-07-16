@@ -3,7 +3,7 @@ import { PointLabel } from './PointLabel';
 import { LineLabel } from './LineLabel';
 import { BoxLabel } from './BoxLabel';
 
-export { Label, LabelType, DefaultLabelMode } from './BaseLabel';
+export { Label, LabelType, LabelRenderMode } from './BaseLabel';
 export { PointLabel } from './PointLabel';
 export { LineLabel } from './LineLabel';
 export { BoxLabel } from './BoxLabel';

@@ -1,5 +1,5 @@
 import md5 from 'md5';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useStore } from 'zustand';
 import { Label, LabeledObject, newLabelFromCanvasObject } from '../labels';
 import {
@@ -49,6 +49,8 @@ export const useSynchronizer = () => {
     if (!canvas) return;
     console.log('syncCanvasToState called'); // TODO: remove
 
+    // TODO, should not use activeObject as the detection of which label/object is edited
+    // should use id
     const activeObject = canvas.getActiveObject();
     const newState: Label[] = canvas
       .getObjects()
@@ -76,9 +78,7 @@ export const useSynchronizer = () => {
     state.forEach((anno: Label) => {
       const color = getColor(anno.category);
       const mode = calcLabelMode(anno);
-
-      anno.setMode(mode);
-      const canvasObjects = anno.toCanvasObjects(color);
+      const canvasObjects = anno.toCanvasObjects(color, mode);
       canvas.add(...canvasObjects);
     });
     const activeObjects = canvas

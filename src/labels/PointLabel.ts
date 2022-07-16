@@ -4,7 +4,7 @@ import {
   Label,
   LabelType,
   CoordSystemType,
-  DefaultLabelMode,
+  LabelRenderMode,
 } from './BaseLabel';
 import {
   POINT_DEFAULT_CONFIG,
@@ -76,7 +76,6 @@ export class PointLabel extends Label {
       id,
       timestamp: timestamp_,
       hash: hash_,
-      mode,
     } = obj as any;
 
     return new PointLabel({
@@ -89,12 +88,7 @@ export class PointLabel extends Label {
       coordSystem: CoordSystemType.Canvas,
       timestamp: timestamp || timestamp_,
       hash: hash || hash_,
-    }).setMode(mode || DefaultLabelMode.Preview);
-  };
-
-  setMode = (mode: string) => {
-    this.mode = mode;
-    return this;
+    });
   };
 
   clone = () =>
@@ -108,7 +102,7 @@ export class PointLabel extends Label {
       coordSystem: this.coordSystem,
       timestamp: this.timestamp,
       hash: this.hash,
-    }).setMode(this.mode);
+    });
 
   toCanvasCoordSystem = (
     {
@@ -151,9 +145,8 @@ export class PointLabel extends Label {
     return t;
   };
 
-  toCanvasObjects = (color: string, withMode?: string) => {
+  toCanvasObjects = (color: string, mode: string) => {
     const { x, y, labelType, category, id, timestamp, hash } = this;
-    const mode = withMode || this.mode;
 
     const circle = new fabric.Circle({
       ...POINT_DEFAULT_CONFIG,
@@ -172,10 +165,10 @@ export class PointLabel extends Label {
       syncToLabel: true,
     });
 
-    if (mode === DefaultLabelMode.Drawing || mode === DefaultLabelMode.Selected)
+    if (mode === LabelRenderMode.Drawing || mode === LabelRenderMode.Selected)
       return [circle];
 
-    if (mode === DefaultLabelMode.Hidden) {
+    if (mode === LabelRenderMode.Hidden) {
       circle.visible = false;
       circle.hasControls = false;
       return [circle];
@@ -199,7 +192,7 @@ export class PointLabel extends Label {
       syncToLabel: false,
     });
 
-    if (mode === DefaultLabelMode.Preview) return [circle, textbox];
+    if (mode === LabelRenderMode.Preview) return [circle, textbox];
 
     return [];
   };

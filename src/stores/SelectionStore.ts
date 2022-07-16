@@ -1,6 +1,6 @@
 import { createContext } from 'react';
 import { createStore, State, StoreApi } from 'zustand';
-import { Label, LabelType, DefaultLabelMode } from '../labels';
+import { Label, LabelType, LabelRenderMode } from '../labels';
 import { mostRepeatedValue } from '../utils';
 
 interface StoreData extends State {
@@ -26,7 +26,6 @@ interface Store extends StoreData {
   selectLabels: (labels?: Label[], keepCategory?: boolean) => void;
   toggleMulti: () => void;
   toggleVisibility: () => void;
-  // isVisible: (canvasObject: any) => boolean;
   calcLabelMode: (label: Label) => string;
   isSelected: (target: number | string) => boolean;
 }
@@ -58,7 +57,7 @@ const store = createStore<Store>((set, get) => ({
   toggleMulti: () => set((s: Store) => ({ multi: !s.multi })),
 
   toggleVisibility: () =>
-    !get().drawType &&
+    get().drawType === LabelType.None &&
     set((s: Store) => ({
       visibleType: s.visibleType.length ? [] : StoreDataDefault.visibleType,
     })),
@@ -69,16 +68,16 @@ const store = createStore<Store>((set, get) => ({
     const oneOfVisibleTypes = s.visibleType.includes(label.labelType);
 
     if (!oneOfVisibleTypes || s.drawType !== LabelType.None)
-      return DefaultLabelMode.Hidden;
+      return LabelRenderMode.Hidden;
 
-    if (!s.labels.length) return DefaultLabelMode.Preview;
+    if (!s.labels.length) return LabelRenderMode.Preview;
 
     if (s.labels.some((o) => o.id === label.id)) {
-      if (s.labels.length > 1) return DefaultLabelMode.Preview;
-      else return DefaultLabelMode.Selected;
+      if (s.labels.length > 1) return LabelRenderMode.Preview;
+      else return LabelRenderMode.Selected;
     }
 
-    return DefaultLabelMode.Hidden;
+    return LabelRenderMode.Hidden;
   },
 
   isSelected: (t) =>
