@@ -1,6 +1,6 @@
 import { createContext } from 'react';
 import { createStore, State, StoreApi } from 'zustand';
-import { Label, LabelType } from '../labels';
+import { Label, LabelType, DefaultLabelMode } from '../labels';
 import { mostRepeatedValue } from '../utils';
 
 interface StoreData extends State {
@@ -26,7 +26,8 @@ interface Store extends StoreData {
   selectLabels: (labels?: Label[], keepCategory?: boolean) => void;
   toggleMulti: () => void;
   toggleVisibility: () => void;
-  isVisible: (canvasObject: any) => boolean;
+  // isVisible: (canvasObject: any) => boolean;
+  calcLabelMode: (label: Label) => string;
   isSelected: (target: number | string) => boolean;
 }
 
@@ -62,31 +63,22 @@ const store = createStore<Store>((set, get) => ({
       visibleType: s.visibleType.length ? [] : StoreDataDefault.visibleType,
     })),
 
-  isVisible: (canvasObject) => {
+  calcLabelMode: (label) => {
     const s = get();
 
-    const inVisibleType = s.visibleType.includes(canvasObject.labelType);
+    const oneOfVisibleTypes = s.visibleType.includes(label.labelType);
 
-    if (!inVisibleType) return false;
+    if (!oneOfVisibleTypes || s.drawType !== LabelType.None)
+      return DefaultLabelMode.Hidden;
 
-    if (s.drawType !== LabelType.None) return false;
+    if (!s.labels.length) return DefaultLabelMode.Preview;
 
-    if (!s.labels.length)
-      return !(
-        canvasObject.labelType === LabelType.Mask &&
-        ['circle', 'line'].includes(canvasObject.type)
-      );
-
-    if (s.labels.some((o) => o.id === canvasObject.id)) {
-      if (s.labels.length > 1)
-        return !(
-          canvasObject.labelType === LabelType.Mask &&
-          ['circle', 'line'].includes(canvasObject.type)
-        );
-      else return !['textbox', 'polygon'].includes(canvasObject.type);
+    if (s.labels.some((o) => o.id === label.id)) {
+      if (s.labels.length > 1) return DefaultLabelMode.Preview;
+      else return DefaultLabelMode.Selected;
     }
 
-    return false;
+    return DefaultLabelMode.Hidden;
   },
 
   isSelected: (t) =>

@@ -1,6 +1,11 @@
 import { fabric } from 'fabric';
 import md5 from 'md5';
-import { Label, LabelType, CoordSystemType } from './BaseLabel';
+import {
+  Label,
+  LabelType,
+  CoordSystemType,
+  DefaultLabelMode,
+} from './BaseLabel';
 import {
   RECT_DEFAULT_CONFIG,
   STROKE_WIDTH,
@@ -77,6 +82,7 @@ export class BoxLabel extends Label {
       id,
       timestamp: timestamp_,
       hash: hash_,
+      mode,
     } = obj as any;
     const x = left + STROKE_WIDTH / 2;
     const y = top + STROKE_WIDTH / 2;
@@ -95,7 +101,12 @@ export class BoxLabel extends Label {
       coordSystem: CoordSystemType.Canvas,
       timestamp: timestamp || timestamp_,
       hash: hash || hash_,
-    });
+    }).setMode(mode || DefaultLabelMode.Preview);
+  };
+
+  setMode = (mode: string) => {
+    this.mode = mode;
+    return this;
   };
 
   clone = () =>
@@ -111,7 +122,7 @@ export class BoxLabel extends Label {
       coordSystem: this.coordSystem,
       timestamp: this.timestamp,
       hash: this.hash,
-    });
+    }).setMode(this.mode);
 
   toCanvasCoordSystem = (
     {
@@ -160,8 +171,9 @@ export class BoxLabel extends Label {
     return t;
   };
 
-  toCanvasObjects = (color: string, withText: boolean = true) => {
+  toCanvasObjects = (color: string, withMode?: string) => {
     const { x, y, w, h, labelType, category, id, timestamp, hash } = this;
+    const mode = withMode || this.mode;
 
     const rect = new fabric.Rect({
       ...RECT_DEFAULT_CONFIG,
@@ -181,7 +193,13 @@ export class BoxLabel extends Label {
       syncToLabel: true,
     });
 
-    if (!withText) return [rect];
+    if (mode === DefaultLabelMode.Selected) return [rect];
+
+    if (mode === DefaultLabelMode.Hidden) {
+      rect.visible = false;
+      rect.hasControls = false;
+      return [rect];
+    }
 
     const textbox = new fabric.Textbox(this.id.toString(), {
       ...TEXTBOX_DEFAULT_CONFIG,
@@ -200,6 +218,8 @@ export class BoxLabel extends Label {
       syncToLabel: false,
     });
 
-    return [rect, textbox];
+    if (mode === DefaultLabelMode.Preview) return [rect, textbox];
+
+    return [];
   };
 }

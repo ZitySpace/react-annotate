@@ -11,6 +11,12 @@ export enum CoordSystemType {
   Canvas,
 }
 
+export enum DefaultLabelMode {
+  Preview = 'preview',
+  Hidden = 'hidden',
+  Selected = 'selected',
+}
+
 export abstract class Label {
   readonly labelType: LabelType;
   category: string;
@@ -20,6 +26,7 @@ export abstract class Label {
   coordSystem: CoordSystemType;
   timestamp: string;
   hash: string;
+  mode: string;
 
   protected constructor({
     labelType,
@@ -48,6 +55,7 @@ export abstract class Label {
     this.coordSystem = coordSystem;
     this.timestamp = timestamp;
     this.hash = hash;
+    this.mode = DefaultLabelMode.Preview;
   }
 
   protected _toCanvasCoordSystem(
@@ -83,4 +91,6 @@ export abstract class Label {
   abstract toImageCoordSystem(inplace: boolean): Label;
 
   abstract toCanvasObjects(color: string): fabric.Object[];
+
+  abstract setMode(mode: string): Label;
 }

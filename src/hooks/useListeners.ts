@@ -16,6 +16,7 @@ import {
   BoxLabel,
   PointLabel,
   LineLabel,
+  DefaultLabelMode,
 } from '../labels';
 import { getBetween } from '../utils';
 import { NEW_CATEGORY_NAME, RADIUS, STROKE_WIDTH } from '../interfaces/config';
@@ -189,7 +190,9 @@ export const useListeners = (syncCanvasToState: () => void) => {
           scale,
           offset,
           coordSystem: CoordSystemType.Canvas,
-        }).toCanvasObjects(color, false)[0];
+        })
+          .setMode(DefaultLabelMode.Selected)
+          .toCanvasObjects(color)[0];
 
         canvas.add(rect);
         isDrawing.current = true;
@@ -328,7 +331,9 @@ export const useListeners = (syncCanvasToState: () => void) => {
         scale,
         offset,
         coordSystem: CoordSystemType.Canvas,
-      }).toCanvasObjects(color, false)[0] as fabric.Circle;
+      })
+        .setMode(DefaultLabelMode.Selected)
+        .toCanvasObjects(color)[0] as fabric.Circle;
 
       canvas.add(circle);
 
@@ -395,7 +400,9 @@ export const useListeners = (syncCanvasToState: () => void) => {
           scale,
           offset,
           coordSystem: CoordSystemType.Canvas,
-        }).toCanvasObjects(color, false)[0];
+        })
+          .setMode(DefaultLabelMode.Selected)
+          .toCanvasObjects(color)[0];
 
         canvas.add(line);
         isDrawing.current = true;

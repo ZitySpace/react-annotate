@@ -41,7 +41,8 @@ export const useSynchronizer = () => {
     visibleType,
     labels: selectedLabels,
     isSelected,
-    isVisible,
+    // isVisible,
+    calcLabelMode,
   } = useStore(SelectionStore, (s: SelectionStoreProps) => s);
 
   const syncCanvasToState = () => {
@@ -59,8 +60,8 @@ export const useSynchronizer = () => {
         }
         return newLabelFromCanvasObject({
           obj: obj as LabeledObject,
-          offset,
           scale,
+          offset,
         })!;
       });
 
@@ -74,12 +75,10 @@ export const useSynchronizer = () => {
     canvas.remove(...canvas.getObjects());
     state.forEach((anno: Label) => {
       const color = getColor(anno.category);
+      const mode = calcLabelMode(anno);
+
+      anno.setMode(mode);
       const canvasObjects = anno.toCanvasObjects(color);
-      canvasObjects.forEach((obj) => {
-        const visible = isVisible(obj);
-        obj.visible = visible;
-        if (!visible) obj.hasControls = false;
-      });
       canvas.add(...canvasObjects);
     });
     const activeObjects = canvas

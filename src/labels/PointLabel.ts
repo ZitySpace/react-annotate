@@ -1,6 +1,11 @@
 import { fabric } from 'fabric';
 import md5 from 'md5';
-import { Label, LabelType, CoordSystemType } from './BaseLabel';
+import {
+  Label,
+  LabelType,
+  CoordSystemType,
+  DefaultLabelMode,
+} from './BaseLabel';
 import {
   POINT_DEFAULT_CONFIG,
   RADIUS,
@@ -71,6 +76,7 @@ export class PointLabel extends Label {
       id,
       timestamp: timestamp_,
       hash: hash_,
+      mode,
     } = obj as any;
 
     return new PointLabel({
@@ -83,7 +89,12 @@ export class PointLabel extends Label {
       coordSystem: CoordSystemType.Canvas,
       timestamp: timestamp || timestamp_,
       hash: hash || hash_,
-    });
+    }).setMode(mode || DefaultLabelMode.Preview);
+  };
+
+  setMode = (mode: string) => {
+    this.mode = mode;
+    return this;
   };
 
   clone = () =>
@@ -97,7 +108,7 @@ export class PointLabel extends Label {
       coordSystem: this.coordSystem,
       timestamp: this.timestamp,
       hash: this.hash,
-    });
+    }).setMode(this.mode);
 
   toCanvasCoordSystem = (
     {
@@ -140,8 +151,9 @@ export class PointLabel extends Label {
     return t;
   };
 
-  toCanvasObjects = (color: string, withText: boolean = true) => {
+  toCanvasObjects = (color: string, withMode?: string) => {
     const { x, y, labelType, category, id, timestamp, hash } = this;
+    const mode = withMode || this.mode;
 
     const circle = new fabric.Circle({
       ...POINT_DEFAULT_CONFIG,
@@ -160,7 +172,13 @@ export class PointLabel extends Label {
       syncToLabel: true,
     });
 
-    if (!withText) return [circle];
+    if (mode === DefaultLabelMode.Selected) return [circle];
+
+    if (mode === DefaultLabelMode.Hidden) {
+      circle.visible = false;
+      circle.hasControls = false;
+      return [circle];
+    }
 
     const textbox = new fabric.Textbox(this.id.toString(), {
       ...TEXTBOX_DEFAULT_CONFIG,
@@ -180,6 +198,8 @@ export class PointLabel extends Label {
       syncToLabel: false,
     });
 
-    return [circle, textbox];
+    if (mode === DefaultLabelMode.Preview) return [circle, textbox];
+
+    return [];
   };
 }
