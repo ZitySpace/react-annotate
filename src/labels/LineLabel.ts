@@ -196,7 +196,7 @@ export class LineLabel extends Label {
       syncToLabel: true,
     });
 
-    if (mode === DefaultLabelMode.Selected) return [line];
+    if (mode === DefaultLabelMode.Drawing) return [line];
 
     if (mode === DefaultLabelMode.Hidden) {
       line.visible = false;
@@ -223,6 +223,50 @@ export class LineLabel extends Label {
     });
 
     if (mode === DefaultLabelMode.Preview) return [line, textbox];
+
+    const circle1 = new fabric.Circle({
+      ...POINT_DEFAULT_CONFIG,
+      left: x1,
+      top: y1,
+      fill: color,
+      stroke: TRANSPARENT,
+    });
+
+    circle1.setOptions({
+      labelType,
+      category,
+      id,
+      timestamp,
+      hash,
+      syncToLabel: false,
+      line,
+      endpointOfLine: 1,
+    });
+
+    const circle2 = new fabric.Circle({
+      ...POINT_DEFAULT_CONFIG,
+      left: x2,
+      top: y2,
+      fill: color,
+      stroke: TRANSPARENT,
+    });
+
+    circle2.setOptions({
+      labelType,
+      category,
+      id,
+      timestamp,
+      hash,
+      syncToLabel: false,
+      line,
+      endpointOfLine: 2,
+    });
+
+    line.setOptions({
+      endpoints: [circle1, circle2],
+    });
+
+    if (mode === DefaultLabelMode.Selected) return [line, circle1, circle2];
 
     return [];
   };

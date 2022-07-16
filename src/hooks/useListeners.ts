@@ -191,7 +191,7 @@ export const useListeners = (syncCanvasToState: () => void) => {
           offset,
           coordSystem: CoordSystemType.Canvas,
         })
-          .setMode(DefaultLabelMode.Selected)
+          .setMode(DefaultLabelMode.Drawing)
           .toCanvasObjects(color)[0];
 
         canvas.add(rect);
@@ -332,7 +332,7 @@ export const useListeners = (syncCanvasToState: () => void) => {
         offset,
         coordSystem: CoordSystemType.Canvas,
       })
-        .setMode(DefaultLabelMode.Selected)
+        .setMode(DefaultLabelMode.Drawing)
         .toCanvasObjects(color)[0] as fabric.Circle;
 
       canvas.add(circle);
@@ -401,7 +401,7 @@ export const useListeners = (syncCanvasToState: () => void) => {
           offset,
           coordSystem: CoordSystemType.Canvas,
         })
-          .setMode(DefaultLabelMode.Selected)
+          .setMode(DefaultLabelMode.Drawing)
           .toCanvasObjects(color)[0];
 
         canvas.add(line);
@@ -448,43 +448,48 @@ export const useListeners = (syncCanvasToState: () => void) => {
 
     'mouse:up': (e: fabric.IEvent<Event>) => {
       isEditing.current = false;
-      isObjectMoving.current = false;
     },
 
     'mouse:move': (e: fabric.IEvent<Event>) => {
       const { switched } = trySwitchGroup(e, 'line:edit');
       if (switched) return;
 
-      const line = canvas.getActiveObject() as fabric.Line;
-      if (!line || !isEditing.current) return;
+      const obj = canvas.getActiveObject();
+      if (!obj || !isEditing.current) return;
 
-      const { w: canvasW, h: canvasH } = canvasInitSize!;
+      if (obj.type === 'line') {
+        const line = obj as fabric.Line;
+        const [circle1, circle2] = (line as any).endpoints as [
+          fabric.Circle,
+          fabric.Circle
+        ];
 
-      const { x1, y1, x2, y2, left, top } = line;
+        const { w: canvasW, h: canvasH } = canvasInitSize!;
 
-      // assume originX/Y = center
-      const x1_ = left! + (x1! - x2!) / 2;
-      const y1_ = top! + (y1! - y2!) / 2;
-      const x2_ = left! + (x2! - x1!) / 2;
-      const y2_ = top! + (y2! - y1!) / 2;
+        const { x1, y1, x2, y2, left, top } = line;
 
-      if (isObjectMoving.current) {
-        const left = Math.min(x1_, x2_);
-        const right = Math.max(x1_, x2_);
+        // assume originX/Y = center
+        const x1_ = left! + (x1! - x2!) / 2;
+        const y1_ = top! + (y1! - y2!) / 2;
+        const x2_ = left! + (x2! - x1!) / 2;
+        const y2_ = top! + (y2! - y1!) / 2;
+
+        const l = Math.min(x1_, x2_);
+        const r = Math.max(x1_, x2_);
         const translateX =
-          left < offset.x
-            ? offset.x - left
-            : right > canvasW - offset.x
-            ? canvasW - offset.x - right
+          l < offset.x
+            ? offset.x - l
+            : r > canvasW - offset.x
+            ? canvasW - offset.x - r
             : 0;
 
-        const top = Math.min(y1_, y2_);
-        const bottom = Math.max(y1_, y2_);
+        const t = Math.min(y1_, y2_);
+        const b = Math.max(y1_, y2_);
         const translateY =
-          top < offset.y
-            ? offset.y - top
-            : bottom > canvasH - offset.y
-            ? canvasH - offset.y - bottom
+          t < offset.y
+            ? offset.y - t
+            : b > canvasH - offset.y
+            ? canvasH - offset.y - b
             : 0;
 
         line.set({
@@ -493,13 +498,19 @@ export const useListeners = (syncCanvasToState: () => void) => {
           x2: x2_ + translateX,
           y2: y2_ + translateY,
         });
+
+        circle1.setOptions({
+          left: x1_ + translateX,
+          top: y1_ + translateY,
+        });
+
+        circle2.setOptions({
+          left: x2_ + translateX,
+          top: y2_ + translateY,
+        });
       }
 
       canvas.requestRenderAll();
-    },
-
-    'object:moving': (e: fabric.IEvent<Event>) => {
-      isObjectMoving.current = true;
     },
 
     'object:modified': (e: fabric.IEvent<Event>) => {

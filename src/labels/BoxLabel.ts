@@ -193,7 +193,8 @@ export class BoxLabel extends Label {
       syncToLabel: true,
     });
 
-    if (mode === DefaultLabelMode.Selected) return [rect];
+    if (mode === DefaultLabelMode.Drawing || mode === DefaultLabelMode.Selected)
+      return [rect];
 
     if (mode === DefaultLabelMode.Hidden) {
       rect.visible = false;

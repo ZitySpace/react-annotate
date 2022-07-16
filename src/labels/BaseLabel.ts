@@ -15,6 +15,7 @@ export enum DefaultLabelMode {
   Preview = 'preview',
   Hidden = 'hidden',
   Selected = 'selected',
+  Drawing = 'drawing',
 }
 
 export abstract class Label {

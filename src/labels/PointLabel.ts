@@ -172,7 +172,8 @@ export class PointLabel extends Label {
       syncToLabel: true,
     });
 
-    if (mode === DefaultLabelMode.Selected) return [circle];
+    if (mode === DefaultLabelMode.Drawing || mode === DefaultLabelMode.Selected)
+      return [circle];
 
     if (mode === DefaultLabelMode.Hidden) {
       circle.visible = false;
