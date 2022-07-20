@@ -7,21 +7,21 @@ import {
   LabelRenderMode,
 } from './BaseLabel';
 import {
+  LINE_DEFAULT_CONFIG,
   POINT_DEFAULT_CONFIG,
+  POLYGON_DEFAULT_CONFIG,
   RADIUS,
   STROKE_WIDTH,
   TEXTBOX_DEFAULT_CONFIG,
   TRANSPARENT,
 } from '../interfaces/config';
-import { getLocalTimeISOString } from './utils';
+import { getLocalTimeISOString, getFontSize } from './utils';
 
-export class PointLabel extends Label {
-  x: number;
-  y: number;
+export class MaskLabel extends Label {
+  points: { x: number; y: number }[];
 
   constructor({
-    x,
-    y,
+    points,
     category = '',
     id = 0,
     scale = 1,
@@ -30,8 +30,7 @@ export class PointLabel extends Label {
     timestamp,
     hash,
   }: {
-    x: number;
-    y: number;
+    points: { x: number; y: number }[];
     category: string;
     id: number;
     scale?: number;
@@ -40,7 +39,7 @@ export class PointLabel extends Label {
     timestamp?: string;
     hash?: string;
   }) {
-    const labelType = LabelType.Point;
+    const labelType = LabelType.Mask;
     const now = getLocalTimeISOString();
     super({
       labelType,
@@ -52,8 +51,7 @@ export class PointLabel extends Label {
       timestamp: timestamp || now,
       hash: hash || md5(now),
     });
-    this.x = x;
-    this.y = y;
+    this.points = points;
   }
 
   public static newFromCanvasObject = ({
@@ -70,17 +68,15 @@ export class PointLabel extends Label {
     hash?: string;
   }) => {
     const {
-      left: x,
-      top: y,
+      points,
       category,
       id,
       timestamp: timestamp_,
       hash: hash_,
     } = obj as any;
 
-    return new PointLabel({
-      x,
-      y,
+    return new MaskLabel({
+      points,
       category,
       id,
       scale,
@@ -92,9 +88,8 @@ export class PointLabel extends Label {
   };
 
   clone = () =>
-    new PointLabel({
-      x: this.x,
-      y: this.y,
+    new MaskLabel({
+      points: this.points,
       category: this.category,
       id: this.id,
       scale: this.scale,
@@ -114,15 +109,13 @@ export class PointLabel extends Label {
     },
     inplace = true
   ) => {
-    const { x: cx, y: cy } = super._toCanvasCoordSystem(scale, offset, {
-      x: this.x,
-      y: this.y,
-    });
+    const points = this.points.map((pt) =>
+      super._toCanvasCoordSystem(scale, offset, pt)
+    );
 
     const t = inplace ? this : this.clone();
 
-    t.x = cx;
-    t.y = cy;
+    t.points = points;
     t.scale = scale;
     t.offset = offset;
     t.coordSystem = CoordSystemType.Canvas;
@@ -130,15 +123,11 @@ export class PointLabel extends Label {
   };
 
   toImageCoordSystem = (inplace = true) => {
-    const { x: ix, y: iy } = super._toImageCoordSystem({
-      x: this.x,
-      y: this.y,
-    });
+    const points = this.points.map((pt) => super._toImageCoordSystem(pt));
 
     const t = inplace ? this : this.clone();
 
-    t.x = ix;
-    t.y = iy;
+    t.points = points;
     t.scale = 1;
     t.offset = { x: 0, y: 0 };
     t.coordSystem = CoordSystemType.Image;
@@ -146,17 +135,14 @@ export class PointLabel extends Label {
   };
 
   toCanvasObjects = (color: string, mode: string) => {
-    const { x, y, labelType, category, id, timestamp, hash } = this;
+    const { points, labelType, category, id, timestamp, hash } = this;
 
-    const circle = new fabric.Circle({
-      ...POINT_DEFAULT_CONFIG,
-      left: x,
-      top: y,
+    const polygon = new fabric.Polygon([...points], {
+      ...POLYGON_DEFAULT_CONFIG,
       fill: color,
-      stroke: TRANSPARENT,
     });
 
-    circle.setOptions({
+    polygon.setOptions({
       labelType,
       category,
       id,
@@ -165,19 +151,19 @@ export class PointLabel extends Label {
       syncToLabel: true,
     });
 
-    if (mode === LabelRenderMode.Drawing || mode === LabelRenderMode.Selected)
-      return [circle];
-
     if (mode === LabelRenderMode.Hidden) {
-      circle.visible = false;
-      circle.hasControls = false;
-      return [circle];
+      polygon.visible = false;
+      polygon.hasControls = false;
+      return [polygon];
     }
+
+    const ys = points.map((p) => p.y);
+    const idxOfTopPoint = ys.indexOf(Math.min(...ys));
 
     const textbox = new fabric.Textbox(this.id.toString(), {
       ...TEXTBOX_DEFAULT_CONFIG,
-      left: x,
-      top: y - RADIUS - STROKE_WIDTH / 2,
+      left: points[idxOfTopPoint].x,
+      top: points[idxOfTopPoint].y - RADIUS - STROKE_WIDTH / 2,
       originX: 'center',
       originY: 'bottom',
       backgroundColor: color,
@@ -192,7 +178,73 @@ export class PointLabel extends Label {
       syncToLabel: false,
     });
 
-    if (mode === LabelRenderMode.Preview) return [circle, textbox];
+    if (mode === LabelRenderMode.Preview) return [polygon, textbox];
+
+    const circles = points.map(
+      (pt) =>
+        new fabric.Circle({
+          ...POINT_DEFAULT_CONFIG,
+          left: pt.x,
+          top: pt.y,
+          fill: color,
+          stroke: TRANSPARENT,
+        })
+    );
+
+    circles.forEach((c) =>
+      c.setOptions({
+        labelType,
+        category,
+        id,
+        timestamp,
+        hash,
+        syncToLabel: false,
+      })
+    );
+
+    const l = points.length;
+    const lines =
+      points.length > 1
+        ? Array.from(
+            { length: points.length },
+            (_, i) =>
+              new fabric.Line(
+                [
+                  points[i % l].x,
+                  points[i % l].y,
+                  points[(i + 1) % l].x,
+                  points[(i + 1) % l].y,
+                ],
+                {
+                  ...LINE_DEFAULT_CONFIG,
+                  stroke: color,
+                }
+              )
+          )
+        : [];
+
+    lines.forEach((l) =>
+      l.setOptions({
+        labelType,
+        category,
+        id,
+        timestamp,
+        hash,
+        syncToLabel: false,
+      })
+    );
+
+    polygon.visible = false;
+
+    if (mode === LabelRenderMode.Drawing)
+      return [
+        polygon,
+        ...(l > 1 ? circles.slice(0, -1) : circles),
+        ...lines.slice(0, -1),
+      ];
+
+    if (mode === LabelRenderMode.Selected)
+      return [polygon, ...circles, ...lines];
 
     return [];
   };

@@ -2,28 +2,32 @@ import React from 'react';
 
 import { Annotator, ImageData } from '@ZitySpace/react-annotate';
 
-import { data as rect } from './rectangles';
-import { BoxLabel } from '@ZitySpace/react-annotate';
-const imagesList: ImageData[] = rect.map((img) => ({
-  ...img,
-  name: img.filename,
-  url: img.url.replace('images.cocodataset.org', 'localhost:3000'),
-  annotations: img.annotations.map((anno: any, id: number) => {
-    const { x, y, w, h, category } = anno;
-    return new BoxLabel({ x, y, w, h, id, category });
-  }),
-}));
-
-// import { data as segm } from './segmentations';
-// import { PolygonLabel } from '@ZitySpace/react-annotate';
-// const imagesList: ImageData[] = segm.map((img) => ({
+// import { data as rect } from './rectangles';
+// import { BoxLabel } from '@ZitySpace/react-annotate';
+// const imagesList: ImageData[] = rect.map((img) => ({
 //   ...img,
 //   name: img.filename,
+//   url: img.url.replace('images.cocodataset.org', 'localhost:3000'),
 //   annotations: img.annotations.map((anno: any, id: number) => {
-//     const { points, category } = anno;
-//     return new PolygonLabel({ points, id, category });
+//     const { x, y, w, h, category } = anno;
+//     return new BoxLabel({ x, y, w, h, id, category });
 //   }),
 // }));
+
+import { data as segm } from './segmentations';
+import { MaskLabel } from '@ZitySpace/react-annotate';
+const imagesList: ImageData[] = segm.map((img) => ({
+  ...img,
+  name: img.filename,
+  annotations: img.annotations.map((anno: any, id: number) => {
+    const { points: points_, category } = anno;
+    const points = Array.from({ length: points_.length / 2 }, (_, i) => ({
+      x: points_[2 * i] as number,
+      y: points_[2 * i + 1] as number,
+    }));
+    return new MaskLabel({ points, id, category: category as string });
+  }),
+}));
 
 const App = () => {
   return (

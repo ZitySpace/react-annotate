@@ -15,7 +15,7 @@ import { ColorStore, ColorStoreProps } from '../stores/ColorStore';
 import { CVStore, CVStoreProps } from '../stores/CVStore';
 import { ImageMetaStore, ImageMetaStoreProps } from '../stores/ImageMetaStore';
 import { SelectionStore, SelectionStoreProps } from '../stores/SelectionStore';
-import { getLocalTimeISOString } from '../utils';
+import { getLocalTimeISOString } from '../labels/utils';
 import { useListeners } from './useListeners';
 
 export const useSynchronizer = () => {

@@ -41,9 +41,9 @@ export class LineLabel extends Label {
     y2: number;
     category: string;
     id: number;
-    scale: number;
-    offset: { x: number; y: number };
-    coordSystem: CoordSystemType;
+    scale?: number;
+    offset?: { x: number; y: number };
+    coordSystem?: CoordSystemType;
     timestamp?: string;
     hash?: string;
   }) {
