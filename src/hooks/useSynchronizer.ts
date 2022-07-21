@@ -41,7 +41,6 @@ export const useSynchronizer = () => {
     visibleType,
     labels: selectedLabels,
     isSelected,
-    // isVisible,
     calcLabelMode,
   } = useStore(SelectionStore, (s: SelectionStoreProps) => s);
 

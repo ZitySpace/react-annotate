@@ -540,6 +540,64 @@ export const useListeners = (syncCanvasToState: () => void) => {
     },
   };
 
+  const drawMaskListeners = {};
+
+  const editMaskListeners = {
+    'mouse:down': (e: fabric.IEvent<Event>) => {
+      isEditing.current = true;
+    },
+
+    'mouse:up': (e: fabric.IEvent<Event>) => {
+      isEditing.current = false;
+    },
+
+    'mouse:move': (e: fabric.IEvent<Event>) => {
+      const { switched } = trySwitchGroup(e, 'mask:edit');
+      if (switched) return;
+
+      const obj = canvas.getActiveObject();
+      if (!obj || !isEditing.current) return;
+
+      const { w: canvasW, h: canvasH } = canvasInitSize!;
+
+      if (obj.type === 'circle') {
+        const circle = obj as fabric.Circle;
+        const { lineStarting, lineEnding, pointOfPolygon } = circle as any as {
+          lineStarting: fabric.Line;
+          lineEnding: fabric.Line;
+          pointOfPolygon: fabric.Point;
+        };
+
+        const { left, top } = circle;
+
+        const x_ = Math.min(Math.max(offset.x, left!), canvasW - offset.x);
+        const y_ = Math.min(Math.max(offset.y, top!), canvasH - offset.y);
+
+        circle.set({
+          left: x_,
+          top: y_,
+        });
+
+        lineStarting.set({
+          x1: x_,
+          y1: y_,
+        });
+        lineEnding.set({
+          x2: x_,
+          y2: y_,
+        });
+        pointOfPolygon.x = x_;
+        pointOfPolygon.y = y_;
+      }
+
+      canvas.requestRenderAll();
+    },
+
+    'object:modified': (e: fabric.IEvent<Event>) => {
+      syncCanvasToState();
+    },
+  };
+
   const setListeners = (group: string) => {
     isPanning.current = false;
     isDrawing.current = false;
@@ -568,6 +626,12 @@ export const useListeners = (syncCanvasToState: () => void) => {
 
     if (group === 'line:draw')
       listeners = { ...sharedListeners, ...drawLineListeners };
+
+    if (group === 'mask:edit')
+      listeners = { ...sharedListeners, ...editMaskListeners };
+
+    if (group === 'mask:draw')
+      listeners = { ...sharedListeners, ...drawMaskListeners };
 
     canvas.off();
     Object.entries(listeners).forEach(([event, handler]) =>

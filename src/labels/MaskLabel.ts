@@ -76,7 +76,7 @@ export class MaskLabel extends Label {
     } = obj as any;
 
     return new MaskLabel({
-      points,
+      points: (points as { x: number; y: number }[]).map((pt) => ({ ...pt })),
       category,
       id,
       scale,
@@ -89,7 +89,7 @@ export class MaskLabel extends Label {
 
   clone = () =>
     new MaskLabel({
-      points: this.points,
+      points: this.points.map((pt) => ({ ...pt })),
       category: this.category,
       id: this.id,
       scale: this.scale,
@@ -137,10 +137,13 @@ export class MaskLabel extends Label {
   toCanvasObjects = (color: string, mode: string) => {
     const { points, labelType, category, id, timestamp, hash } = this;
 
-    const polygon = new fabric.Polygon([...points], {
-      ...POLYGON_DEFAULT_CONFIG,
-      fill: color,
-    });
+    const polygon = new fabric.Polygon(
+      points.map((pt) => ({ ...pt })),
+      {
+        ...POLYGON_DEFAULT_CONFIG,
+        fill: color,
+      }
+    );
 
     polygon.setOptions({
       labelType,
@@ -191,7 +194,7 @@ export class MaskLabel extends Label {
         })
     );
 
-    circles.forEach((c) =>
+    circles.forEach((c, i) =>
       c.setOptions({
         labelType,
         category,
@@ -199,14 +202,17 @@ export class MaskLabel extends Label {
         timestamp,
         hash,
         syncToLabel: false,
+        lineStarting: null,
+        lineEnding: null,
+        pointOfPolygon: polygon.points![i],
       })
     );
 
     const l = points.length;
     const lines =
-      points.length > 1
+      l > 1
         ? Array.from(
-            { length: points.length },
+            { length: l },
             (_, i) =>
               new fabric.Line(
                 [
@@ -218,6 +224,8 @@ export class MaskLabel extends Label {
                 {
                   ...LINE_DEFAULT_CONFIG,
                   stroke: color,
+                  selectable: false,
+                  hoverCursor: 'default',
                 }
               )
           )
@@ -234,17 +242,27 @@ export class MaskLabel extends Label {
       })
     );
 
-    polygon.visible = false;
+    l > 1 &&
+      circles.forEach((c, i) => {
+        c.setOptions({
+          lineStarting: lines[i],
+          lineEnding: lines[(i + l - 1) % l],
+        });
+      });
+
+    const [r, g, b, a] = color.replace(/[^\d, .]/g, '').split(',');
+    polygon.fill = `rgba(${r}, ${g}, ${b}, 0.01)`;
+    polygon.selectable = false;
 
     if (mode === LabelRenderMode.Drawing)
       return [
         polygon,
-        ...(l > 1 ? circles.slice(0, -1) : circles),
         ...lines.slice(0, -1),
+        ...(l > 1 ? circles.slice(0, -1) : circles),
       ];
 
     if (mode === LabelRenderMode.Selected)
-      return [polygon, ...circles, ...lines];
+      return [polygon, ...lines, ...circles];
 
     return [];
   };
