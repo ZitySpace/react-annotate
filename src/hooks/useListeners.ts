@@ -19,7 +19,14 @@ import {
   LabelRenderMode,
 } from '../labels';
 import { getBetween } from '../utils';
-import { NEW_CATEGORY_NAME, RADIUS, STROKE_WIDTH } from '../interfaces/config';
+import {
+  LINE_DEFAULT_CONFIG,
+  NEW_CATEGORY_NAME,
+  POINT_DEFAULT_CONFIG,
+  RADIUS,
+  STROKE_WIDTH,
+  TRANSPARENT,
+} from '../interfaces/config';
 import { CoordSystemType } from '../labels/BaseLabel';
 
 function parseEvent<T extends MouseEvent | WheelEvent>(e: fabric.IEvent<T>) {
@@ -544,7 +551,16 @@ export const useListeners = (syncCanvasToState: () => void) => {
 
   const editMaskListeners = {
     'mouse:down': (e: fabric.IEvent<Event>) => {
-      isEditing.current = true;
+      const { target, button } = parseEvent(e as fabric.IEvent<MouseEvent>);
+      if (!target) return;
+
+      if (button === 1) {
+        isEditing.current = true;
+      }
+
+      // delete point
+      if (button === 3) {
+      }
     },
 
     'mouse:up': (e: fabric.IEvent<Event>) => {
@@ -552,8 +568,67 @@ export const useListeners = (syncCanvasToState: () => void) => {
     },
 
     'mouse:move': (e: fabric.IEvent<Event>) => {
+      const { target } = e;
+
+      // remove midpoint
+      if (!target || (target.type !== 'line' && target.type !== 'midpoint')) {
+        const circles = canvas
+          .getObjects()
+          .filter((obj) => obj.type === 'midpoint');
+
+        if (circles.length) {
+          const lines = circles.map(
+            (c) => (c as any as { line: fabric.Line }).line
+          );
+
+          lines.forEach((l) =>
+            l.setOptions({
+              midpoint: null,
+            })
+          );
+
+          canvas.remove(...circles);
+          canvas.requestRenderAll();
+        }
+      }
+
       const { switched } = trySwitchGroup(e, 'mask:edit');
       if (switched) return;
+
+      // show midpoint
+      if (target && target.type === 'line') {
+        const line = target as fabric.Line;
+        const { labelType, midpoint } = line as any;
+
+        if (!midpoint) {
+          const circle = new fabric.Circle({
+            ...POINT_DEFAULT_CONFIG,
+            left: (line.x1! + line.x2!) / 2,
+            top: (line.y1! + line.y2!) / 2,
+            fill: line.stroke,
+            stroke: TRANSPARENT,
+          });
+
+          circle.setOptions({
+            labelType,
+            line,
+            lineStarting: null,
+            lineEnding: null,
+            pointOfPolygon: null,
+            type: 'midpoint',
+            syncToLabel: false,
+          });
+
+          line.setOptions({
+            midpoint: circle,
+          });
+
+          canvas.add(circle);
+          canvas.requestRenderAll();
+        }
+
+        return;
+      }
 
       const obj = canvas.getActiveObject();
       if (!obj || !isEditing.current) return;
@@ -586,6 +661,81 @@ export const useListeners = (syncCanvasToState: () => void) => {
           x2: x_,
           y2: y_,
         });
+
+        pointOfPolygon.x = x_;
+        pointOfPolygon.y = y_;
+      }
+
+      // add/update midpoint
+      if (obj.type === 'midpoint') {
+        const circle = obj as fabric.Circle;
+        let { line, lineStarting, lineEnding, pointOfPolygon } =
+          circle as any as {
+            line: fabric.Line;
+            lineStarting: fabric.Line | null;
+            lineEnding: fabric.Line | null;
+            pointOfPolygon: fabric.Point | null;
+          };
+
+        const { left, top } = circle;
+
+        const x_ = Math.min(Math.max(offset.x, left!), canvasW - offset.x);
+        const y_ = Math.min(Math.max(offset.y, top!), canvasH - offset.y);
+
+        line.visible = false;
+
+        if (!lineStarting) {
+          lineStarting = new fabric.Line([x_, y_, line.x2!, line.y2!], {
+            ...LINE_DEFAULT_CONFIG,
+            stroke: line.stroke,
+          });
+          circle.setOptions({ lineStarting });
+          canvas.add(lineStarting);
+        }
+
+        if (!lineEnding) {
+          lineEnding = new fabric.Line([line.x1!, line.y1!, x_, y_], {
+            ...LINE_DEFAULT_CONFIG,
+            stroke: line.stroke,
+          });
+          circle.setOptions({ lineEnding });
+          canvas.add(lineEnding);
+        }
+
+        if (!pointOfPolygon) {
+          const {
+            id,
+            pidsOfPolygon: [pid1, pid2],
+          } = line as any as { id: number; pidsOfPolygon: [number, number] };
+
+          const polygon = canvas
+            .getObjects()
+            .filter(
+              (obj) =>
+                obj.type === 'polygon' && (obj as LabeledObject).id === id
+            )[0] as fabric.Polygon;
+
+          const points = polygon.points!;
+
+          pointOfPolygon = new fabric.Point(circle.left!, circle.top!);
+          circle.setOptions({ pointOfPolygon });
+          points.splice(pid2, 0, pointOfPolygon);
+        }
+
+        circle.set({
+          left: x_,
+          top: y_,
+        });
+
+        lineStarting.set({
+          x1: x_,
+          y1: y_,
+        });
+        lineEnding.set({
+          x2: x_,
+          y2: y_,
+        });
+
         pointOfPolygon.x = x_;
         pointOfPolygon.y = y_;
       }

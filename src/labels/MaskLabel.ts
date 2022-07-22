@@ -205,6 +205,7 @@ export class MaskLabel extends Label {
         lineStarting: null,
         lineEnding: null,
         pointOfPolygon: polygon.points![i],
+        pidOfPolygon: i,
       })
     );
 
@@ -231,20 +232,22 @@ export class MaskLabel extends Label {
           )
         : [];
 
-    lines.forEach((l) =>
-      l.setOptions({
+    lines.forEach((line, i) =>
+      line.setOptions({
         labelType,
         category,
         id,
         timestamp,
         hash,
         syncToLabel: false,
+        midpoint: null,
+        pidsOfPolygon: [i % l, (i + 1) % l],
       })
     );
 
     l > 1 &&
-      circles.forEach((c, i) => {
-        c.setOptions({
+      circles.forEach((circle, i) => {
+        circle.setOptions({
           lineStarting: lines[i],
           lineEnding: lines[(i + l - 1) % l],
         });
