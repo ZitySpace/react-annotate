@@ -560,6 +560,26 @@ export const useListeners = (syncCanvasToState: () => void) => {
 
       // delete point
       if (button === 3) {
+        if (target.type !== 'circle') return;
+
+        const circle = target as fabric.Circle;
+        const { id, pidOfPolygon } = circle as any as {
+          id: number;
+          pidOfPolygon: number;
+        };
+
+        const polygon = canvas
+          .getObjects()
+          .filter(
+            (obj) => obj.type === 'polygon' && (obj as LabeledObject).id === id
+          )[0] as fabric.Polygon;
+
+        const points = polygon.points!;
+
+        if (points.length < 4) return;
+
+        points.splice(pidOfPolygon, 1);
+        syncCanvasToState();
       }
     },
 
