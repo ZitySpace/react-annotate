@@ -198,7 +198,10 @@ export const useListeners = (syncCanvasToState: () => void) => {
           scale,
           offset,
           coordSystem: CoordSystemType.Canvas,
-        }).toCanvasObjects(color, LabelRenderMode.Drawing)[0];
+        }).toCanvasObjects(color, LabelRenderMode.Drawing)[0] as fabric.Rect;
+        rect.set({
+          hoverCursor: 'default',
+        });
 
         canvas.add(rect);
         isDrawing.current = true;
@@ -239,6 +242,7 @@ export const useListeners = (syncCanvasToState: () => void) => {
         width: x2_ - x_,
         height: y2_ - y_,
       });
+      rect.setCoords();
 
       canvas.requestRenderAll();
     },
@@ -404,7 +408,10 @@ export const useListeners = (syncCanvasToState: () => void) => {
           scale,
           offset,
           coordSystem: CoordSystemType.Canvas,
-        }).toCanvasObjects(color, LabelRenderMode.Drawing)[0];
+        }).toCanvasObjects(color, LabelRenderMode.Drawing)[0] as fabric.Line;
+        line.set({
+          hoverCursor: 'default',
+        });
 
         canvas.add(line);
         isDrawing.current = true;
@@ -438,6 +445,7 @@ export const useListeners = (syncCanvasToState: () => void) => {
         x2: Math.min(Math.max(offset.x, x), canvasW - offset.x),
         y2: Math.min(Math.max(offset.y, y), canvasH - offset.y),
       });
+      line.setCoords();
 
       canvas.requestRenderAll();
     },
@@ -558,10 +566,6 @@ export const useListeners = (syncCanvasToState: () => void) => {
       if (!isDrawing.current) {
         const category = selectedCategory || NEW_CATEGORY_NAME;
         const id = Math.max(-1, ...curState.map(({ id }) => id)) + 1;
-        console.log(
-          curState.map(({ id }) => id),
-          id
-        );
         const color = getColor(category);
 
         const objs = new MaskLabel({
@@ -573,47 +577,47 @@ export const useListeners = (syncCanvasToState: () => void) => {
           coordSystem: CoordSystemType.Canvas,
         }).toCanvasObjects(color, LabelRenderMode.Drawing);
 
-        canvas.add(...objs);
-
-        const lastCircle = objs.pop() as fabric.Circle;
+        const circle = objs.pop() as fabric.Circle;
+        const polygon = objs.pop() as fabric.Polygon;
         const line = new fabric.Line(
-          [
-            lastCircle.left!,
-            lastCircle.top!,
-            lastCircle.left!,
-            lastCircle.top!,
-          ],
+          [circle.left!, circle.top!, circle.left!, circle.top!],
           {
             ...LINE_DEFAULT_CONFIG,
-            stroke: lastCircle.fill as string,
+            stroke: circle.fill as string,
             selectable: false,
+            hoverCursor: 'default',
           }
         );
         line.setOptions({
           id,
           syncToLabel: false,
+          tailLine: true,
         });
-        canvas.add(line);
-        canvas.add(lastCircle);
+        canvas.add(polygon, circle, line);
+        line.moveTo(canvas.getObjects().indexOf(polygon) + 1);
 
         isDrawing.current = true;
       } else {
-        if (!target) {
-          const circle = canvas.getObjects().at(-1)! as fabric.Circle;
-          const { id } = circle as fabric.Object as LabeledObject;
-          const color = circle.fill as string;
+        if (!target) return;
 
+        if (target.type === 'line') {
+          const line_ = target as fabric.Line;
+          if (!(line_ as any).tailLine) return;
+          line_.setOptions({ tailLine: false });
+
+          const { id } = canvas.getObjects().at(-1) as LabeledObject;
           const polygon = canvas
             .getObjects()
             .filter(
               (obj) =>
                 obj.type === 'polygon' && (obj as LabeledObject).id === id
             )[0] as fabric.Polygon;
+          const color = line_.stroke!;
 
           const points = polygon.points!;
           points.push(new fabric.Point(x, y));
 
-          const lastCircle = new fabric.Circle({
+          const circle = new fabric.Circle({
             ...POINT_DEFAULT_CONFIG,
             left: x,
             top: y,
@@ -621,7 +625,7 @@ export const useListeners = (syncCanvasToState: () => void) => {
             stroke: TRANSPARENT,
             selectable: false,
           });
-          lastCircle.setOptions({
+          circle.setOptions({
             id,
             pidOfPolygon: points.length - 1,
             syncToLabel: false,
@@ -631,14 +635,25 @@ export const useListeners = (syncCanvasToState: () => void) => {
             ...LINE_DEFAULT_CONFIG,
             stroke: color,
             selectable: false,
+            hoverCursor: 'default',
           });
-          line.setOptions({ id, syncToLabel: false });
+          line.setOptions({ id, syncToLabel: false, tailLine: true });
 
-          canvas.add(line);
-          canvas.add(lastCircle);
-        } else {
-          if (target.type !== 'circle') return;
+          canvas.add(circle, line);
+          line.moveTo(canvas.getObjects().indexOf(polygon) + 1);
 
+          const firstCircle = canvas
+            .getObjects()
+            .filter(
+              (obj) =>
+                obj.type === 'circle' &&
+                (obj as LabeledObject).id === id &&
+                !(obj as any).pidOfPolygon
+            )[0] as fabric.Circle;
+          circle.moveTo(canvas.getObjects().indexOf(firstCircle) + 1);
+        }
+
+        if (target.type === 'circle') {
           const circle = target as fabric.Circle;
           const { id, pidOfPolygon } = circle as any as {
             id: number;
@@ -679,12 +694,17 @@ export const useListeners = (syncCanvasToState: () => void) => {
       const { x, y } = canvas.getPointer(evt);
       const { w: canvasW, h: canvasH } = canvasInitSize!;
 
-      const line = canvas.getObjects().at(-2)! as fabric.Line;
+      const line = canvas
+        .getObjects()
+        .filter(
+          (obj) => obj.type === 'line' && (obj as any).tailLine
+        )[0] as fabric.Line;
 
       line.set({
         x2: Math.min(Math.max(offset.x, x), canvasW - offset.x),
         y2: Math.min(Math.max(offset.y, y), canvasH - offset.y),
       });
+      line.setCoords();
 
       canvas.requestRenderAll();
     },
