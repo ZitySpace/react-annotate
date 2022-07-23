@@ -257,12 +257,10 @@ export class MaskLabel extends Label {
     polygon.fill = `rgba(${r}, ${g}, ${b}, 0.01)`;
     polygon.selectable = false;
 
-    if (mode === LabelRenderMode.Drawing)
-      return [
-        polygon,
-        ...lines.slice(0, -1),
-        ...(l > 1 ? circles.slice(0, -1) : circles),
-      ];
+    if (mode === LabelRenderMode.Drawing) {
+      circles.forEach((c) => (c.selectable = false));
+      return [polygon, ...lines.slice(0, -1), ...circles];
+    }
 
     if (mode === LabelRenderMode.Selected)
       return [polygon, ...lines, ...circles];

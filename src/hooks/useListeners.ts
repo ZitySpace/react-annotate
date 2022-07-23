@@ -17,6 +17,7 @@ import {
   PointLabel,
   LineLabel,
   LabelRenderMode,
+  MaskLabel,
 } from '../labels';
 import { getBetween } from '../utils';
 import {
@@ -547,7 +548,147 @@ export const useListeners = (syncCanvasToState: () => void) => {
     },
   };
 
-  const drawMaskListeners = {};
+  const drawMaskListeners = {
+    'mouse:down': (e: fabric.IEvent<Event>) => {
+      const { evt, target } = parseEvent(e as fabric.IEvent<MouseEvent>);
+      const { x, y } = canvas.getPointer(evt);
+
+      if (!inImageOI(x, y)) return;
+
+      if (!isDrawing.current) {
+        const category = selectedCategory || NEW_CATEGORY_NAME;
+        const id = Math.max(-1, ...curState.map(({ id }) => id)) + 1;
+        console.log(
+          curState.map(({ id }) => id),
+          id
+        );
+        const color = getColor(category);
+
+        const objs = new MaskLabel({
+          points: [{ x, y }],
+          category,
+          id,
+          scale,
+          offset,
+          coordSystem: CoordSystemType.Canvas,
+        }).toCanvasObjects(color, LabelRenderMode.Drawing);
+
+        canvas.add(...objs);
+
+        const lastCircle = objs.pop() as fabric.Circle;
+        const line = new fabric.Line(
+          [
+            lastCircle.left!,
+            lastCircle.top!,
+            lastCircle.left!,
+            lastCircle.top!,
+          ],
+          {
+            ...LINE_DEFAULT_CONFIG,
+            stroke: lastCircle.fill as string,
+            selectable: false,
+          }
+        );
+        line.setOptions({
+          id,
+          syncToLabel: false,
+        });
+        canvas.add(line);
+        canvas.add(lastCircle);
+
+        isDrawing.current = true;
+      } else {
+        if (!target) {
+          const circle = canvas.getObjects().at(-1)! as fabric.Circle;
+          const { id } = circle as fabric.Object as LabeledObject;
+          const color = circle.fill as string;
+
+          const polygon = canvas
+            .getObjects()
+            .filter(
+              (obj) =>
+                obj.type === 'polygon' && (obj as LabeledObject).id === id
+            )[0] as fabric.Polygon;
+
+          const points = polygon.points!;
+          points.push(new fabric.Point(x, y));
+
+          const lastCircle = new fabric.Circle({
+            ...POINT_DEFAULT_CONFIG,
+            left: x,
+            top: y,
+            fill: color,
+            stroke: TRANSPARENT,
+            selectable: false,
+          });
+          lastCircle.setOptions({
+            id,
+            pidOfPolygon: points.length - 1,
+            syncToLabel: false,
+          });
+
+          const line = new fabric.Line([x, y, x, y], {
+            ...LINE_DEFAULT_CONFIG,
+            stroke: color,
+            selectable: false,
+          });
+          line.setOptions({ id, syncToLabel: false });
+
+          canvas.add(line);
+          canvas.add(lastCircle);
+        } else {
+          if (target.type !== 'circle') return;
+
+          const circle = target as fabric.Circle;
+          const { id, pidOfPolygon } = circle as any as {
+            id: number;
+            pidOfPolygon: number;
+          };
+          if (pidOfPolygon) return;
+
+          const polygon = canvas
+            .getObjects()
+            .filter(
+              (obj) =>
+                obj.type === 'polygon' && (obj as LabeledObject).id === id
+            )[0] as fabric.Polygon;
+
+          const points = polygon.points!;
+          const invalid = points.length < 3;
+          if (invalid) {
+            canvas.remove(
+              ...canvas
+                .getObjects()
+                .filter((obj) => (obj as LabeledObject).id === id)
+            );
+          } else {
+            syncCanvasToState();
+            setDrawType();
+            selectCanvasObject(polygon as fabric.Object as LabeledObject);
+          }
+
+          isDrawing.current = false;
+        }
+      }
+    },
+
+    'mouse:move': (e: fabric.IEvent<Event>) => {
+      if (!isDrawing.current) return;
+
+      const { evt } = parseEvent(e as fabric.IEvent<MouseEvent>);
+      const { x, y } = canvas.getPointer(evt);
+      const { w: canvasW, h: canvasH } = canvasInitSize!;
+
+      const line = canvas.getObjects().at(-2)! as fabric.Line;
+
+      line.set({
+        x2: Math.min(Math.max(offset.x, x), canvasW - offset.x),
+        y2: Math.min(Math.max(offset.y, y), canvasH - offset.y),
+      });
+
+      canvas.requestRenderAll();
+    },
+  };
 
   const editMaskListeners = {
     'mouse:down': (e: fabric.IEvent<Event>) => {
