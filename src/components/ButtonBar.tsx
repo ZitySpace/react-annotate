@@ -77,6 +77,7 @@ export const ButtonBar = ({
   const isDrawingLine = isDrawingMe(LabelType.Line);
   const isDrawingBox = isDrawingMe(LabelType.Box);
   const isDrawingPolygon = isDrawingMe(LabelType.Mask);
+  const isDrawing = drawType !== LabelType.None;
 
   return (
     <div className='h-9 flex justify-center space-x-8 items-center absolute bottom-0 select-none'>
@@ -119,15 +120,15 @@ export const ButtonBar = ({
           <PolygonIcon />
         </Button>
 
-        <Button canUse={canUndo} onClick={undo}>
+        <Button canUse={canUndo && !isDrawing} onClick={undo}>
           <UndoIcon />
         </Button>
 
-        <Button canUse={canRedo} onClick={redo}>
+        <Button canUse={canRedo && !isDrawing} onClick={redo}>
           <RedoIcon />
         </Button>
 
-        <Button canUse={canReset} onClick={reset}>
+        <Button canUse={canReset && !isDrawing} onClick={reset}>
           <ResetIcon />
         </Button>
 

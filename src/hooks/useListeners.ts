@@ -559,11 +559,11 @@ export const useListeners = (syncCanvasToState: () => void) => {
   const drawMaskListeners = {
     'mouse:down': (e: fabric.IEvent<Event>) => {
       const { evt, target } = parseEvent(e as fabric.IEvent<MouseEvent>);
-      const { x, y } = canvas.getPointer(evt);
-
-      if (!inImageOI(x, y)) return;
 
       if (!isDrawing.current) {
+        const { x, y } = canvas.getPointer(evt);
+        if (!inImageOI(x, y)) return;
+
         const category = selectedCategory || NEW_CATEGORY_NAME;
         const id = Math.max(-1, ...curState.map(({ id }) => id)) + 1;
         const color = getColor(category);
@@ -598,12 +598,19 @@ export const useListeners = (syncCanvasToState: () => void) => {
 
         isDrawing.current = true;
       } else {
-        if (!target) return;
+        if (!target || target.type === 'line') {
+          let line_;
+          if (!target)
+            line_ = canvas
+              .getObjects()
+              .filter(
+                (obj) => obj.type === 'line' && (obj as any).tailLine
+              )[0] as fabric.Line;
+          else line_ = target as fabric.Line;
 
-        if (target.type === 'line') {
-          const line_ = target as fabric.Line;
           if (!(line_ as any).tailLine) return;
           line_.setOptions({ tailLine: false });
+          const [x, y] = [line_.x2!, line_.y2!];
 
           const { id } = canvas.getObjects().at(-1) as LabeledObject;
           const polygon = canvas
@@ -653,7 +660,7 @@ export const useListeners = (syncCanvasToState: () => void) => {
           circle.moveTo(canvas.getObjects().indexOf(firstCircle) + 1);
         }
 
-        if (target.type === 'circle') {
+        if (target && target.type === 'circle') {
           const circle = target as fabric.Circle;
           const { id, pidOfPolygon } = circle as any as {
             id: number;
