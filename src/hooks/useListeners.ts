@@ -9,6 +9,7 @@ import { CanvasStore, CanvasStoreProps } from '../stores/CanvasStore';
 import { ImageMetaStore, ImageMetaStoreProps } from '../stores/ImageMetaStore';
 import { SelectionStore, SelectionStoreProps } from '../stores/SelectionStore';
 import { ColorStore, ColorStoreProps } from '../stores/ColorStore';
+import { CVStore, CVStoreProps } from '../stores/CVStore';
 import {
   LabeledObject,
   LabelType,
@@ -24,6 +25,7 @@ import {
   LINE_DEFAULT_CONFIG,
   NEW_CATEGORY_NAME,
   POINT_DEFAULT_CONFIG,
+  POLYLINE_DEFAULT_CONFIG,
   RADIUS,
   STROKE_WIDTH,
   TRANSPARENT,
@@ -62,6 +64,12 @@ export const useListeners = (syncCanvasToState: () => void) => {
 
   const getColor = useStore(ColorStore, (s: ColorStoreProps) => s.getColor);
 
+  const cv = window['cv'];
+  const { intelligentScissor, AIMode } = useStore(
+    CVStore,
+    (s: CVStoreProps) => s
+  );
+
   // lastPosition is relative mouse coords on the viewport,
   // e.g. top-left is always (0,0)
   const lastPosition = useRef<fabric.Point>(new fabric.Point(0, 0));
@@ -73,6 +81,7 @@ export const useListeners = (syncCanvasToState: () => void) => {
   const isEditing = useRef<boolean>(false);
   const isObjectMoving = useRef<boolean>(false);
   const listenerGroup = useRef<string>('default');
+  const isScissorMapUpdated = useRef<boolean>(false);
 
   useEffect(() => {
     if (!canvas) return;
@@ -85,6 +94,81 @@ export const useListeners = (syncCanvasToState: () => void) => {
     const group = drawType === LabelType.None ? 'default' : drawType + ':draw';
     setListeners(group);
   }, [drawType]);
+
+  useEffect(() => {
+    if (!canvas) return;
+
+    if (drawType === LabelType.Mask) {
+      const drawing = isDrawing.current;
+      refreshListeners();
+
+      if (!drawing) return;
+
+      isDrawing.current = true;
+
+      const line = canvas
+        .getObjects()
+        .filter(
+          (obj) =>
+            (obj.type === 'polyline' || obj.type === 'line') &&
+            (obj as any).tailLine
+        )[0];
+      const { id } = line as LabeledObject;
+      const idx = canvas.getObjects().indexOf(line);
+
+      let newLine: fabric.Line | fabric.Polyline;
+      if (!AIMode) {
+        const { stroke, points } = line as fabric.Polyline;
+
+        newLine = new fabric.Line(
+          [
+            points!.at(0)!.x,
+            points!.at(0)!.y,
+            points!.at(-1)!.x,
+            points!.at(-1)!.y,
+          ],
+          {
+            ...LINE_DEFAULT_CONFIG,
+            stroke,
+            selectable: false,
+            hoverCursor: 'default',
+          }
+        );
+      } else {
+        const { stroke, x1, y1, x2, y2 } = line as fabric.Line;
+
+        if (!isScissorMapUpdated.current) {
+          intelligentScissor.buildMap(
+            new fabric.Point((x1! - offset.x) / scale, (y1! - offset.y) / scale)
+          );
+          isScissorMapUpdated.current = true;
+        }
+
+        const points = calcScissorPath(
+          new fabric.Point((x2! - offset.x) / scale, (y2! - offset.y) / scale)
+        );
+
+        newLine = new fabric.Polyline(points, {
+          ...POLYLINE_DEFAULT_CONFIG,
+          stroke,
+          fill: TRANSPARENT,
+          selectable: false,
+          hoverCursor: 'default',
+        });
+      }
+
+      newLine.setOptions({
+        id,
+        syncToLabel: false,
+        tailLine: true,
+      });
+
+      canvas.remove(line).add(newLine);
+      newLine.moveTo(idx);
+
+      canvas.requestRenderAll();
+    }
+  }, [AIMode]);
 
   if (!canvas) return () => {};
 
@@ -556,6 +640,31 @@ export const useListeners = (syncCanvasToState: () => void) => {
     },
   };
 
+  const calcScissorPath = (point: fabric.Point) => {
+    let contour = new cv.Mat();
+    intelligentScissor.getContour(point, contour);
+    cv.approxPolyDP(
+      contour,
+      contour,
+      0.015 * cv.arcLength(contour, false),
+      false
+    );
+
+    const points_: number[] = Array.from(contour.data32S);
+
+    const points = Array.from(
+      { length: points_.length / 2 },
+      (_, i) =>
+        new fabric.Point(
+          points_[2 * i] * scale + offset.x,
+          points_[2 * i + 1] * scale + offset.y
+        )
+    );
+
+    contour.delete();
+    return points;
+  };
+
   const drawMaskListeners = {
     'mouse:down': (e: fabric.IEvent<Event>) => {
       const { evt, target } = parseEvent(e as fabric.IEvent<MouseEvent>);
@@ -579,15 +688,39 @@ export const useListeners = (syncCanvasToState: () => void) => {
 
         const circle = objs.pop() as fabric.Circle;
         const polygon = objs.pop() as fabric.Polygon;
-        const line = new fabric.Line(
-          [circle.left!, circle.top!, circle.left!, circle.top!],
-          {
+
+        let line: fabric.Line | fabric.Polyline;
+
+        if (!AIMode) {
+          line = new fabric.Line([x, y, x, y], {
             ...LINE_DEFAULT_CONFIG,
-            stroke: circle.fill as string,
+            stroke: color,
             selectable: false,
             hoverCursor: 'default',
-          }
-        );
+          });
+
+          isScissorMapUpdated.current = false;
+        } else {
+          line = new fabric.Polyline(
+            [
+              { x, y },
+              { x, y },
+            ],
+            {
+              ...POLYLINE_DEFAULT_CONFIG,
+              stroke: color,
+              fill: TRANSPARENT,
+              selectable: false,
+              hoverCursor: 'default',
+            }
+          );
+
+          intelligentScissor.buildMap(
+            new fabric.Point((x - offset.x) / scale, (y - offset.y) / scale)
+          );
+          isScissorMapUpdated.current = true;
+        }
+
         line.setOptions({
           id,
           syncToLabel: false,
@@ -598,68 +731,121 @@ export const useListeners = (syncCanvasToState: () => void) => {
 
         isDrawing.current = true;
       } else {
-        if (!target || target.type === 'line') {
+        // add another point
+        if (!target || target.type === 'line' || target.type === 'polyline') {
           let line_;
           if (!target)
             line_ = canvas
               .getObjects()
               .filter(
-                (obj) => obj.type === 'line' && (obj as any).tailLine
-              )[0] as fabric.Line;
-          else line_ = target as fabric.Line;
+                (obj) =>
+                  (obj.type === 'line' || obj.type === 'polyline') &&
+                  (obj as any).tailLine
+              )[0];
+          else line_ = target;
 
           if (!(line_ as any).tailLine) return;
           line_.setOptions({ tailLine: false });
-          const [x, y] = [line_.x2!, line_.y2!];
 
-          const { id } = canvas.getObjects().at(-1) as LabeledObject;
-          const polygon = canvas
-            .getObjects()
-            .filter(
-              (obj) =>
-                obj.type === 'polygon' && (obj as LabeledObject).id === id
-            )[0] as fabric.Polygon;
-          const color = line_.stroke!;
+          if (!AIMode) {
+            line_ = line_ as fabric.Line;
+            const [x, y] = [line_.x2!, line_.y2!];
 
-          const points = polygon.points!;
-          points.push(new fabric.Point(x, y));
+            const { id } = canvas.getObjects().at(-1) as LabeledObject;
+            const polygon = canvas
+              .getObjects()
+              .filter(
+                (obj) =>
+                  obj.type === 'polygon' && (obj as LabeledObject).id === id
+              )[0] as fabric.Polygon;
+            const color = line_.stroke!;
 
-          const circle = new fabric.Circle({
-            ...POINT_DEFAULT_CONFIG,
-            left: x,
-            top: y,
-            fill: color,
-            stroke: TRANSPARENT,
-            selectable: false,
-          });
-          circle.setOptions({
-            id,
-            pidOfPolygon: points.length - 1,
-            syncToLabel: false,
-          });
+            const points = polygon.points!;
+            points.push(new fabric.Point(x, y));
 
-          const line = new fabric.Line([x, y, x, y], {
-            ...LINE_DEFAULT_CONFIG,
-            stroke: color,
-            selectable: false,
-            hoverCursor: 'default',
-          });
-          line.setOptions({ id, syncToLabel: false, tailLine: true });
+            const circle = new fabric.Circle({
+              ...POINT_DEFAULT_CONFIG,
+              left: x,
+              top: y,
+              fill: color,
+              stroke: TRANSPARENT,
+              selectable: false,
+            });
+            circle.setOptions({
+              id,
+              pidOfPolygon: points.length - 1,
+              syncToLabel: false,
+            });
 
-          canvas.add(circle, line);
-          line.moveTo(canvas.getObjects().indexOf(polygon) + 1);
+            const line = new fabric.Line([x, y, x, y], {
+              ...LINE_DEFAULT_CONFIG,
+              stroke: color,
+              selectable: false,
+              hoverCursor: 'default',
+            });
+            line.setOptions({ id, syncToLabel: false, tailLine: true });
 
-          const firstCircle = canvas
-            .getObjects()
-            .filter(
-              (obj) =>
-                obj.type === 'circle' &&
-                (obj as LabeledObject).id === id &&
-                !(obj as any).pidOfPolygon
-            )[0] as fabric.Circle;
-          circle.moveTo(canvas.getObjects().indexOf(firstCircle) + 1);
+            canvas.add(circle, line);
+            line.moveTo(canvas.getObjects().indexOf(polygon) + 1);
+
+            isScissorMapUpdated.current = false;
+          } else {
+            line_ = line_ as fabric.Polyline;
+            const points_ = line_.points!;
+            const [x, y] = [points_!.at(-1)!.x, points_!.at(-1)!.y];
+
+            const { id } = canvas.getObjects().at(-1) as LabeledObject;
+            const polygon = canvas
+              .getObjects()
+              .filter(
+                (obj) =>
+                  obj.type === 'polygon' && (obj as LabeledObject).id === id
+              )[0] as fabric.Polygon;
+            const color = line_.stroke!;
+
+            const points = polygon.points!;
+            points.push(...points_.slice(1));
+
+            const circle = new fabric.Circle({
+              ...POINT_DEFAULT_CONFIG,
+              left: x,
+              top: y,
+              fill: color,
+              stroke: TRANSPARENT,
+              selectable: false,
+            });
+            circle.setOptions({
+              id,
+              pidOfPolygon: points.length - 1,
+              syncToLabel: false,
+            });
+
+            const line = new fabric.Polyline(
+              [
+                { x, y },
+                { x, y },
+              ],
+              {
+                ...POLYLINE_DEFAULT_CONFIG,
+                stroke: color,
+                fill: TRANSPARENT,
+                selectable: false,
+                hoverCursor: 'default',
+              }
+            );
+            line.setOptions({ id, syncToLabel: false, tailLine: true });
+
+            canvas.add(circle, line);
+            line.moveTo(canvas.getObjects().indexOf(polygon) + 1);
+
+            intelligentScissor.buildMap(
+              new fabric.Point((x - offset.x) / scale, (y - offset.y) / scale)
+            );
+            isScissorMapUpdated.current = true;
+          }
         }
 
+        // close the polygon
         if (target && target.type === 'circle') {
           const circle = target as fabric.Circle;
           const { id, pidOfPolygon } = circle as any as {
@@ -676,6 +862,18 @@ export const useListeners = (syncCanvasToState: () => void) => {
             )[0] as fabric.Polygon;
 
           const points = polygon.points!;
+
+          if (AIMode) {
+            const line = canvas
+              .getObjects()
+              .filter(
+                (obj) => obj.type === 'polyline' && (obj as any).tailLine
+              )[0] as fabric.Polyline;
+
+            const points_ = line.points!;
+            points.push(...points_.slice(1, -1));
+          }
+
           const invalid = points.length < 3;
           if (invalid) {
             canvas.remove(
@@ -684,6 +882,8 @@ export const useListeners = (syncCanvasToState: () => void) => {
                 .filter((obj) => (obj as LabeledObject).id === id)
             );
           } else {
+            if (AIMode) isScissorMapUpdated.current = false;
+
             syncCanvasToState();
             setDrawType();
             selectCanvasObject(polygon as fabric.Object as LabeledObject);
@@ -700,18 +900,52 @@ export const useListeners = (syncCanvasToState: () => void) => {
       const { evt } = parseEvent(e as fabric.IEvent<MouseEvent>);
       const { x, y } = canvas.getPointer(evt);
       const { w: canvasW, h: canvasH } = canvasInitSize!;
+      const x_ = Math.min(Math.max(offset.x, x), canvasW - offset.x);
+      const y_ = Math.min(Math.max(offset.y, y), canvasH - offset.y);
 
-      const line = canvas
-        .getObjects()
-        .filter(
-          (obj) => obj.type === 'line' && (obj as any).tailLine
-        )[0] as fabric.Line;
+      let line: fabric.Line | fabric.Polyline;
+      if (!AIMode) {
+        line = canvas
+          .getObjects()
+          .filter(
+            (obj) => obj.type === 'line' && (obj as any).tailLine
+          )[0] as fabric.Line;
 
-      line.set({
-        x2: Math.min(Math.max(offset.x, x), canvasW - offset.x),
-        y2: Math.min(Math.max(offset.y, y), canvasH - offset.y),
-      });
-      line.setCoords();
+        line.set({
+          x2: x_,
+          y2: y_,
+        });
+
+        line.setCoords();
+      } else {
+        line = canvas
+          .getObjects()
+          .filter(
+            (obj) => obj.type === 'polyline' && (obj as any).tailLine
+          )[0] as fabric.Polyline;
+
+        const points = calcScissorPath(
+          new fabric.Point((x_ - offset.x) / scale, (y_ - offset.y) / scale)
+        );
+
+        const newLine = new fabric.Polyline(points, {
+          ...POLYLINE_DEFAULT_CONFIG,
+          stroke: line.stroke,
+          fill: TRANSPARENT,
+          selectable: false,
+          hoverCursor: 'default',
+        });
+
+        newLine.setOptions({
+          id: (line as fabric.Object as LabeledObject).id,
+          syncToLabel: false,
+          tailLine: true,
+        });
+
+        const idx = canvas.getObjects().indexOf(line);
+        canvas.remove(line).add(newLine);
+        newLine.moveTo(idx);
+      }
 
       canvas.requestRenderAll();
     },

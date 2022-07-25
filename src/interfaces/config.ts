@@ -16,7 +16,6 @@ export const ANCHOR_CENTER = { originX: 'center', originY: 'center' };
 export const ANCHOR_LEFT_TOP = { originX: 'left', originY: 'top' };
 export const NO_BORDER = { hasControls: false, hasBorders: false };
 export const HOLLOW = { fill: TRANSPARENT, strokeWidth: STROKE_WIDTH };
-export const READ_ONLY = { selectable: false, evented: false };
 export const NOT_DIRECTED_OPERATABLE = {
   hoverCursor: 'default',
   lockMovementX: true,
@@ -45,7 +44,6 @@ export const POINT_DEFAULT_CONFIG: fabric.ICircleOptions = {
 export const LINE_DEFAULT_CONFIG: fabric.ILineOptions = {
   ...ANCHOR_CENTER,
   ...NO_BORDER,
-  // ...NOT_DIRECTED_OPERATABLE,
   strokeWidth: STROKE_WIDTH,
   selectable: true,
   perPixelTargetFind: true,
@@ -73,12 +71,13 @@ export const POLYGON_DEFAULT_CONFIG: fabric.IPolylineOptions = {
   selectable: true,
 };
 
-export const POLYLINE_DEFAULT_OPTIONS: fabric.IPolylineOptions = {
+export const POLYLINE_DEFAULT_CONFIG: fabric.IPolylineOptions = {
   ...ANCHOR_LEFT_TOP,
   ...NO_BORDER,
   ...HOLLOW,
   ...NOT_DIRECTED_OPERATABLE,
-  ...READ_ONLY,
+  perPixelTargetFind: true,
+  selectable: true,
 };
 
 export const TEXTBOX_DEFAULT_CONFIG: fabric.ITextboxOptions = {
@@ -86,12 +85,6 @@ export const TEXTBOX_DEFAULT_CONFIG: fabric.ITextboxOptions = {
   selectable: false,
   hoverCursor: 'default',
   fontSize: 14,
-};
-
-export const BREAKPOINT_DEFAULT_OPTIONS: fabric.ICircleOptions = {
-  ...POINT_DEFAULT_CONFIG,
-  ...READ_ONLY,
-  type: 'breakpoint',
 };
 
 export const checkCursor = `url('${checkImg}'), auto`;
