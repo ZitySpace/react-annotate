@@ -210,10 +210,6 @@ export const useListeners = (syncCanvasToState: () => void) => {
       }
     },
 
-    'selection:cleared': (e: fabric.IEvent<Event>) => {
-      e.e && selectLabels([]);
-    },
-
     'mouse:wheel': (e: fabric.IEvent<Event>) => {
       const { evt } = parseEvent(e as fabric.IEvent<WheelEvent>);
 
