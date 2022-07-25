@@ -191,6 +191,7 @@ export const useListeners = (syncCanvasToState: () => void) => {
     vpt[4] = offsetX > 0 ? offsetX / 2 : getBetween(vpt[4] + x, offsetX, 0);
     vpt[5] = offsetY > 0 ? offsetY / 2 : getBetween(vpt[5] + y, offsetY, 0);
     canvas.requestRenderAll();
+    canvas.getObjects().forEach((obj) => obj.setCoords());
   };
 
   const selectCanvasObject = (obj: LabeledObject) => {
@@ -315,9 +316,9 @@ export const useListeners = (syncCanvasToState: () => void) => {
       const { w: canvasW, h: canvasH } = canvasInitSize!;
 
       const x_ = Math.max(offset.x, x < origX ? x : origX);
-      const x2_ = Math.min(canvasW - offset.x, x > origX ? x : origX);
+      const x2_ = Math.min(canvasW - offset.x - 1, x > origX ? x : origX);
       const y_ = Math.max(offset.y, y < origY ? y : origY);
-      const y2_ = Math.min(canvasH - offset.y, y > origY ? y : origY);
+      const y2_ = Math.min(canvasH - offset.y - 1, y > origY ? y : origY);
 
       const rect = canvas.getObjects().at(-1)! as fabric.Rect;
       rect.set({
@@ -360,8 +361,8 @@ export const useListeners = (syncCanvasToState: () => void) => {
       const y2 = y + h;
 
       if (isObjectMoving.current) {
-        const x_ = Math.min(Math.max(offset.x, x), canvasW - offset.x - w!);
-        const y_ = Math.min(Math.max(offset.y, y), canvasH - offset.y - h!);
+        const x_ = Math.min(Math.max(offset.x, x), canvasW - offset.x - 1 - w!);
+        const y_ = Math.min(Math.max(offset.y, y), canvasH - offset.y - 1 - h!);
         if (x === x_ && y === y_) return;
 
         rect.set({
@@ -370,15 +371,21 @@ export const useListeners = (syncCanvasToState: () => void) => {
         });
       } else {
         const minGap = 2 * STROKE_WIDTH;
-        const x_ = Math.min(Math.max(offset.x, x), canvasW - offset.x - minGap);
-        const y_ = Math.min(Math.max(offset.y, y), canvasH - offset.y - minGap);
+        const x_ = Math.min(
+          Math.max(offset.x, x),
+          canvasW - offset.x - 1 - minGap
+        );
+        const y_ = Math.min(
+          Math.max(offset.y, y),
+          canvasH - offset.y - 1 - minGap
+        );
         const x2_ = Math.min(
           Math.max(offset.x + minGap, x2),
-          canvasW - offset.x
+          canvasW - offset.x - 1
         );
         const y2_ = Math.min(
           Math.max(offset.y + minGap, y2),
-          canvasH - offset.y
+          canvasH - offset.y - 1
         );
 
         if (x === x_ && y === y_ && x2 === x2_ && y2 === y2_) return;
@@ -458,8 +465,8 @@ export const useListeners = (syncCanvasToState: () => void) => {
       const { left, top } = circle;
 
       circle.set({
-        left: Math.min(Math.max(offset.x, left!), canvasW - offset.x),
-        top: Math.min(Math.max(offset.y, top!), canvasH - offset.y),
+        left: Math.min(Math.max(offset.x, left!), canvasW - offset.x - 1),
+        top: Math.min(Math.max(offset.y, top!), canvasH - offset.y - 1),
       });
 
       canvas.requestRenderAll();
@@ -526,8 +533,8 @@ export const useListeners = (syncCanvasToState: () => void) => {
       const line = canvas.getObjects().at(-1)! as fabric.Line;
 
       line.set({
-        x2: Math.min(Math.max(offset.x, x), canvasW - offset.x),
-        y2: Math.min(Math.max(offset.y, y), canvasH - offset.y),
+        x2: Math.min(Math.max(offset.x, x), canvasW - offset.x - 1),
+        y2: Math.min(Math.max(offset.y, y), canvasH - offset.y - 1),
       });
       line.setCoords();
 
@@ -573,8 +580,8 @@ export const useListeners = (syncCanvasToState: () => void) => {
         const translateX =
           l < offset.x
             ? offset.x - l
-            : r > canvasW - offset.x
-            ? canvasW - offset.x - r
+            : r > canvasW - offset.x - 1
+            ? canvasW - offset.x - 1 - r
             : 0;
 
         const t = Math.min(y1_, y2_);
@@ -582,8 +589,8 @@ export const useListeners = (syncCanvasToState: () => void) => {
         const translateY =
           t < offset.y
             ? offset.y - t
-            : b > canvasH - offset.y
-            ? canvasH - offset.y - b
+            : b > canvasH - offset.y - 1
+            ? canvasH - offset.y - 1 - b
             : 0;
 
         line.set({
@@ -611,8 +618,8 @@ export const useListeners = (syncCanvasToState: () => void) => {
 
         const { left, top } = circle;
 
-        const x_ = Math.min(Math.max(offset.x, left!), canvasW - offset.x);
-        const y_ = Math.min(Math.max(offset.y, top!), canvasH - offset.y);
+        const x_ = Math.min(Math.max(offset.x, left!), canvasW - offset.x - 1);
+        const y_ = Math.min(Math.max(offset.y, top!), canvasH - offset.y - 1);
 
         circle.set({
           left: x_,
@@ -900,8 +907,8 @@ export const useListeners = (syncCanvasToState: () => void) => {
       const { evt } = parseEvent(e as fabric.IEvent<MouseEvent>);
       const { x, y } = canvas.getPointer(evt);
       const { w: canvasW, h: canvasH } = canvasInitSize!;
-      const x_ = Math.min(Math.max(offset.x, x), canvasW - offset.x);
-      const y_ = Math.min(Math.max(offset.y, y), canvasH - offset.y);
+      const x_ = Math.min(Math.max(offset.x, x), canvasW - offset.x - 1);
+      const y_ = Math.min(Math.max(offset.y, y), canvasH - offset.y - 1);
 
       let line: fabric.Line | fabric.Polyline;
       if (!AIMode) {
@@ -1067,8 +1074,8 @@ export const useListeners = (syncCanvasToState: () => void) => {
 
         const { left, top } = circle;
 
-        const x_ = Math.min(Math.max(offset.x, left!), canvasW - offset.x);
-        const y_ = Math.min(Math.max(offset.y, top!), canvasH - offset.y);
+        const x_ = Math.min(Math.max(offset.x, left!), canvasW - offset.x - 1);
+        const y_ = Math.min(Math.max(offset.y, top!), canvasH - offset.y - 1);
 
         circle.set({
           left: x_,
@@ -1101,8 +1108,8 @@ export const useListeners = (syncCanvasToState: () => void) => {
 
         const { left, top } = circle;
 
-        const x_ = Math.min(Math.max(offset.x, left!), canvasW - offset.x);
-        const y_ = Math.min(Math.max(offset.y, top!), canvasH - offset.y);
+        const x_ = Math.min(Math.max(offset.x, left!), canvasW - offset.x - 1);
+        const y_ = Math.min(Math.max(offset.y, top!), canvasH - offset.y - 1);
 
         line.visible = false;
 
