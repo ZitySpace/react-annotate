@@ -1,0 +1,1 @@
+export { LineLabel } from './label';

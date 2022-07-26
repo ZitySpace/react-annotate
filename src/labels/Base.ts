@@ -18,6 +18,15 @@ export enum LabelRenderMode {
   Drawing = 'drawing',
 }
 
+export interface LabeledObject extends fabric.Object {
+  labelType: LabelType;
+  category: string;
+  id: number;
+  timestamp: string;
+  hash: string;
+  syncToLabel: boolean;
+}
+
 export abstract class Label {
   readonly labelType: LabelType;
   category: string;

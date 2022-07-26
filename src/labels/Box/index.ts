@@ -1,0 +1,1 @@
+export { BoxLabel } from './label';

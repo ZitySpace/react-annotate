@@ -1,4 +1,4 @@
-import { MAX_FONT_SIZE } from '../interfaces/config';
+import { MAX_FONT_SIZE } from '../config';
 
 export const getFontSize = (width: number, height: number) => {
   return Math.min(MAX_FONT_SIZE, width / 2, height / 2);

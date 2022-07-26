@@ -1,19 +1,14 @@
 import { fabric } from 'fabric';
 import md5 from 'md5';
-import {
-  Label,
-  LabelType,
-  CoordSystemType,
-  LabelRenderMode,
-} from './BaseLabel';
+import { Label, LabelType, CoordSystemType, LabelRenderMode } from '../Base';
 import {
   POINT_DEFAULT_CONFIG,
   RADIUS,
   STROKE_WIDTH,
   TEXTBOX_DEFAULT_CONFIG,
   TRANSPARENT,
-} from '../interfaces/config';
-import { getLocalTimeISOString } from './utils';
+} from '../config';
+import { getLocalTimeISOString } from '../utils/label';
 
 export class PointLabel extends Label {
   x: number;

@@ -1,6 +1,6 @@
 import { fabric } from 'fabric';
 import React, { useEffect, useRef } from 'react';
-import { CANVAS_CONFIG } from '../interfaces/config';
+import { CANVAS_CONFIG } from '../labels/config';
 
 import {
   CanvasMetaStore,

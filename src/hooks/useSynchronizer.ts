@@ -1,7 +1,7 @@
 import md5 from 'md5';
 import { useEffect, useRef } from 'react';
 import { useStore } from 'zustand';
-import { Label, LabeledObject, newLabelFromCanvasObject } from '../labels';
+import { Label, LabeledObject } from '../labels';
 import {
   CanvasMetaStore,
   CanvasMetaStoreProps,
@@ -15,8 +15,11 @@ import { ColorStore, ColorStoreProps } from '../stores/ColorStore';
 import { CVStore, CVStoreProps } from '../stores/CVStore';
 import { ImageMetaStore, ImageMetaStoreProps } from '../stores/ImageMetaStore';
 import { SelectionStore, SelectionStoreProps } from '../stores/SelectionStore';
-import { getLocalTimeISOString } from '../labels/utils';
-import { useListeners } from './useListeners';
+import {
+  getLocalTimeISOString,
+  newLabelFromCanvasObject,
+} from '../labels/utils';
+import { useListeners } from '../labels/listeners';
 
 export const useSynchronizer = () => {
   const { canvas } = useStore(CanvasMetaStore, (s: CanvasMetaStoreProps) => s);
@@ -86,7 +89,7 @@ export const useSynchronizer = () => {
     if (activeObjects.length === 1) canvas.setActiveObject(activeObjects[0]);
   };
 
-  const resetListeners = useListeners(syncCanvasToState);
+  const { resetListeners } = useListeners(syncCanvasToState);
 
   useEffect(() => {
     if (!canvas) return;

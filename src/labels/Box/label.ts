@@ -1,17 +1,12 @@
 import { fabric } from 'fabric';
 import md5 from 'md5';
-import {
-  Label,
-  LabelType,
-  CoordSystemType,
-  LabelRenderMode,
-} from './BaseLabel';
+import { Label, LabelType, CoordSystemType, LabelRenderMode } from '../Base';
 import {
   RECT_DEFAULT_CONFIG,
   STROKE_WIDTH,
   TEXTBOX_DEFAULT_CONFIG,
-} from '../interfaces/config';
-import { getFontSize, getLocalTimeISOString } from './utils';
+} from '../config';
+import { getFontSize, getLocalTimeISOString } from '../utils/label';
 
 export class BoxLabel extends Label {
   x: number;

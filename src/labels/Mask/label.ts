@@ -1,11 +1,6 @@
 import { fabric } from 'fabric';
 import md5 from 'md5';
-import {
-  Label,
-  LabelType,
-  CoordSystemType,
-  LabelRenderMode,
-} from './BaseLabel';
+import { Label, LabelType, CoordSystemType, LabelRenderMode } from '../Base';
 import {
   LINE_DEFAULT_CONFIG,
   POINT_DEFAULT_CONFIG,
@@ -14,8 +9,8 @@ import {
   STROKE_WIDTH,
   TEXTBOX_DEFAULT_CONFIG,
   TRANSPARENT,
-} from '../interfaces/config';
-import { getLocalTimeISOString, getFontSize } from './utils';
+} from '../config';
+import { getLocalTimeISOString, getFontSize } from '../utils/label';
 
 export class MaskLabel extends Label {
   points: { x: number; y: number }[];

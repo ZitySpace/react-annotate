@@ -1,0 +1,1 @@
+export { PointLabel } from './label';
