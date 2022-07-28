@@ -8,6 +8,8 @@ on:
       - 'src/**'
       - '.github/workflows/**'
 
+  workflow_dispatch:
+
 jobs:
   release:
     name: Release
