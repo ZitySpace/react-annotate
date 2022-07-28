@@ -8,8 +8,7 @@
     "dev": "NODE_ENV=development rollup -c -w",
     "build": "NODE_ENV=production rollup -c",
     "test": "jest",
-    "test:watch": "jest --watch",
-    "release": "semantic-release"
+    "test:watch": "jest --watch"
   },
   "main": "dist/index.js",
   "module": "dist/index.esm.js",
@@ -22,6 +21,8 @@
     "@babel/preset-env": "^7.16.7",
     "@babel/preset-react": "^7.16.7",
     "@babel/preset-typescript": "^7.16.7",
+    "@commitlint/cli": "^17.0.3",
+    "@commitlint/config-conventional": "^17.0.3",
     "@rollup/plugin-commonjs": "^21.0.1",
     "@rollup/plugin-node-resolve": "^13.1.2",
     "@rollup/plugin-typescript": "^8.3.0",
@@ -36,6 +37,7 @@
     "autoprefixer": "^10.4.1",
     "babel-jest": "^27.4.5",
     "babel-loader": "^8.2.3",
+    "husky": "^8.0.1",
     "identity-obj-proxy": "^3.0.0",
     "immer": "^9.0.15",
     "jest": "^27.4.5",
