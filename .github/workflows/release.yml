@@ -4,9 +4,11 @@ on:
   push:
     branches:
       - master
-    paths:
-      - 'src/**'
-      - '.github/workflows/**'
+    # paths:
+    #   - 'src/**'
+    #   - '.github/workflows/**'
+    paths-ignore:
+      - 'example/**'
 
   workflow_dispatch:
 
