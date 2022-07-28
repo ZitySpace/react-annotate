@@ -1,16 +1,40 @@
 module.exports = {
   branches: 'master',
   plugins: [
-    '@semantic-release/commit-analyzer',
+    [
+      '@semantic-release/commit-analyzer',
+      {
+        preset: 'angular',
+        releaseRules: [
+          {
+            type: 'style',
+            release: 'patch',
+          },
+          {
+            type: 'docs',
+            release: 'patch',
+          },
+          {
+            type: 'refactor',
+            release: 'patch',
+          },
+        ],
+      },
+    ],
+
     '@semantic-release/release-notes-generator',
+
     [
       '@semantic-release/changelog',
       {
         changelogFile: 'CHANGELOG.md',
       },
     ],
+
     // '@semantic-release/npm',
+
     '@semantic-release/github',
+
     // [
     //   '@semantic-release/git',
     //   {
