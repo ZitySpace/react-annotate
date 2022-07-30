@@ -30,6 +30,12 @@ jobs:
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
+      - name: Lint
+        run: yarn lint
+
+      - name: Prettier Check
+        run: yarn prettier:check
+
       - name: Build
         run: yarn build
 
