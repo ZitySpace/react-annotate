@@ -3,7 +3,7 @@ import { createStore, State, StoreApi } from 'zustand';
 import { Label } from '../labels';
 import produce from 'immer';
 
-interface CanvasState extends Array<Label> {}
+type CanvasState = Array<Label>;
 
 interface StoreData extends State {
   stack: CanvasState[];

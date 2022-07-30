@@ -48,7 +48,7 @@ export const useMaskListeners = (syncCanvasToState: () => void) => {
   );
 
   const calcScissorPath = (point: fabric.Point) => {
-    let contour = new cv.Mat();
+    const contour = new cv.Mat();
     intelligentScissor.getContour(point, contour);
     cv.approxPolyDP(
       contour,

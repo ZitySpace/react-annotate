@@ -1,2 +1,4 @@
 node_modules
-dist*
+dist
+example/node_modules
+example/build

@@ -17,12 +17,15 @@ module.exports = {
   root: true,
   rules: {
     '@typescript-eslint/no-explicit-any': 'off',
-    'react/react-in-jsx-scope': 'off',
+    '@typescript-eslint/no-var-requires': 'off',
+    '@typescript-eslint/no-non-null-assertion': 'off',
+    '@typescript-eslint/no-unused-vars': 'off',
     '@typescript-eslint/ban-types': [
       'error',
       {
         types: {
           Function: false,
+          Object: false,
         },
       },
     ],
@@ -34,8 +37,18 @@ module.exports = {
         ignoreProperties: false,
       },
     ],
+    'react/react-in-jsx-scope': 'off',
+    'react/display-name': 'off',
+    'prefer-const': ['error', { destructuring: 'all' }],
+    'no-console': 'off',
   },
-  ignorePatterns: ['.next/**', 'node_modules/**', 'out/**'],
+  ignorePatterns: [
+    '.next/**',
+    'node_modules/**',
+    'build/**',
+    'out/**',
+    'dist/**',
+  ],
   settings: {
     react: {
       version: 'detect',

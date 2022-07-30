@@ -24,40 +24,40 @@ interface StoreData extends State {
   resetListeners: React.MutableRefObject<() => void>;
 }
 
-let lastPosition =
+const lastPosition =
   createRef<fabric.Point>() as React.MutableRefObject<fabric.Point>;
 lastPosition.current = new fabric.Point(0, 0);
 
-let origPosition = createRef<{
+const origPosition = createRef<{
   x: number;
   y: number;
 }>() as React.MutableRefObject<{ x: number; y: number }>;
 origPosition.current = { x: 0, y: 0 };
 
-let isPanning = createRef<boolean>() as React.MutableRefObject<boolean>;
+const isPanning = createRef<boolean>() as React.MutableRefObject<boolean>;
 isPanning.current = false;
 
-let isDrawing = createRef<boolean>() as React.MutableRefObject<boolean>;
+const isDrawing = createRef<boolean>() as React.MutableRefObject<boolean>;
 isDrawing.current = false;
 
-let isEditing = createRef<boolean>() as React.MutableRefObject<boolean>;
+const isEditing = createRef<boolean>() as React.MutableRefObject<boolean>;
 isEditing.current = false;
 
-let isObjectMoving = createRef<boolean>() as React.MutableRefObject<boolean>;
+const isObjectMoving = createRef<boolean>() as React.MutableRefObject<boolean>;
 isObjectMoving.current = false;
 
-let trySwitchGroup =
+const trySwitchGroup =
   createRef<TrySwitchGroupFunction>() as React.MutableRefObject<TrySwitchGroupFunction>;
 
-let setListeners = createRef<
+const setListeners = createRef<
   (group: string) => void
 >() as React.MutableRefObject<(group: string) => void>;
 
-let refreshListeners = createRef<() => void>() as React.MutableRefObject<
+const refreshListeners = createRef<() => void>() as React.MutableRefObject<
   () => void
 >;
 
-let resetListeners = createRef<() => void>() as React.MutableRefObject<
+const resetListeners = createRef<() => void>() as React.MutableRefObject<
   () => void
 >;
 
@@ -78,7 +78,7 @@ const StoreDataDefault = {
   resetListeners,
 };
 
-interface Store extends StoreData {}
+type Store = StoreData;
 
 const store = createStore<Store>((set) => ({
   ...StoreDataDefault,
