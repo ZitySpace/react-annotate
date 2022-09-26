@@ -83,10 +83,16 @@ export const useSynchronizer = () => {
       const canvasObjects = anno.toCanvasObjects(color, mode);
       canvas.add(...canvasObjects);
     });
+
     const activeObjects = canvas
-      .getObjects('rect')
+      .getObjects()
       .filter((obj) => isSelected((obj as any).id));
-    if (activeObjects.length === 1) canvas.setActiveObject(activeObjects[0]);
+
+    if (
+      activeObjects.length === 1 &&
+      (activeObjects[0] as LabeledObject).labelType === 'box'
+    )
+      canvas.setActiveObject(activeObjects[0]);
   };
 
   const { resetListeners } = useListeners(syncCanvasToState);
