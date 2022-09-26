@@ -1,6 +1,6 @@
 import { fabric } from 'fabric';
 import React, { createContext, createRef } from 'react';
-import { createStore, State, StoreApi } from 'zustand';
+import { createStore, StoreApi } from 'zustand';
 
 export interface TrySwitchGroupFunction {
   (e: fabric.IEvent<Event>, currentGroup: string): {
@@ -11,7 +11,7 @@ export interface TrySwitchGroupFunction {
   };
 }
 
-interface StoreData extends State {
+interface StoreData {
   lastPosition: React.MutableRefObject<fabric.Point>;
   origPosition: React.MutableRefObject<{ x: number; y: number }>;
   isPanning: React.MutableRefObject<boolean>;

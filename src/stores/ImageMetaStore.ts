@@ -1,11 +1,11 @@
 import produce, { enableMapSet } from 'immer';
 import { createContext } from 'react';
-import { createStore, State, StoreApi } from 'zustand';
+import { createStore, StoreApi } from 'zustand';
 import { DataState } from '../interfaces/basic';
 
 enableMapSet();
 
-interface StoreData extends State {
+interface StoreData {
   image: fabric.Image | null;
   name: string | null;
   size: { w: number; h: number } | null;

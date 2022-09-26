@@ -1,11 +1,11 @@
 import { createContext } from 'react';
-import { createStore, State, StoreApi } from 'zustand';
+import { createStore, StoreApi } from 'zustand';
 import { Label } from '../labels';
 import produce from 'immer';
 
 type CanvasState = Array<Label>;
 
-interface StoreData extends State {
+interface StoreData {
   stack: CanvasState[];
   index: number;
   canRedo: boolean;

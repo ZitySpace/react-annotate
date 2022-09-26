@@ -64,7 +64,7 @@
     "tslib": "^2.3.1",
     "typescript": "^4.5.4",
     "webpack": "5.65.0",
-    "zustand": "^4.0.0-rc.1"
+    "zustand": "^4.1.1"
   },
   "peerDependencies": {
     "react": "^17.0.2",

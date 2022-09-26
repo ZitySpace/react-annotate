@@ -1,7 +1,7 @@
 import randomColor from 'randomcolor';
 import produce from 'immer';
 import { createContext } from 'react';
-import { createStore, State, StoreApi } from 'zustand';
+import { createStore, StoreApi } from 'zustand';
 
 const colorMapDefault = randomColor({
   seed: 19,
@@ -18,7 +18,7 @@ const makeRandomColor = () =>
     count: Date.now() % 10,
   })[Math.floor(Math.random() * 10)];
 
-interface StoreData extends State {
+interface StoreData {
   colors: {
     [key: string]: string;
   };

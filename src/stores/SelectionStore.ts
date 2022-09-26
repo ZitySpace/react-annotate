@@ -1,9 +1,9 @@
 import { createContext } from 'react';
-import { createStore, State, StoreApi } from 'zustand';
+import { createStore, StoreApi } from 'zustand';
 import { Label, LabelType, LabelRenderMode } from '../labels';
 import { mostRepeatedValue } from '../utils';
 
-interface StoreData extends State {
+interface StoreData {
   multi: boolean;
   drawType: LabelType;
   visibleType: LabelType[];

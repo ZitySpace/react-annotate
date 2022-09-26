@@ -1,7 +1,7 @@
 import { createContext } from 'react';
-import { createStore, State, StoreApi } from 'zustand';
+import { createStore, StoreApi } from 'zustand';
 
-interface StoreData extends State {
+interface StoreData {
   ready: boolean;
   intelligentScissor: any;
   img: any;
