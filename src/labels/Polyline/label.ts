@@ -212,6 +212,8 @@ export class PolylineLabel extends Label {
           syncToLabel: false,
           lineStarting: null,
           lineEnding: null,
+          polyline: polylines[i],
+          point: polylines[i].points![j],
         })
       )
     );
@@ -241,6 +243,7 @@ export class PolylineLabel extends Label {
           hash,
           syncToLabel: false,
           midpoint: null,
+          polyline: polylines[i],
         })
       )
     );

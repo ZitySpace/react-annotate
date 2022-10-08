@@ -81,6 +81,7 @@ export const usePolylineListeners = (
           id,
           syncToLabel: false,
           tailLine: true,
+          polyline: polylines[0],
         });
 
         canvas.add(...polylines, tailLine, ...circles.flat());
@@ -102,11 +103,7 @@ export const usePolylineListeners = (
         const { id } = tailLine as fabric.Object as LabeledObject;
         const color = tailLine.stroke;
 
-        const polyline = canvas
-          .getObjects()
-          .filter(
-            (obj) => obj.type === 'polyline' && (obj as LabeledObject).id === id
-          )[0] as fabric.Polyline;
+        const { polyline } = tailLine as any as { polyline: fabric.Polyline };
         const points = polyline.points!;
         const objs = canvas.getObjects();
 
@@ -114,7 +111,8 @@ export const usePolylineListeners = (
           tailLine.setOptions({ tailLine: false });
           const [x, y] = [tailLine.x2!, tailLine.y2!];
 
-          points.push(new fabric.Point(x, y));
+          const point = new fabric.Point(x, y);
+          points.push(point);
 
           const circle = new fabric.Circle({
             ...POINT_DEFAULT_CONFIG,
@@ -127,6 +125,8 @@ export const usePolylineListeners = (
           circle.setOptions({
             id,
             syncToLabel: false,
+            polyline,
+            point,
           });
 
           const tailLine_ = new fabric.Line([x, y, x, y], {
@@ -139,6 +139,7 @@ export const usePolylineListeners = (
             id,
             syncToLabel: false,
             tailLine: true,
+            polyline,
           });
 
           canvas.add(circle, tailLine_);
@@ -169,13 +170,10 @@ export const usePolylineListeners = (
     },
 
     'mouse:dblclick': (e: fabric.IEvent<Event>) => {
-      const { id } = canvas.getObjects().at(-1)! as LabeledObject;
-
-      const polyline = canvas
-        .getObjects()
-        .filter(
-          (obj) => obj.type === 'polyline' && (obj as LabeledObject).id === id
-        )[0] as fabric.Polyline;
+      const { id, polyline } = canvas.getObjects().at(-1)! as any as {
+        id: number;
+        polyline: fabric.Polyline;
+      };
 
       const points = polyline.points!;
 
@@ -222,6 +220,28 @@ export const usePolylineListeners = (
   };
 
   const editPolylineListeners = {
+    'mouse:down': (e: fabric.IEvent<Event>) => {
+      const { target, button } = parseEvent(e as fabric.IEvent<MouseEvent>);
+      if (!target) return;
+
+      if (button === 3) {
+        if (target.type !== 'circle') return;
+
+        const circle = target as fabric.Circle;
+        const { id, polyline, point } = circle as any as {
+          id: number;
+          polyline: fabric.Polyline;
+          point: fabric.Point;
+        };
+        const points = polyline.points!;
+
+        if (points.length <= 2) canvas.remove(polyline);
+        else points.splice(points.indexOf(point), 1);
+
+        syncCanvasToState(id);
+      }
+    },
+
     'mouse:move': (e: fabric.IEvent<Event>) => {
       const { switched } = trySwitchGroupRef.current(e, 'polyline:edit');
       if (switched) return;
