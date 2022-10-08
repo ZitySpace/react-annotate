@@ -15,6 +15,7 @@ import {
   NextIcon,
   PervIcon,
   PointIcon,
+  PolylineIcon,
   PolygonIcon,
   RectangleIcon,
   RedoIcon,
@@ -70,12 +71,14 @@ export const ButtonBar = ({
   const drawPoint = draw(LabelType.Point);
   const drawLine = draw(LabelType.Line);
   const drawBox = draw(LabelType.Box);
+  const drawPolyline = draw(LabelType.Polyline);
   const drawPolygon = draw(LabelType.Mask);
 
   const isDrawingMe = (labelType: LabelType | null) => drawType === labelType;
   const isDrawingPoint = isDrawingMe(LabelType.Point);
   const isDrawingLine = isDrawingMe(LabelType.Line);
   const isDrawingBox = isDrawingMe(LabelType.Box);
+  const isDrawingPolyline = isDrawingMe(LabelType.Polyline);
   const isDrawingPolygon = isDrawingMe(LabelType.Mask);
   const isDrawing = drawType !== LabelType.None;
 
@@ -110,6 +113,14 @@ export const ButtonBar = ({
 
         <Button canUse={dataReady} isUsing={isDrawingLine} onClick={drawLine}>
           <LineIcon />
+        </Button>
+
+        <Button
+          canUse={dataReady}
+          isUsing={isDrawingPolyline}
+          onClick={drawPolyline}
+        >
+          <PolylineIcon />
         </Button>
 
         <Button

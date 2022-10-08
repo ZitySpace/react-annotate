@@ -1,7 +1,7 @@
 import md5 from 'md5';
 import { useEffect, useRef } from 'react';
 import { useStore } from 'zustand';
-import { Label, LabeledObject } from '../labels';
+import { Label, LabeledObject, LabelType } from '../labels';
 import {
   CanvasMetaStore,
   CanvasMetaStoreProps,
@@ -47,27 +47,41 @@ export const useSynchronizer = () => {
     calcLabelMode,
   } = useStore(SelectionStore, (s: SelectionStoreProps) => s);
 
-  const syncCanvasToState = () => {
+  const syncCanvasToState = (id?: number) => {
     if (!canvas) return;
     console.log('syncCanvasToState called'); // TODO: remove
 
-    // TODO, should not use activeObject as the detection of which label/object is edited
-    // should use id
-    const activeObject = canvas.getActiveObject();
-    const newState: Label[] = canvas
+    // group objects by id
+    const groupedObjects: { [key: number]: LabeledObject[] } = canvas
       .getObjects()
       .filter((obj) => (obj as LabeledObject).syncToLabel)
-      .map((obj) => {
-        if (obj === activeObject) {
-          const now = getLocalTimeISOString();
-          obj.setOptions({ timestamp: now, hash: md5(now) });
-        }
+      .reduce((grp, obj) => {
+        const { id } = obj as LabeledObject;
+        (grp[id] = grp[id] || []).push(obj);
+        return grp;
+      }, {});
+
+    // generate label for each id
+    const newState: Label[] = Object.entries(groupedObjects).map(
+      ([id_, objs], _) => {
+        const now = getLocalTimeISOString();
+
         return newLabelFromCanvasObject({
-          obj: obj as LabeledObject,
           scale,
           offset,
+          ...(objs[0].labelType === LabelType.Polyline
+            ? {
+                grp: objs,
+              }
+            : { obj: objs[0] }),
+          ...(id &&
+            id === parseInt(id_) && {
+              timestamp: now,
+              hash: md5(now),
+            }),
         })!;
-      });
+      }
+    );
 
     pushState(newState);
   };
@@ -80,7 +94,7 @@ export const useSynchronizer = () => {
     state.forEach((anno: Label) => {
       const color = getColor(anno.category);
       const mode = calcLabelMode(anno);
-      const canvasObjects = anno.toCanvasObjects(color, mode);
+      const canvasObjects = anno.toCanvasObjects(color, mode).flat(2);
       canvas.add(...canvasObjects);
     });
 

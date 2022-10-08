@@ -4,11 +4,12 @@ import { useDefaultListeners } from './default';
 import { useBoxListeners } from '../Box/listeners';
 import { usePointListeners } from '../Point/listeners';
 import { useLineListeners } from '../Line/listeners';
+import { usePolylineListeners } from '../Polyline/listeners';
+import { useMaskListeners } from '../Mask/listeners';
 import { LabelType, LabeledObject } from '../Base';
 import { parseEvent } from '../utils';
-import { useMaskListeners } from '../Mask/listeners';
 
-export const useListeners = (syncCanvasToState: () => void) => {
+export const useListeners = (syncCanvasToState: (id?: number) => void) => {
   const listenerGroup = useRef<string>('default');
 
   const {
@@ -35,6 +36,9 @@ export const useListeners = (syncCanvasToState: () => void) => {
 
   const { drawLineListeners, editLineListeners } =
     useLineListeners(syncCanvasToState);
+
+  const { drawPolylineListeners, editPolylineListeners } =
+    usePolylineListeners(syncCanvasToState);
 
   const { drawMaskListeners, editMaskListeners } =
     useMaskListeners(syncCanvasToState);
@@ -86,6 +90,12 @@ export const useListeners = (syncCanvasToState: () => void) => {
 
     if (group === 'line:draw')
       listeners = { ...sharedListeners, ...drawLineListeners };
+
+    if (group === 'polyline:edit')
+      listeners = { ...sharedListeners, ...editPolylineListeners };
+
+    if (group === 'polyline:draw')
+      listeners = { ...sharedListeners, ...drawPolylineListeners };
 
     if (group === 'mask:edit')
       listeners = { ...sharedListeners, ...editMaskListeners };

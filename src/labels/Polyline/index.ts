@@ -1,0 +1,1 @@
+export { PolylineLabel } from './label';

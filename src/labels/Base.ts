@@ -4,6 +4,7 @@ export enum LabelType {
   Line = 'line',
   Box = 'box',
   Mask = 'mask',
+  Polyline = 'polyline',
 }
 
 export enum CoordSystemType {
@@ -98,5 +99,8 @@ export abstract class Label {
 
   abstract toImageCoordSystem(inplace: boolean): Label;
 
-  abstract toCanvasObjects(color: string, mode: string): fabric.Object[];
+  abstract toCanvasObjects(
+    color: string,
+    mode: string
+  ): (fabric.Object | fabric.Object[] | fabric.Object[][])[];
 }
