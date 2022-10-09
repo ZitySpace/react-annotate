@@ -80,8 +80,9 @@ export const usePolylineListeners = (
         tailLine.setOptions({
           id,
           syncToLabel: false,
-          tailLine: true,
           polyline: polylines[0],
+          bgnpoint: polylines[0].points![0],
+          tailLine: true,
         });
 
         canvas.add(...polylines, tailLine, ...circles.flat());
@@ -108,11 +109,12 @@ export const usePolylineListeners = (
         const objs = canvas.getObjects();
 
         if (button === 1) {
-          tailLine.setOptions({ tailLine: false });
           const [x, y] = [tailLine.x2!, tailLine.y2!];
 
           const point = new fabric.Point(x, y);
           points.push(point);
+
+          tailLine.setOptions({ tailLine: false, endpoint: point });
 
           const circle = new fabric.Circle({
             ...POINT_DEFAULT_CONFIG,
@@ -138,8 +140,10 @@ export const usePolylineListeners = (
           tailLine_.setOptions({
             id,
             syncToLabel: false,
-            tailLine: true,
             polyline,
+            bgnpoint: point,
+            endpoint: null,
+            tailLine: true,
           });
 
           canvas.add(circle, tailLine_);
@@ -224,6 +228,11 @@ export const usePolylineListeners = (
       const { target, button } = parseEvent(e as fabric.IEvent<MouseEvent>);
       if (!target) return;
 
+      if (button === 1) {
+        isEditing.current = true;
+      }
+
+      // delete point
       if (button === 3) {
         if (target.type !== 'circle') return;
 
@@ -242,9 +251,177 @@ export const usePolylineListeners = (
       }
     },
 
+    'mouse:up': (e: fabric.IEvent<Event>) => {
+      isEditing.current = false;
+    },
+
     'mouse:move': (e: fabric.IEvent<Event>) => {
+      const { target } = e;
+
+      // remove midpoint
+      if (!target || (target.type !== 'line' && target.type !== 'midpoint')) {
+        const circles = canvas
+          .getObjects()
+          .filter((obj) => obj.type === 'midpoint');
+
+        if (circles.length) {
+          circles.forEach((c) => {
+            const { line } = c as any as { line: fabric.Line };
+            line.setOptions({ midpoint: null });
+          });
+
+          canvas.remove(...circles);
+          canvas.requestRenderAll();
+        }
+      }
+
       const { switched } = trySwitchGroupRef.current(e, 'polyline:edit');
       if (switched) return;
+
+      // show midpoint
+      if (target && target.type === 'line') {
+        const line = target as fabric.Line;
+        const { id, labelType, midpoint } = line as any as {
+          id: number;
+          labelType: LabelType;
+          midpoint?: fabric.Circle;
+        };
+
+        if (!midpoint) {
+          const circle = new fabric.Circle({
+            ...POINT_DEFAULT_CONFIG,
+            left: (line.x1! + line.x2!) / 2,
+            top: (line.y1! + line.y2!) / 2,
+            fill: line.stroke,
+            stroke: TRANSPARENT,
+          });
+
+          circle.setOptions({
+            id,
+            labelType,
+            type: 'midpoint',
+            syncToLabel: false,
+            line,
+          });
+
+          line.setOptions({
+            midpoint: circle,
+          });
+
+          canvas.add(circle);
+          canvas.requestRenderAll();
+        }
+
+        return;
+      }
+
+      const obj = canvas.getActiveObject();
+      if (!obj || !isEditing.current) return;
+
+      const { w: canvasW, h: canvasH } = canvasInitSize!;
+
+      // drag endpoints
+      if (obj.type === 'circle') {
+        const circle = obj as fabric.Circle;
+
+        const { lineStarting, lineEnding, point } = circle as any as {
+          lineStarting: fabric.Line | null;
+          lineEnding: fabric.Line | null;
+          point: fabric.Point;
+        };
+
+        const { left, top } = circle;
+
+        const x_ = getBoundedValue(left!, offset.x, canvasW - offset.x - 1);
+        const y_ = getBoundedValue(top!, offset.y, canvasH - offset.y - 1);
+
+        circle.set({
+          left: x_,
+          top: y_,
+        });
+
+        lineStarting &&
+          lineStarting.set({
+            x1: x_,
+            y1: y_,
+          });
+        lineEnding &&
+          lineEnding.set({
+            x2: x_,
+            y2: y_,
+          });
+
+        point.x = x_;
+        point.y = y_;
+      }
+
+      // add/update midpoint
+      if (obj.type === 'midpoint') {
+        const circle = obj as fabric.Circle;
+        let { line, lineStarting, lineEnding, point } = circle as any as {
+          line: fabric.Line;
+          lineStarting: fabric.Line | null;
+          lineEnding: fabric.Line | null;
+          point: fabric.Point | null;
+        };
+
+        const { left, top } = circle;
+
+        const x_ = getBoundedValue(left!, offset.x, canvasW - offset.x - 1);
+        const y_ = getBoundedValue(top!, offset.y, canvasH - offset.y - 1);
+
+        line.visible = false;
+
+        if (!lineStarting) {
+          lineStarting = new fabric.Line([x_, y_, line.x2!, line.y2!], {
+            ...LINE_DEFAULT_CONFIG,
+            stroke: line.stroke,
+          });
+          circle.setOptions({ lineStarting });
+          canvas.add(lineStarting);
+        }
+
+        if (!lineEnding) {
+          lineEnding = new fabric.Line([line.x1!, line.y1!, x_, y_], {
+            ...LINE_DEFAULT_CONFIG,
+            stroke: line.stroke,
+          });
+          circle.setOptions({ lineEnding });
+          canvas.add(lineEnding);
+        }
+
+        if (!point) {
+          const { polyline, endpoint } = line as any as {
+            polyline: fabric.Polyline;
+            bgnpoint: fabric.Point;
+            endpoint: fabric.Point;
+          };
+
+          const points = polyline.points!;
+          point = new fabric.Point(circle.left!, circle.top!);
+          circle.setOptions({ point });
+          points.splice(points.indexOf(endpoint), 0, point);
+        }
+
+        circle.set({
+          left: x_,
+          top: y_,
+        });
+
+        lineStarting.set({
+          x1: x_,
+          y1: y_,
+        });
+        lineEnding.set({
+          x2: x_,
+          y2: y_,
+        });
+
+        point.x = x_;
+        point.y = y_;
+      }
+
+      canvas.requestRenderAll();
     },
 
     'object:modified': (e: fabric.IEvent<Event>) => {

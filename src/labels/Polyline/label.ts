@@ -242,10 +242,22 @@ export class PolylineLabel extends Label {
           timestamp,
           hash,
           syncToLabel: false,
-          midpoint: null,
           polyline: polylines[i],
+          bgnpoint: polylines[i].points![j],
+          endpoint: polylines[i].points![j + 1],
         })
       )
+    );
+
+    circles.forEach(
+      (cs, i) =>
+        cs.length > 1 &&
+        cs.forEach((c, j) =>
+          c.setOptions({
+            lineStarting: j < cs.length - 1 ? lines[i][j] : null,
+            lineEnding: j > 0 ? lines[i][j - 1] : null,
+          })
+        )
     );
 
     const [r, g, b, a] = color.replace(/[^\d, .]/g, '').split(',');
