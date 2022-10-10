@@ -1,4 +1,5 @@
 import { fabric } from 'fabric';
+import { useRef } from 'react';
 
 import { setup } from '../listeners/setup';
 import { parseEvent, getBoundedValue } from '../utils';
@@ -31,12 +32,16 @@ export const usePolylineListeners = (
     selectedCategory,
     getColor,
     isDrawing,
-    isEditing,
     trySwitchGroupRef,
     refreshListenersRef,
     inImageOI,
     selectCanvasObject,
   } = setup();
+
+  const isDragging = useRef<boolean>(false);
+  const isDeleting = useRef<boolean>(false);
+  const delStart = useRef<fabric.Circle | null>(null);
+  const isAppending = useRef<boolean>(false);
 
   if (!canvas) return {};
 
@@ -229,30 +234,86 @@ export const usePolylineListeners = (
       if (!target) return;
 
       if (button === 1) {
-        isEditing.current = true;
+        isDragging.current = true;
       }
 
-      // delete point
-      if (button === 3) {
-        if (target.type !== 'circle') return;
-
-        const circle = target as fabric.Circle;
-        const { id, polyline, point } = circle as any as {
-          id: number;
-          polyline: fabric.Polyline;
-          point: fabric.Point;
-        };
-        const points = polyline.points!;
-
-        if (points.length <= 2) canvas.remove(polyline);
-        else points.splice(points.indexOf(point), 1);
-
-        syncCanvasToState(id);
+      if (button === 3 && target.type === 'circle') {
+        isDeleting.current = true;
+        delStart.current = target as fabric.Circle;
       }
     },
 
     'mouse:up': (e: fabric.IEvent<Event>) => {
-      isEditing.current = false;
+      const { target, button } = parseEvent(e as fabric.IEvent<MouseEvent>);
+
+      // delete point
+      if (button === 3 && isDeleting.current && target?.type === 'circle') {
+        const start = delStart.current!;
+
+        const end = target as fabric.Circle;
+        const { id, polyline, point } = end as any as {
+          id: number;
+          polyline: fabric.Polyline;
+          point: fabric.Point;
+        };
+
+        const points = polyline.points!;
+        const idx = points.indexOf(point);
+
+        if (end === start) {
+          points.splice(idx, 1);
+          if (points.length <= 1) canvas.remove(polyline);
+        } else {
+          const { polyline: polyline_, point: point_ } = start as any as {
+            polyline: fabric.Polyline;
+            point: fabric.Point;
+          };
+
+          if (polyline === polyline_) {
+            const idx_ = points.indexOf(point_);
+
+            if (
+              (idx === 0 && idx_ === points.length - 1) ||
+              (idx_ === 0 && idx === points.length - 1)
+            )
+              return;
+
+            if (idx > idx_) {
+              const points_ = points.splice(idx_ + 1);
+              points_.splice(0, idx - idx_ - 1);
+
+              const { labelType, category } = polyline as any as {
+                labelType: LabelType;
+                category: string;
+              };
+
+              const polyline_ = new fabric.Polyline(points_, {
+                ...POLYLINE_DEFAULT_CONFIG,
+                stroke: polyline.stroke,
+              });
+              polyline_.setOptions({
+                labelType,
+                category,
+                id,
+                syncToLabel: true,
+              });
+              canvas.add(polyline_);
+
+              if (points.length <= 1) canvas.remove(polyline);
+              if (points_.length <= 1) canvas.remove(polyline_);
+            }
+
+            if (idx < idx_) {
+              polyline.points = points.slice(idx, idx_ + 1);
+            }
+          }
+        }
+        syncCanvasToState(id);
+      }
+
+      isDragging.current = false;
+      isDeleting.current = false;
+      delStart.current = null;
     },
 
     'mouse:move': (e: fabric.IEvent<Event>) => {
@@ -275,8 +336,10 @@ export const usePolylineListeners = (
         }
       }
 
-      const { switched } = trySwitchGroupRef.current(e, 'polyline:edit');
-      if (switched) return;
+      if (!(isDragging.current || isDeleting.current)) {
+        const { switched } = trySwitchGroupRef.current(e, 'polyline:edit');
+        if (switched) return;
+      }
 
       // show midpoint
       if (target && target.type === 'line') {
@@ -316,7 +379,7 @@ export const usePolylineListeners = (
       }
 
       const obj = canvas.getActiveObject();
-      if (!obj || !isEditing.current) return;
+      if (!obj || !isDragging.current) return;
 
       const { w: canvasW, h: canvasH } = canvasInitSize!;
 
