@@ -12,6 +12,7 @@ interface StoreData {
   canUndo: boolean;
   canReset: boolean;
   canSave: boolean;
+  lock: boolean;
 }
 
 const StoreCoreDefault = {
@@ -21,6 +22,7 @@ const StoreCoreDefault = {
   canUndo: false,
   canReset: false,
   canSave: false,
+  lock: false,
 };
 
 interface Store extends StoreData {
@@ -34,6 +36,8 @@ interface Store extends StoreData {
 
   deleteObjects: (ids: number[]) => boolean;
   renameCategory: (oldCategory: string, newCategory: string) => void;
+
+  setLock: (lock: boolean) => void;
 }
 
 const store = createStore<Store>((set, get) => {
@@ -44,6 +48,7 @@ const store = createStore<Store>((set, get) => {
       canRedo: index < stack.length,
       canUndo: index > 1,
       canReset: stack.length > 1,
+      lock: false,
     });
     return true;
   };
@@ -90,6 +95,14 @@ const store = createStore<Store>((set, get) => {
           });
         })
       );
+    },
+    setLock: (lock: boolean) => {
+      set((s: Store) => ({
+        lock,
+        canRedo: !lock && s.index < s.stack.length,
+        canUndo: !lock && s.index > 1,
+        canReset: !lock && s.stack.length > 1,
+      }));
     },
   };
 });

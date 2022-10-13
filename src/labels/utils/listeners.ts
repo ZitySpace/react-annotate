@@ -34,7 +34,7 @@ export const newLabelFromCanvasObject = ({
   timestamp?: string;
   hash?: string;
 }) => {
-  const { labelType } = obj || grp![0];
+  const { labelType } = obj || grp![0] || LabelType.None;
 
   return labelType === LabelType.Point
     ? PointLabel.newFromCanvasObject({

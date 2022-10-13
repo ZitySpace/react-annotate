@@ -37,8 +37,11 @@ export const useListeners = (syncCanvasToState: (id?: number) => void) => {
   const { drawLineListeners, editLineListeners } =
     useLineListeners(syncCanvasToState);
 
-  const { drawPolylineListeners, editPolylineListeners } =
-    usePolylineListeners(syncCanvasToState);
+  const {
+    drawPolylineListeners,
+    editPolylineListeners,
+    advancedDrawPolylineListeners,
+  } = usePolylineListeners(syncCanvasToState, listenerGroup);
 
   const { drawMaskListeners, editMaskListeners } =
     useMaskListeners(syncCanvasToState);
@@ -96,6 +99,9 @@ export const useListeners = (syncCanvasToState: (id?: number) => void) => {
 
     if (group === 'polyline:draw')
       listeners = { ...sharedListeners, ...drawPolylineListeners };
+
+    if (group === 'polyline:draw:advanced')
+      listeners = { ...sharedListeners, ...advancedDrawPolylineListeners };
 
     if (group === 'mask:edit')
       listeners = { ...sharedListeners, ...editMaskListeners };

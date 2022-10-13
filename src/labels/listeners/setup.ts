@@ -23,7 +23,10 @@ export const setup = () => {
     (s: CanvasMetaStoreProps) => s
   );
 
-  const curState = useStore(CanvasStore, (s: CanvasStoreProps) => s.curState());
+  const { curState, setLock: setStateOpsLock } = useStore(
+    CanvasStore,
+    (s: CanvasStoreProps) => s
+  );
 
   const {
     size: imageSize,
@@ -72,14 +75,15 @@ export const setup = () => {
             }) as LabeledObject[],
           }
         : { obj }),
-    })!;
-    selectLabels([label]);
+    });
+    selectLabels(label ? [label] : []);
   };
 
   return {
     canvas,
     canvasInitSize,
-    curState,
+    curState: curState(),
+    setStateOpsLock,
     imageSize,
     scale,
     offset,
