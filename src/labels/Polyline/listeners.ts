@@ -1198,12 +1198,22 @@ export const usePolylineListeners = (
           const points_ = polyline_.points!;
 
           if (points_.at(0) === point_) {
+            if (tailLine.type === 'polyline')
+              points.push(
+                ...(tailLine as fabric.Polyline).points!.slice(1, -1)
+              );
+
             points.push(...points_);
             canvas.remove(polyline_);
             isModified.current = true;
           }
 
           if (points_.at(-1) === point_) {
+            if (tailLine.type === 'polyline')
+              points.push(
+                ...(tailLine as fabric.Polyline).points!.slice(1, -1)
+              );
+
             points.push(...[...points_].reverse());
             canvas.remove(polyline_);
             isModified.current = true;
