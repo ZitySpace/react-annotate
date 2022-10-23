@@ -62,7 +62,7 @@ export const newLabelFromCanvasObject = ({
       })
     : labelType === LabelType.Mask
     ? MaskLabel.newFromCanvasObject({
-        obj: obj!,
+        grp: grp!,
         scale,
         offset,
         timestamp,

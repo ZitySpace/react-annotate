@@ -5,18 +5,28 @@ import {
   LINE_DEFAULT_CONFIG,
   POINT_DEFAULT_CONFIG,
   POLYGON_DEFAULT_CONFIG,
+  POLYLINE_DEFAULT_CONFIG,
   RADIUS,
   STROKE_WIDTH,
   TEXTBOX_DEFAULT_CONFIG,
   TRANSPARENT,
 } from '../config';
-import { getLocalTimeISOString, getFontSize } from '../utils/label';
+import {
+  getLocalTimeISOString,
+  getArea,
+  calcIntersection,
+  analyzeHoles,
+} from '../utils/label';
 
 export class MaskLabel extends Label {
-  points: { x: number; y: number }[];
+  paths: {
+    points: { x: number; y: number }[];
+    closed?: boolean;
+    hole?: boolean;
+  }[];
 
   constructor({
-    points,
+    paths,
     category = '',
     id = 0,
     scale = 1,
@@ -25,7 +35,11 @@ export class MaskLabel extends Label {
     timestamp,
     hash,
   }: {
-    points: { x: number; y: number }[];
+    paths: {
+      points: { x: number; y: number }[];
+      closed?: boolean;
+      hole?: boolean;
+    }[];
     category: string;
     id: number;
     scale?: number;
@@ -46,32 +60,41 @@ export class MaskLabel extends Label {
       timestamp: timestamp || now,
       hash: hash || md5(now),
     });
-    this.points = points;
+    paths.forEach((p) => {
+      p.closed = p.closed ?? true;
+      p.hole = p.hole ?? false;
+    });
+    this.paths = paths;
   }
 
   public static newFromCanvasObject = ({
-    obj,
+    grp,
     scale,
     offset,
     timestamp,
     hash,
   }: {
-    obj: fabric.Object;
+    grp: fabric.Object[];
     scale: number;
     offset: { x: number; y: number };
     timestamp?: string;
     hash?: string;
   }) => {
-    const {
-      points,
-      category,
-      id,
-      timestamp: timestamp_,
-      hash: hash_,
-    } = obj as any;
+    const { category, id, timestamp: timestamp_, hash: hash_ } = grp[0] as any;
+    const paths = grp.map((pl) => {
+      const { closed, hole } = pl as any as { closed: boolean; hole: boolean };
+      return {
+        points: (pl as fabric.Polyline).points!.map((pt) => ({
+          x: pt.x,
+          y: pt.y,
+        })),
+        closed,
+        hole,
+      };
+    });
 
     return new MaskLabel({
-      points: (points as { x: number; y: number }[]).map((pt) => ({ ...pt })),
+      paths,
       category,
       id,
       scale,
@@ -84,7 +107,11 @@ export class MaskLabel extends Label {
 
   clone = () =>
     new MaskLabel({
-      points: this.points.map((pt) => ({ ...pt })),
+      paths: this.paths.map((path) => ({
+        points: path.points.map((pt) => ({ ...pt })),
+        closed: path.closed,
+        hole: path.hole,
+      })),
       category: this.category,
       id: this.id,
       scale: this.scale,
@@ -104,13 +131,17 @@ export class MaskLabel extends Label {
     },
     inplace = true
   ) => {
-    const points = this.points.map((pt) =>
-      super._toCanvasCoordSystem(scale, offset, pt)
-    );
+    const paths = this.paths.map((path) => ({
+      points: path.points.map((pt) =>
+        super._toCanvasCoordSystem(scale, offset, pt)
+      ),
+      closed: path.closed,
+      hole: path.hole,
+    }));
 
     const t = inplace ? this : this.clone();
 
-    t.points = points;
+    t.paths = paths;
     t.scale = scale;
     t.offset = offset;
     t.coordSystem = CoordSystemType.Canvas;
@@ -118,11 +149,15 @@ export class MaskLabel extends Label {
   };
 
   toImageCoordSystem = (inplace = true) => {
-    const points = this.points.map((pt) => super._toImageCoordSystem(pt));
+    const paths = this.paths.map((path) => ({
+      points: path.points.map((pt) => super._toImageCoordSystem(pt)),
+      closed: path.closed,
+      hole: path.hole,
+    }));
 
     const t = inplace ? this : this.clone();
 
-    t.points = points;
+    t.paths = paths;
     t.scale = 1;
     t.offset = { x: 0, y: 0 };
     t.coordSystem = CoordSystemType.Image;
@@ -130,8 +165,90 @@ export class MaskLabel extends Label {
   };
 
   toCanvasObjects = (color: string, mode: string) => {
-    const { points, labelType, category, id, timestamp, hash } = this;
+    const { paths, labelType, category, id, timestamp, hash } = this;
 
+    const polylines = paths
+      .filter((path) => !path.closed)
+      .map(
+        (path) =>
+          new fabric.Polyline(
+            path.points.map((pt) => ({ ...pt })),
+            {
+              ...POLYLINE_DEFAULT_CONFIG,
+              stroke: color,
+            }
+          )
+      );
+
+    const posPaths = paths.filter((path) => path.closed && !path.hole);
+    // sort by area
+    posPaths.sort((p1, p2) => getArea(p2.points) - getArea(p1.points));
+
+    const negPaths = paths.filter((path) => path.closed && path.hole);
+
+    // for each hole/negPath, find the posPath that encicle it fully and merge
+    // them, otherwise render it as polyline instead of polygon as a reminder
+    // of not perfect hole annotation
+
+    // console.log(
+    //   calcIntersection(
+    //     { x: 0, y: 0 },
+    //     { x: 100, y: 0 },
+    //     { x: 100.01, y: -0.01 },
+    //     { x: 120.01, y: -20.01 },
+    //     0.01415
+    //   )
+    // );
+
+    console.log(
+      analyzeHoles(
+        [
+          { x: 0, y: 0 },
+          { x: 100, y: 0 },
+          { x: 100, y: 100 },
+          { x: 0, y: 100 },
+        ],
+        [
+          [
+            { x: 0, y: 0 },
+            { x: 30, y: 0 },
+            { x: 30, y: 30 },
+            { x: 0, y: 30 },
+          ],
+          [
+            { x: 60, y: 0 },
+            { x: 90, y: 0 },
+            { x: 90, y: 30 },
+            { x: 60, y: 30 },
+          ],
+          [
+            { x: 100, y: 30 },
+            { x: 120, y: 30 },
+            { x: 120, y: 50 },
+            { x: 100, y: 50 },
+          ],
+          [
+            { x: 0, y: 60 },
+            { x: 110, y: 60 },
+            { x: 110, y: 70 },
+            { x: 0, y: 70 },
+          ],
+          [
+            { x: -10, y: 100 },
+            { x: 0, y: 100 },
+            { x: 0, y: 110 },
+            { x: -10, y: 110 },
+          ],
+        ]
+      )
+    );
+
+    const standalone = { pos: [], neg: [] };
+    const enciclegrp = [];
+
+    return [];
+
+    /*
     const polygon = new fabric.Polygon(
       points.map((pt) => ({ ...pt })),
       {
@@ -261,5 +378,7 @@ export class MaskLabel extends Label {
       return [polygon, ...lines, ...circles];
 
     return [];
+
+    */
   };
 }

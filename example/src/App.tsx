@@ -25,7 +25,11 @@ const imagesList: ImageData[] = segm.map((img) => ({
       x: points_[2 * i] as number,
       y: points_[2 * i + 1] as number,
     }));
-    return new MaskLabel({ points, id, category: category as string });
+    return new MaskLabel({
+      paths: [{ points }],
+      id,
+      category: category as string,
+    });
   }),
 }));
 

@@ -150,6 +150,7 @@ export const useMaskListeners = (syncCanvasToState: () => void) => {
   if (!canvas) return {};
 
   const drawMaskListeners = {
+    /*
     'mouse:down': (e: fabric.IEvent<Event>) => {
       const { evt, target } = parseEvent(e as fabric.IEvent<MouseEvent>);
 
@@ -433,9 +434,11 @@ export const useMaskListeners = (syncCanvasToState: () => void) => {
 
       canvas.requestRenderAll();
     },
+    */
   };
 
   const editMaskListeners = {
+    /*
     'mouse:down': (e: fabric.IEvent<Event>) => {
       const { target, button } = parseEvent(e as fabric.IEvent<MouseEvent>);
       if (!target) return;
@@ -652,6 +655,7 @@ export const useMaskListeners = (syncCanvasToState: () => void) => {
     'object:modified': (e: fabric.IEvent<Event>) => {
       syncCanvasToState();
     },
+    */
   };
 
   return {
