@@ -173,27 +173,30 @@ export const analyzeHoles = (
   tol: number = 0
 ) => {
   // event datastructure
-  const endpoints: endpointIF[][] = [mask, ...holes].map((path, i) =>
-    path.map((pt, j) => {
-      const startOf: number[] = [];
-      const endOf: number[] = [];
-      return {
-        ...pt,
-        ipoly: i,
-        ipoint: j,
-        startOf,
-        endOf,
-      };
-    })
+  const maskEndpoints: endpointIF[] = mask.map((pt, j) => ({
+    ...pt,
+    ipoly: 0,
+    ipoint: j,
+    startOf: [],
+    endOf: [],
+  }));
+
+  const holesEndpoints: endpointIF[][] = holes.map((path, i) =>
+    path.map((pt, j) => ({
+      ...pt,
+      ipoly: i,
+      ipoint: j,
+      startOf: [],
+      endOf: [],
+    }))
   );
 
   // segments datastructure
-  const segments: segmentIF[][] = [mask, ...holes].map((path, i) => {
-    const l = path.length;
-    return Array.from({ length: l }, (_, j) => {
-      const j_nxt = j === l - 1 ? 0 : j + 1;
-      const pt0_: { x: number; y: number } = { ...path[j] };
-      const pt1_: { x: number; y: number } = { ...path[j_nxt] };
+  const maskSegments: segmentIF[][] = [
+    Array.from({ length: mask.length }, (_, j) => {
+      const j_nxt = j === mask.length - 1 ? 0 : j + 1;
+      const pt0_: { x: number; y: number } = { ...mask[j] };
+      const pt1_: { x: number; y: number } = { ...mask[j_nxt] };
 
       // enforce pt0 to be the upper-left endpoint to simplify
       // the comparator logic for segments queue
@@ -210,11 +213,44 @@ export const analyzeHoles = (
       // given an event, we know how to find segments starting/ending
       // at this event point
       if (pt0 === pt0_) {
-        endpoints[i][j].startOf.push(j);
-        endpoints[i][j_nxt].endOf.push(j);
+        maskEndpoints[j].startOf.push(j);
+        maskEndpoints[j_nxt].endOf.push(j);
       } else {
-        endpoints[i][j].endOf.push(j);
-        endpoints[i][j_nxt].startOf.push(j);
+        maskEndpoints[j].endOf.push(j);
+        maskEndpoints[j_nxt].startOf.push(j);
+      }
+
+      return {
+        pt0,
+        pt1,
+        ipoly: 0,
+        iline: j,
+      };
+    }),
+  ];
+
+  const holesSegments: segmentIF[][] = holes.map((hole, i) => {
+    const l = hole.length;
+    return Array.from({ length: l }, (_, j) => {
+      const j_nxt = j === l - 1 ? 0 : j + 1;
+      const pt0_: { x: number; y: number } = { ...hole[j] };
+      const pt1_: { x: number; y: number } = { ...hole[j_nxt] };
+
+      const [pt0, pt1] =
+        pt0_.y === pt1_.y
+          ? pt0_.x <= pt1_.x
+            ? [pt0_, pt1_]
+            : [pt1_, pt0_]
+          : pt0_.y < pt1_.y
+          ? [pt0_, pt1_]
+          : [pt1_, pt0_];
+
+      if (pt0 === pt0_) {
+        holesEndpoints[i][j].startOf.push(j);
+        holesEndpoints[i][j_nxt].endOf.push(j);
+      } else {
+        holesEndpoints[i][j].endOf.push(j);
+        holesEndpoints[i][j_nxt].startOf.push(j);
       }
 
       return {
@@ -227,8 +263,15 @@ export const analyzeHoles = (
   });
 
   // build events queue
-  const eventsQ = new TinyQueue<endpointIF>(
-    endpoints.flat(),
+  const maskEventsQ = new TinyQueue<endpointIF>(
+    maskEndpoints,
+    (pt0: { x: number; y: number }, pt1: { x: number; y: number }) => {
+      return pt0.y === pt1.y ? pt0.x - pt1.x : pt0.y - pt1.y;
+    }
+  );
+
+  const holesEventsQ = new TinyQueue<endpointIF>(
+    holesEndpoints.flat(),
     (pt0: { x: number; y: number }, pt1: { x: number; y: number }) => {
       return pt0.y === pt1.y ? pt0.x - pt1.x : pt0.y - pt1.y;
     }
@@ -247,77 +290,83 @@ export const analyzeHoles = (
   //    this simplify the implementation:
   //      * simplified comparator
   //      * no need to search segment and its neighbors where deleting/adding segments
-  const segmentsQ = new TinyQueue<segmentIF>(
-    [],
-    (
-      seg0: {
-        pt0: { x: number; y: number };
-        pt1: { x: number; y: number };
-      },
-      seg1: {
-        pt0: { x: number; y: number };
-        pt1: { x: number; y: number };
-      }
-    ) => {
-      return seg0.pt1.y === seg1.pt1.y
-        ? seg0.pt1.x - seg1.pt1.x
-        : seg0.pt1.y - seg1.pt1.y;
+  const segmentsComparator = (
+    seg0: {
+      pt0: { x: number; y: number };
+      pt1: { x: number; y: number };
+    },
+    seg1: {
+      pt0: { x: number; y: number };
+      pt1: { x: number; y: number };
     }
-  );
+  ) => {
+    return seg0.pt1.y === seg1.pt1.y
+      ? seg0.pt1.x - seg1.pt1.x
+      : seg0.pt1.y - seg1.pt1.y;
+  };
 
-  // t tracks at which moment a segment is pushed into the queue
-  let t = 0;
+  const maskSegmentsQ = new TinyQueue<segmentIF>([], segmentsComparator);
+  const holesSegmentsQ = new TinyQueue<segmentIF>([], segmentsComparator);
 
   // analyze events and maintain segments queue
-  let evt = eventsQ.pop();
-  const intersections: { s0: segmentIF; s1: segmentIF }[] = [];
-  const closesections: { s0: segmentIF; s1: segmentIF; mode: string | null }[] =
+  let evtM = maskEventsQ.pop();
+  let evtH = holesEventsQ.pop();
+  const intersections: { sM: segmentIF; sH: segmentIF }[] = [];
+  const closesections: { sM: segmentIF; sH: segmentIF; mode: string | null }[] =
     [];
+
   // at the same time calculate inner/outer/intersect/close
   // relations between mask and holes
   const rel = Array.from({ length: holes.length }).fill('unknown');
 
-  while (evt) {
-    // handle degeneracy:
-    // combine all events at the same spatial position as
-    // a single event and consider intersections among the
-    // combined startOf and endOf segments, otherwise intersections
-    // between these degenerated events will be not considered
-    let evt_ = eventsQ.pop();
+  while (evtH) {
+    const sweepLineOnMask = evtM && evtM.y <= evtH.y + tol;
+    const eventsQ = sweepLineOnMask ? maskEventsQ : holesEventsQ;
+    const evt = sweepLineOnMask ? evtM! : evtH;
+
     const evts = [evt];
+    let evt_ = eventsQ.pop();
     while (evt_?.x === evt?.x && evt_?.y === evt?.y) {
       evts.push(evt_);
       evt_ = eventsQ.pop();
     }
 
-    // add all startOf segments to the queue
+    const segments = sweepLineOnMask ? maskSegments : holesSegments;
+    const [segmentsQ, segmentsQ_] = sweepLineOnMask
+      ? [maskSegmentsQ, holesSegmentsQ]
+      : [holesSegmentsQ, maskSegmentsQ];
+
     const starts: number[][] = [];
     const ends: number[][] = [];
     evts.forEach((e) => {
       const { ipoly, startOf, endOf } = e;
       startOf.forEach((j) => {
         const segment = segments[ipoly][j];
-        segment.t = t++;
         segmentsQ.push(segment);
         starts.push([ipoly, j]);
       });
       endOf.forEach((j) => ends.push([ipoly, j]));
     });
 
-    // calculate intersections between startOf segments
-    // and all the queued segments
+    // dequeue lines end with y < evt.y - tol
+    let seg_ = segmentsQ_.peek();
+    while (seg_ && seg_.pt1.y < evt.y - tol) {
+      segmentsQ_.pop();
+      seg_ = segmentsQ_.peek();
+    }
+
+    // calculate intersections between new lines and
+    // status-quo/snapshot of relavent segments upto evt.y +/- tol
+    // from the other segments queue
     starts.forEach((s1_) => {
       const [i1, j1] = s1_;
-      segmentsQ.data.forEach((s0) => {
-        const { ipoly: i0, iline, pt0: a, pt1: b, t: t0 } = s0;
+      const s1 = segments[i1][j1];
 
-        // only calculate intersections between mask and holes
-        if (i0 === i1 || (i0 !== 0 && i1 !== 0)) return;
+      segmentsQ_.data.forEach((s0) => {
+        const [sM, sH] = sweepLineOnMask ? [s1, s0] : [s0, s1];
 
-        const s1 = segments[i1][j1];
-        const { pt0: c, pt1: d, t: t1 } = s1;
-
-        if (t1! < t0!) return;
+        const { pt0: a, pt1: b } = sM;
+        const { ipoly: iH, pt0: c, pt1: d } = sH;
 
         const [intersected, strongness, mode] = calcIntersection(
           a,
@@ -328,60 +377,70 @@ export const analyzeHoles = (
         );
 
         if (intersected) {
-          intersections.push({ s0, s1 });
-          rel[i0 !== 0 ? i0 - 1 : i1 - 1] = 'intersected';
-        } else if (strongness === 'weak') closesections.push({ s0, s1, mode });
+          intersections.push({ sM, sH });
+          rel[iH] = 'intersected';
+        } else if (strongness === 'weak') closesections.push({ sM, sH, mode });
       });
     });
 
-    const maskSegments = segmentsQ.data.filter((s) => s.ipoly === 0);
-    ends.forEach((s1_) => {
-      const [i1, j1] = s1_;
-      if (i1 === 0 || rel[i1 - 1] === 'intersected') return;
+    // calculate inner/outer mask-hole relation based on ending segments of holes
+    if (!sweepLineOnMask) {
+      ends.forEach((s1_) => {
+        const [i1, j1] = s1_;
 
-      const s1 = segments[i1][j1];
-      const { pt0: c, pt1: d } = s1;
+        if (rel[i1] === 'intersected') return;
 
-      let n = 0;
-      let ignore = false;
-      for (const s0 of maskSegments) {
-        const { ipoly: i0, iline, pt0: a, pt1: b } = s0;
-        const [intersected, strongness, mode] = calcIntersection(
-          a,
-          b,
-          c,
-          d,
-          tol
-        );
-        if (intersected || (strongness === 'weak' && mode?.includes('line'))) {
-          ignore = true;
-          break;
+        const s1 = segments[i1][j1];
+        const { pt0: c, pt1: d } = s1;
+
+        // track number of mask segments that are
+        // on the right side of current hole ending segment
+        let n = 0;
+        let ignore = false;
+
+        for (const s0 of segmentsQ_.data) {
+          const { pt0: a, pt1: b } = s0;
+          const [intersected, strongness, mode] = calcIntersection(
+            a,
+            b,
+            c,
+            d,
+            tol
+          );
+
+          // when ending line is parallel and has overlap with mask boundary
+          // then we are not confident about which side it is with respect to
+          // mask boundary, especially when considering tolerance margin
+          if (
+            intersected ||
+            (strongness === 'weak' && mode?.includes('line'))
+          ) {
+            ignore = true;
+            break;
+          }
+
+          const ab = { x: b.x - a.x, y: b.y - a.y };
+          const ac = { x: c.x - a.x, y: c.y - a.y };
+          const ad = { x: d.x - a.x, y: d.y - a.y };
+
+          const abac = ab.x * ac.y - ab.y * ac.x;
+          const abad = ab.x * ad.y - ab.y * ad.x;
+
+          // use the hole segment endpoint that has larger perpendicular distance
+          // to the mask segment for more confident clockwise/anti-closewise
+          // calculation, especially when considering one point is on/near mask segment
+          if (Math.min(abac, abad) > 0) n++;
         }
 
-        const ab = { x: b.x - a.x, y: b.y - a.y };
-        const ac = { x: c.x - a.x, y: c.y - a.y };
-        const ad = { x: d.x - a.x, y: d.y - a.y };
+        if (ignore) return;
 
-        const abac = ab.x * ac.y - ab.y * ac.x;
-        const abad = ab.x * ad.y - ab.y * ad.x;
+        if (n % 2) rel[i1] = 'inner';
+        else rel[i1] = 'outer';
+      });
+    }
 
-        if (Math.min(abac, abad) > 0) n++;
-      }
-
-      console.log(i1, j1, ignore, n);
-      if (ignore) return;
-
-      if (n % 2) rel[i1 - 1] = 'inner';
-      else rel[i1 - 1] = 'outer';
-    });
-
-    // delete all endOf segments from the queue
-    // actually they are the last ||ends|| segments
-    // in the queue ensured by the algorithm
-    let n = ends.length;
-    while (n--) segmentsQ.pop();
-
-    evt = evt_;
+    if (sweepLineOnMask) evtM = evt_;
+    else evtH = evt_;
   }
 
   console.log(intersections, closesections, rel);

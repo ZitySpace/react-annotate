@@ -192,11 +192,11 @@ export class MaskLabel extends Label {
 
     // console.log(
     //   calcIntersection(
-    //     { x: 0, y: 0 },
     //     { x: 100, y: 0 },
-    //     { x: 100.01, y: -0.01 },
-    //     { x: 120.01, y: -20.01 },
-    //     0.01415
+    //     { x: 100, y: 100 },
+    //     { x: 99.99, y: 30 },
+    //     { x: 120, y: 30 },
+    //     0.010001
     //   )
     // );
 
@@ -210,8 +210,10 @@ export class MaskLabel extends Label {
         ],
         [
           [
-            { x: 0, y: 0 },
-            { x: 30, y: 0 },
+            { x: -0.01, y: -0.01 },
+            { x: 30, y: -0.01 },
+            // { x: 0, y: 0 },
+            // { x: 30, y: 0 },
             { x: 30, y: 30 },
             { x: 0, y: 30 },
           ],
@@ -222,10 +224,10 @@ export class MaskLabel extends Label {
             { x: 60, y: 30 },
           ],
           [
-            { x: 100, y: 30 },
+            { x: 99.99, y: 30 },
             { x: 120, y: 30 },
             { x: 120, y: 50 },
-            { x: 100, y: 50 },
+            { x: 99.99, y: 50 },
           ],
           [
             { x: 0, y: 60 },
@@ -239,7 +241,8 @@ export class MaskLabel extends Label {
             { x: 0, y: 110 },
             { x: -10, y: 110 },
           ],
-        ]
+        ],
+        0.010001
       )
     );
 
