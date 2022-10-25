@@ -14,7 +14,7 @@ import {
 } from '../../stores/SelectionStore';
 import { ColorStore, ColorStoreProps } from '../../stores/ColorStore';
 import { ListenerStore, ListenerStoreProps } from '../../stores/ListenerStore';
-import { LabeledObject, LabelType } from '../Base';
+import { Label, LabeledObject, LabelType } from '../Base';
 import { newLabelFromCanvasObject } from '../utils/listeners';
 
 export const setup = () => {
@@ -67,7 +67,8 @@ export const setup = () => {
     const label = newLabelFromCanvasObject({
       scale,
       offset,
-      ...(obj.labelType === LabelType.Polyline
+      ...(obj.labelType === LabelType.Polyline ||
+      obj.labelType === LabelType.Mask
         ? {
             grp: canvas?.getObjects().filter((o) => {
               const { id, syncToLabel } = o as LabeledObject;

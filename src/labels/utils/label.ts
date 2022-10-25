@@ -150,7 +150,7 @@ export const calcIntersection = (
   return [true, 'strong', null];
 };
 
-interface endpointIF {
+interface EndpointIF {
   x: number;
   y: number;
   ipoly: number;
@@ -159,7 +159,7 @@ interface endpointIF {
   endOf: number[];
 }
 
-interface segmentIF {
+interface SegmentIF {
   pt0: { x: number; y: number };
   pt1: { x: number; y: number };
   ipoly: number;
@@ -173,7 +173,7 @@ export const analyzeHoles = (
   tol: number = 0
 ) => {
   // event datastructure
-  const maskEndpoints: endpointIF[] = mask.map((pt, j) => ({
+  const maskEndpoints: EndpointIF[] = mask.map((pt, j) => ({
     ...pt,
     ipoly: 0,
     ipoint: j,
@@ -181,7 +181,7 @@ export const analyzeHoles = (
     endOf: [],
   }));
 
-  const holesEndpoints: endpointIF[][] = holes.map((path, i) =>
+  const holesEndpoints: EndpointIF[][] = holes.map((path, i) =>
     path.map((pt, j) => ({
       ...pt,
       ipoly: i,
@@ -192,7 +192,7 @@ export const analyzeHoles = (
   );
 
   // segments datastructure
-  const maskSegments: segmentIF[][] = [
+  const maskSegments: SegmentIF[][] = [
     Array.from({ length: mask.length }, (_, j) => {
       const j_nxt = j === mask.length - 1 ? 0 : j + 1;
       const pt0_: { x: number; y: number } = { ...mask[j] };
@@ -229,7 +229,7 @@ export const analyzeHoles = (
     }),
   ];
 
-  const holesSegments: segmentIF[][] = holes.map((hole, i) => {
+  const holesSegments: SegmentIF[][] = holes.map((hole, i) => {
     const l = hole.length;
     return Array.from({ length: l }, (_, j) => {
       const j_nxt = j === l - 1 ? 0 : j + 1;
@@ -263,14 +263,14 @@ export const analyzeHoles = (
   });
 
   // build events queue
-  const maskEventsQ = new TinyQueue<endpointIF>(
+  const maskEventsQ = new TinyQueue<EndpointIF>(
     maskEndpoints,
     (pt0: { x: number; y: number }, pt1: { x: number; y: number }) => {
       return pt0.y === pt1.y ? pt0.x - pt1.x : pt0.y - pt1.y;
     }
   );
 
-  const holesEventsQ = new TinyQueue<endpointIF>(
+  const holesEventsQ = new TinyQueue<EndpointIF>(
     holesEndpoints.flat(),
     (pt0: { x: number; y: number }, pt1: { x: number; y: number }) => {
       return pt0.y === pt1.y ? pt0.x - pt1.x : pt0.y - pt1.y;
@@ -305,14 +305,14 @@ export const analyzeHoles = (
       : seg0.pt1.y - seg1.pt1.y;
   };
 
-  const maskSegmentsQ = new TinyQueue<segmentIF>([], segmentsComparator);
-  const holesSegmentsQ = new TinyQueue<segmentIF>([], segmentsComparator);
+  const maskSegmentsQ = new TinyQueue<SegmentIF>([], segmentsComparator);
+  const holesSegmentsQ = new TinyQueue<SegmentIF>([], segmentsComparator);
 
   // analyze events and maintain segments queue
   let evtM = maskEventsQ.pop();
   let evtH = holesEventsQ.pop();
-  const intersections: { sM: segmentIF; sH: segmentIF }[] = [];
-  const closesections: { sM: segmentIF; sH: segmentIF; mode: string | null }[] =
+  const intersections: { sM: SegmentIF; sH: SegmentIF }[] = [];
+  const closesections: { sM: SegmentIF; sH: SegmentIF; mode: string | null }[] =
     [];
 
   // at the same time calculate inner/outer/intersect/close
@@ -443,5 +443,5 @@ export const analyzeHoles = (
     else evtH = evt_;
   }
 
-  console.log(intersections, closesections, rel);
+  return { intersections, closesections, rel };
 };

@@ -18,12 +18,14 @@ import {
   analyzeHoles,
 } from '../utils/label';
 
+interface Path {
+  points: { x: number; y: number }[];
+  closed?: boolean;
+  hole?: boolean;
+}
+
 export class MaskLabel extends Label {
-  paths: {
-    points: { x: number; y: number }[];
-    closed?: boolean;
-    hole?: boolean;
-  }[];
+  paths: Path[];
 
   constructor({
     paths,
@@ -35,11 +37,7 @@ export class MaskLabel extends Label {
     timestamp,
     hash,
   }: {
-    paths: {
-      points: { x: number; y: number }[];
-      closed?: boolean;
-      hole?: boolean;
-    }[];
+    paths: Path[];
     category: string;
     id: number;
     scale?: number;
@@ -131,13 +129,16 @@ export class MaskLabel extends Label {
     },
     inplace = true
   ) => {
-    const paths = this.paths.map((path) => ({
-      points: path.points.map((pt) =>
-        super._toCanvasCoordSystem(scale, offset, pt)
-      ),
-      closed: path.closed,
-      hole: path.hole,
-    }));
+    const paths = this.paths.map(
+      (path) =>
+        ({
+          points: path.points.map((pt) =>
+            super._toCanvasCoordSystem(scale, offset, pt)
+          ),
+          closed: path.closed,
+          hole: path.hole,
+        } as Path)
+    );
 
     const t = inplace ? this : this.clone();
 
@@ -149,11 +150,14 @@ export class MaskLabel extends Label {
   };
 
   toImageCoordSystem = (inplace = true) => {
-    const paths = this.paths.map((path) => ({
-      points: path.points.map((pt) => super._toImageCoordSystem(pt)),
-      closed: path.closed,
-      hole: path.hole,
-    }));
+    const paths = this.paths.map(
+      (path) =>
+        ({
+          points: path.points.map((pt) => super._toImageCoordSystem(pt)),
+          closed: path.closed,
+          hole: path.hole,
+        } as Path)
+    );
 
     const t = inplace ? this : this.clone();
 
@@ -167,133 +171,16 @@ export class MaskLabel extends Label {
   toCanvasObjects = (color: string, mode: string) => {
     const { paths, labelType, category, id, timestamp, hash } = this;
 
-    const polylines = paths
-      .filter((path) => !path.closed)
-      .map(
-        (path) =>
-          new fabric.Polyline(
-            path.points.map((pt) => ({ ...pt })),
-            {
-              ...POLYLINE_DEFAULT_CONFIG,
-              stroke: color,
-            }
-          )
-      );
+    if (mode === LabelRenderMode.Hidden) return [];
 
-    const posPaths = paths.filter((path) => path.closed && !path.hole);
-    // sort by area
-    posPaths.sort((p1, p2) => getArea(p2.points) - getArea(p1.points));
-
-    const negPaths = paths.filter((path) => path.closed && path.hole);
-
-    // for each hole/negPath, find the posPath that encicle it fully and merge
-    // them, otherwise render it as polyline instead of polygon as a reminder
-    // of not perfect hole annotation
-
-    // console.log(
-    //   calcIntersection(
-    //     { x: 100, y: 0 },
-    //     { x: 100, y: 100 },
-    //     { x: 99.99, y: 30 },
-    //     { x: 120, y: 30 },
-    //     0.010001
-    //   )
-    // );
-
-    console.log(
-      analyzeHoles(
-        [
-          { x: 0, y: 0 },
-          { x: 100, y: 0 },
-          { x: 100, y: 100 },
-          { x: 0, y: 100 },
-        ],
-        [
-          [
-            { x: -10, y: -10 },
-            { x: -1, y: -10 },
-            { x: -1, y: -1 },
-            { x: -10, y: -1 },
-          ],
-          [
-            { x: -0.01, y: -0.01 },
-            { x: 30, y: -0.01 },
-            // { x: 0, y: 0 },
-            // { x: 30, y: 0 },
-            { x: 30, y: 30 },
-            { x: 0, y: 30 },
-          ],
-          [
-            { x: 60, y: 0 },
-            { x: 90, y: 0 },
-            { x: 90, y: 30 },
-            { x: 60, y: 30 },
-          ],
-          [
-            { x: 99.99, y: 30 },
-            { x: 120, y: 30 },
-            { x: 120, y: 50 },
-            { x: 99.99, y: 50 },
-          ],
-          [
-            { x: 0, y: 60 },
-            { x: 110, y: 60 },
-            { x: 110, y: 70 },
-            { x: 0, y: 70 },
-          ],
-          [
-            { x: -10, y: 100 },
-            { x: 0, y: 100 },
-            { x: 0, y: 110 },
-            { x: -10, y: 110 },
-          ],
-          [
-            { x: 99.99, y: 99.99 },
-            { x: 120, y: 90 },
-            { x: 120, y: 110 },
-            { x: 100.01, y: 110 },
-          ],
-        ],
-        0.010001
-      )
-    );
-
-    const standalone = { pos: [], neg: [] };
-    const enciclegrp = [];
-
-    return [];
-
-    /*
-    const polygon = new fabric.Polygon(
-      points.map((pt) => ({ ...pt })),
-      {
-        ...POLYGON_DEFAULT_CONFIG,
-        fill: color,
-      }
-    );
-
-    polygon.setOptions({
-      labelType,
-      category,
-      id,
-      timestamp,
-      hash,
-      syncToLabel: true,
-    });
-
-    if (mode === LabelRenderMode.Hidden) {
-      polygon.visible = false;
-      polygon.hasControls = false;
-      return [polygon];
-    }
-
-    const ys = points.map((p) => p.y);
+    const xs = paths.map((path) => path.points.map((pt) => pt.x)).flat();
+    const ys = paths.map((path) => path.points.map((pt) => pt.y)).flat();
     const idxOfTopPoint = ys.indexOf(Math.min(...ys));
 
     const textbox = new fabric.Textbox(this.id.toString(), {
       ...TEXTBOX_DEFAULT_CONFIG,
-      left: points[idxOfTopPoint].x,
-      top: points[idxOfTopPoint].y - RADIUS - STROKE_WIDTH / 2,
+      left: xs[idxOfTopPoint],
+      top: ys[idxOfTopPoint] - RADIUS - STROKE_WIDTH / 2,
       originX: 'center',
       originY: 'bottom',
       backgroundColor: color,
@@ -308,92 +195,129 @@ export class MaskLabel extends Label {
       syncToLabel: false,
     });
 
-    if (mode === LabelRenderMode.Preview) return [polygon, textbox];
+    if (mode === LabelRenderMode.Preview) {
+      const posPaths = paths.filter((path) => path.closed && !path.hole);
+      // sort by area
+      posPaths.sort((p1, p2) => getArea(p2.points) - getArea(p1.points));
+      const negPaths = paths.filter((path) => path.closed && path.hole);
 
-    const circles = points.map(
-      (pt) =>
-        new fabric.Circle({
-          ...POINT_DEFAULT_CONFIG,
-          left: pt.x,
-          top: pt.y,
-          fill: color,
-          stroke: TRANSPARENT,
-        })
-    );
+      // for each hole/negPath, find the posPath that encicle it fully and merge
+      // them, otherwise render it as polyline instead of polygon as a reminder
+      // of not perfect hole annotation
+      const posGrps: Path[][] = [];
+      const orphanPosPaths: Path[] = [];
+      let orphanNegPaths = negPaths;
 
-    circles.forEach((c, i) =>
-      c.setOptions({
-        labelType,
-        category,
-        id,
-        timestamp,
-        hash,
-        syncToLabel: false,
-        lineStarting: null,
-        lineEnding: null,
-        pointOfPolygon: polygon.points![i],
-        pidOfPolygon: i,
-      })
-    );
+      posPaths.forEach((pos) => {
+        const { rel } = analyzeHoles(
+          pos.points,
+          orphanNegPaths.map((p) => p.points)
+        );
+        const inner = orphanNegPaths.filter((_, i) => rel[i] === 'inner');
 
-    const l = points.length;
-    const lines =
-      l > 1
-        ? Array.from(
-            { length: l },
-            (_, i) =>
-              new fabric.Line(
-                [
-                  points[i % l].x,
-                  points[i % l].y,
-                  points[(i + 1) % l].x,
-                  points[(i + 1) % l].y,
-                ],
-                {
-                  ...LINE_DEFAULT_CONFIG,
-                  stroke: color,
-                  selectable: false,
-                  hoverCursor: 'default',
-                }
-              )
-          )
-        : [];
+        if (inner.length) posGrps.push([pos, ...inner]);
+        else orphanPosPaths.push(pos);
 
-    lines.forEach((line, i) =>
-      line.setOptions({
-        labelType,
-        category,
-        id,
-        timestamp,
-        hash,
-        syncToLabel: false,
-        midpoint: null,
-        pidsOfPolygon: [i % l, (i + 1) % l],
-      })
-    );
-
-    l > 1 &&
-      circles.forEach((circle, i) => {
-        circle.setOptions({
-          lineStarting: lines[i],
-          lineEnding: lines[(i + l - 1) % l],
-        });
+        orphanNegPaths = orphanNegPaths.filter((_, i) => rel[i] !== 'inner');
       });
 
-    const [r, g, b, a] = color.replace(/[^\d, .]/g, '').split(',');
-    polygon.fill = `rgba(${r}, ${g}, ${b}, 0.01)`;
-    polygon.selectable = false;
+      // merge holes: connect top endpoints between mask and each hole
+      const groupedPosPaths = posGrps.map(
+        (grp) =>
+          ({
+            points: grp
+              .map((path, i) => {
+                // find index of top endpoint
+                const pts = path.points;
+                const ys = pts.map((p) => p.y);
+                const idxOfTopPoint = ys.indexOf(Math.min(...ys));
+                const topPt = pts[idxOfTopPoint];
 
-    if (mode === LabelRenderMode.Drawing) {
-      circles.forEach((c) => (c.selectable = false));
-      return [polygon, ...lines.slice(0, -1), ...circles];
+                const pts_ = [
+                  ...pts.slice(idxOfTopPoint),
+                  ...pts.slice(0, idxOfTopPoint),
+                  topPt,
+                ];
+
+                const l = {
+                  x: topPt.x - pts_.at(-2)!.x,
+                  y: topPt.y - pts_.at(-2)!.y,
+                };
+
+                let j = 1;
+                while (j < pts.length) {
+                  j++;
+                  const l_ = {
+                    x: topPt.x - pts_.at(j)!.x,
+                    y: topPt.y - pts_.at(j)!.y,
+                  };
+                  const d = l.x * l_.y - l_.x * l.y;
+
+                  if ((i == 0 && d < 0) || (i > 0 && d > 0)) {
+                    pts_.reverse();
+                    break;
+                  }
+                }
+
+                return pts_;
+              })
+              .flat(),
+          } as Path)
+      );
+
+      // render orphan/grouped pos paths as polygons
+      const polygons = [...groupedPosPaths, ...orphanPosPaths].map(
+        (path) =>
+          new fabric.Polygon(
+            path.points.map((pt) => ({ ...pt })),
+            {
+              ...POLYGON_DEFAULT_CONFIG,
+              fill: color,
+            }
+          )
+      );
+
+      polygons.forEach((pg) =>
+        pg.setOptions({
+          labelType,
+          category,
+          id,
+          timestamp,
+          hash,
+          syncToLabel: true,
+        })
+      );
+
+      // render orphan neg paths as polylines
+      const polylines = [
+        ...orphanNegPaths,
+        ...paths.filter((path) => !path.closed),
+      ].map(
+        (path) =>
+          new fabric.Polyline(
+            path.points.map((pt) => ({ ...pt })),
+            {
+              ...POLYLINE_DEFAULT_CONFIG,
+              stroke: color,
+            }
+          )
+      );
+
+      polylines.forEach((pl) =>
+        pl.setOptions({
+          labelType,
+          category,
+          id,
+          timestamp,
+          hash,
+          syncToLabel: true,
+        })
+      );
+
+      polylines.forEach((pl) => (pl.hoverCursor = undefined));
+      return [polygons, polylines, textbox];
     }
 
-    if (mode === LabelRenderMode.Selected)
-      return [polygon, ...lines, ...circles];
-
     return [];
-
-    */
   };
 }
