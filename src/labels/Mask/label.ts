@@ -240,23 +240,22 @@ export class MaskLabel extends Label {
                 ];
 
                 const l = {
-                  x: topPt.x - pts_.at(-2)!.x,
-                  y: topPt.y - pts_.at(-2)!.y,
+                  x: pts_.at(-2)!.x - topPt.x,
+                  y: pts_.at(-2)!.y - topPt.y,
                 };
 
                 let j = 1;
                 while (j < pts.length) {
-                  j++;
                   const l_ = {
-                    x: topPt.x - pts_.at(j)!.x,
-                    y: topPt.y - pts_.at(j)!.y,
+                    x: pts_.at(j)!.x - topPt.x,
+                    y: pts_.at(j)!.y - topPt.y,
                   };
                   const d = l.x * l_.y - l_.x * l.y;
 
-                  if ((i == 0 && d < 0) || (i > 0 && d > 0)) {
-                    pts_.reverse();
-                    break;
-                  }
+                  if ((i == 0 && d < 0) || (i > 0 && d > 0)) pts_.reverse();
+                  if (d !== 0) break;
+
+                  j++;
                 }
 
                 return pts_;
@@ -292,16 +291,20 @@ export class MaskLabel extends Label {
       const polylines = [
         ...orphanNegPaths,
         ...paths.filter((path) => !path.closed),
-      ].map(
-        (path) =>
-          new fabric.Polyline(
-            path.points.map((pt) => ({ ...pt })),
-            {
-              ...POLYLINE_DEFAULT_CONFIG,
-              stroke: color,
-            }
-          )
-      );
+      ].map((path) => {
+        const pts = path.points.map((pt) => ({ ...pt }));
+
+        if (path.closed) {
+          const head = pts.at(0)!;
+          const tail = pts.at(-1)!;
+          if (!(head.x === tail.x && head.y === tail.y)) pts.push(head);
+        }
+
+        return new fabric.Polyline(pts, {
+          ...POLYLINE_DEFAULT_CONFIG,
+          stroke: color,
+        });
+      });
 
       polylines.forEach((pl) =>
         pl.setOptions({
