@@ -317,6 +317,94 @@ export const useMaskListeners = (syncCanvasToState: (id?: number) => void) => {
           canvas.add(circle_, tailLine_);
           tailLine_.moveTo(objs.indexOf(tailLine));
         } else if (button === 3) {
+          const circles = objs.filter(
+            (o) => o.type === 'circle' && (o as LabeledObject).id === id
+          ) as fabric.Circle[];
+
+          const circle = circles.find(
+            (c) =>
+              (c as any as { lineStarting: fabric.Line | fabric.Polyline })
+                .lineStarting === tailLine
+          )!;
+          const { lineEnding } = circle as any as {
+            lineEnding: fabric.Line | fabric.Polyline | null;
+          };
+
+          if (!lineEnding) {
+            canvas.remove(polyline, tailLine, circle);
+            isDrawing.current = false;
+          } else {
+            if (lineEnding.type === 'line') points.pop();
+            if (lineEnding.type === 'polyline')
+              points.splice(
+                -((lineEnding as fabric.Polyline).points!.length - 1)
+              );
+            canvas.remove(lineEnding, circle);
+
+            const point_ = points.at(-1)!;
+            const { x: x_, y: y_ } = point_;
+
+            const circle_ = circles.find(
+              (c) => (c as any as { point: fabric.Point }).point === point_
+            )!;
+
+            if (!AIMode) {
+              tailLine = tailLine as fabric.Line;
+
+              tailLine.set({
+                x1: x_,
+                y1: y_,
+              });
+
+              tailLine.setCoords();
+
+              circle_.setOptions({
+                lineStarting: tailLine,
+              });
+
+              tailLine.setOptions({
+                bgnpoint: point_,
+              });
+            } else {
+              tailLine = tailLine as fabric.Polyline;
+              const { x, y } = tailLine.points!.at(-1)!;
+
+              intelligentScissor.buildMap(
+                new fabric.Point(
+                  (x_ - offset.x) / scale,
+                  (y_ - offset.y) / scale
+                )
+              );
+
+              const points_ = calcScissorPath(
+                new fabric.Point((x - offset.x) / scale, (y - offset.y) / scale)
+              );
+
+              const tailLine_ = new fabric.Polyline(points_, {
+                ...POLYLINE_DEFAULT_CONFIG,
+                stroke: tailLine.stroke,
+                selectable: false,
+                hoverCursor: 'default',
+              });
+
+              tailLine_.setOptions({
+                id,
+                syncToLabel: false,
+                polyline,
+                bgnpoint: point_,
+                endpoint: null,
+                tailLine: true,
+              });
+
+              circle_.setOptions({
+                lineStarting: tailLine_,
+              });
+
+              const idx = objs.indexOf(tailLine);
+              canvas.remove(tailLine).add(tailLine_);
+              tailLine_.moveTo(idx);
+            }
+          }
         }
       }
     },
