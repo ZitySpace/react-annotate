@@ -11,12 +11,7 @@ import {
   TEXTBOX_DEFAULT_CONFIG,
   TRANSPARENT,
 } from '../config';
-import {
-  getLocalTimeISOString,
-  getArea,
-  calcIntersection,
-  analyzeHoles,
-} from '../utils/label';
+import { getLocalTimeISOString, getArea, analyzeHoles } from '../utils/label';
 
 interface Path {
   points: { x: number; y: number }[];
@@ -172,30 +167,29 @@ export class MaskLabel extends Label {
     const { paths, labelType, category, id, timestamp, hash } = this;
 
     if (mode === LabelRenderMode.Hidden) return [];
+    else if (mode === LabelRenderMode.Preview) {
+      const xs = paths.map((path) => path.points.map((pt) => pt.x)).flat();
+      const ys = paths.map((path) => path.points.map((pt) => pt.y)).flat();
+      const idxOfTopPoint = ys.indexOf(Math.min(...ys));
 
-    const xs = paths.map((path) => path.points.map((pt) => pt.x)).flat();
-    const ys = paths.map((path) => path.points.map((pt) => pt.y)).flat();
-    const idxOfTopPoint = ys.indexOf(Math.min(...ys));
+      const textbox = new fabric.Textbox(this.id.toString(), {
+        ...TEXTBOX_DEFAULT_CONFIG,
+        left: xs[idxOfTopPoint],
+        top: ys[idxOfTopPoint] - RADIUS - STROKE_WIDTH / 2,
+        originX: 'center',
+        originY: 'bottom',
+        backgroundColor: color,
+      });
 
-    const textbox = new fabric.Textbox(this.id.toString(), {
-      ...TEXTBOX_DEFAULT_CONFIG,
-      left: xs[idxOfTopPoint],
-      top: ys[idxOfTopPoint] - RADIUS - STROKE_WIDTH / 2,
-      originX: 'center',
-      originY: 'bottom',
-      backgroundColor: color,
-    });
+      textbox.setOptions({
+        labelType,
+        category,
+        id,
+        timestamp,
+        hash,
+        syncToLabel: false,
+      });
 
-    textbox.setOptions({
-      labelType,
-      category,
-      id,
-      timestamp,
-      hash,
-      syncToLabel: false,
-    });
-
-    if (mode === LabelRenderMode.Preview) {
       const posPaths = paths.filter((path) => path.closed && !path.hole);
       // sort by area
       posPaths.sort((p1, p2) => getArea(p2.points) - getArea(p1.points));
@@ -303,6 +297,7 @@ export class MaskLabel extends Label {
         return new fabric.Polyline(pts, {
           ...POLYLINE_DEFAULT_CONFIG,
           stroke: color,
+          strokeDashArray: path.hole ? [5] : undefined,
         });
       });
 
@@ -319,8 +314,128 @@ export class MaskLabel extends Label {
 
       polylines.forEach((pl) => (pl.hoverCursor = undefined));
       return [polygons, polylines, textbox];
-    }
+    } else {
+      const polylines = paths.map(
+        (path) =>
+          new fabric.Polyline(
+            path.points.map((pt) => ({ ...pt })),
+            {
+              ...POLYLINE_DEFAULT_CONFIG,
+              stroke: color,
+            }
+          )
+      );
 
-    return [];
+      polylines.forEach((pl) =>
+        pl.setOptions({
+          labelType,
+          category,
+          id,
+          timestamp,
+          hash,
+          syncToLabel: true,
+        })
+      );
+
+      const circles = paths.map((path) =>
+        path.points.map(
+          (pt) =>
+            new fabric.Circle({
+              ...POINT_DEFAULT_CONFIG,
+              left: pt.x,
+              top: pt.y,
+              fill: color,
+              stroke: TRANSPARENT,
+            })
+        )
+      );
+
+      circles.forEach((cs, i) =>
+        cs.forEach((c, j) =>
+          c.setOptions({
+            labelType,
+            category,
+            id,
+            timestamp,
+            hash,
+            syncToLabel: false,
+            lineStarting: null,
+            lineEnding: null,
+            polyline: polylines[i],
+            point: polylines[i].points![j],
+          })
+        )
+      );
+
+      const lines = paths.map((path) => {
+        const { points, closed, hole } = path;
+
+        const l = points.length;
+
+        return (closed ? points : points.slice(0, -1)).map(
+          (_, i) =>
+            new fabric.Line(
+              [
+                points[i].x,
+                points[i].y,
+                points[(i + 1) % l].x,
+                points[(i + 1) % l].y,
+              ],
+              {
+                ...LINE_DEFAULT_CONFIG,
+                stroke: color,
+                selectable: false,
+                hoverCursor: 'default',
+                strokeDashArray: hole ? [5] : undefined,
+              }
+            )
+        );
+      });
+
+      lines.forEach((ls, i) =>
+        ls.forEach((l, j) =>
+          l.setOptions({
+            labelType,
+            category,
+            id,
+            timestamp,
+            hash,
+            syncToLabel: false,
+            polyline: polylines[i],
+            bgnpoint: polylines[i].points![j],
+            endpoint:
+              polylines[i].points![(j + 1) % polylines[i].points!.length],
+          })
+        )
+      );
+
+      circles.forEach(
+        (cs, i) =>
+          cs.length > 1 &&
+          cs.forEach((c, j) => {
+            const l = cs.length;
+            const { closed } = paths[i];
+            c.setOptions({
+              lineStarting: j < l - 1 || closed ? lines[i][j] : null,
+              lineEnding: j > 0 || closed ? lines[i][(j - 1) % l] : null,
+            });
+          })
+      );
+
+      const [r, g, b, a] = color.replace(/[^\d, .]/g, '').split(',');
+      polylines.forEach((pl) => {
+        pl.stroke = `rgba(${r}, ${g}, ${b}, 0)`;
+        pl.selectable = false;
+      });
+
+      if (mode === LabelRenderMode.Drawing) {
+        circles.forEach((cs) => cs.forEach((c) => (c.selectable = false)));
+        return [polylines, lines, circles];
+      }
+
+      if (mode === LabelRenderMode.Selected) return [polylines, lines, circles];
+
+      return [];
+    }
   };
 }
