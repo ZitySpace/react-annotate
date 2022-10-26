@@ -166,8 +166,7 @@ export class MaskLabel extends Label {
   toCanvasObjects = (color: string, mode: string) => {
     const { paths, labelType, category, id, timestamp, hash } = this;
 
-    if (mode === LabelRenderMode.Hidden) return [];
-    else if (mode === LabelRenderMode.Preview) {
+    if (mode === LabelRenderMode.Preview) {
       const xs = paths.map((path) => path.points.map((pt) => pt.x)).flat();
       const ys = paths.map((path) => path.points.map((pt) => pt.y)).flat();
       const idxOfTopPoint = ys.indexOf(Math.min(...ys));
@@ -326,7 +325,7 @@ export class MaskLabel extends Label {
           )
       );
 
-      polylines.forEach((pl) =>
+      polylines.forEach((pl, i) =>
         pl.setOptions({
           labelType,
           category,
@@ -334,8 +333,19 @@ export class MaskLabel extends Label {
           timestamp,
           hash,
           syncToLabel: true,
+          closed: paths[i].closed,
+          hole: paths[i].hole,
         })
       );
+
+      if (mode === LabelRenderMode.Hidden) {
+        polylines.forEach((pl) => {
+          pl.visible = false;
+          pl.hasControls = false;
+        });
+
+        return [polylines];
+      }
 
       const circles = paths.map((path) =>
         path.points.map(
