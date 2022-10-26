@@ -650,8 +650,9 @@ export const usePolylineListeners = (
             if (idx < idx_) {
               polyline.points = points.slice(idx, idx_ + 1);
             }
+
+            syncCanvasToState(id);
           }
-          syncCanvasToState(id);
         }
       }
 

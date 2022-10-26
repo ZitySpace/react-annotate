@@ -427,10 +427,12 @@ export class MaskLabel extends Label {
             const { closed } = paths[i];
             c.setOptions({
               lineStarting: j < l - 1 || closed ? lines[i][j] : null,
-              lineEnding: j > 0 || closed ? lines[i][(j - 1) % l] : null,
+              lineEnding: j > 0 || closed ? lines[i][(j + l - 1) % l] : null,
             });
           })
       );
+
+      console.log(circles[0][0]);
 
       const [r, g, b, a] = color.replace(/[^\d, .]/g, '').split(',');
       polylines.forEach((pl) => {
