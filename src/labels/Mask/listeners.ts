@@ -627,6 +627,7 @@ export const useMaskListeners = (
                   const polyline_ = new fabric.Polyline(points_, {
                     ...POLYLINE_DEFAULT_CONFIG,
                     stroke: polyline.stroke,
+                    strokeDashArray: polyline.strokeDashArray,
                   });
                   polyline_.setOptions({
                     labelType,
@@ -786,6 +787,7 @@ export const useMaskListeners = (
           lineStarting = new fabric.Line([x_, y_, line.x2!, line.y2!], {
             ...LINE_DEFAULT_CONFIG,
             stroke: line.stroke,
+            strokeDashArray: line.strokeDashArray,
           });
           circle.setOptions({ lineStarting });
           canvas.add(lineStarting);
@@ -795,6 +797,7 @@ export const useMaskListeners = (
           lineEnding = new fabric.Line([line.x1!, line.y1!, x_, y_], {
             ...LINE_DEFAULT_CONFIG,
             stroke: line.stroke,
+            strokeDashArray: line.strokeDashArray,
           });
           circle.setOptions({ lineEnding });
           canvas.add(lineEnding);
@@ -872,6 +875,7 @@ export const useMaskListeners = (
 
       if (target.type === 'line' || target.type === 'midpoint') return;
 
+      let closed: boolean, hole: boolean;
       if (target.type === 'circle') {
         const circle = target as fabric.Circle;
 
@@ -880,7 +884,10 @@ export const useMaskListeners = (
           point: fabric.Point;
         };
 
-        const { closed } = polyline as any as { closed: boolean };
+        ({ closed, hole } = polyline as any as {
+          closed: boolean;
+          hole: boolean;
+        });
         if (closed) return;
 
         const points = polyline.points!;
@@ -931,6 +938,7 @@ export const useMaskListeners = (
             stroke: circle.fill as string,
             selectable: false,
             hoverCursor: 'default',
+            strokeDashArray: hole ? [5] : undefined,
           });
 
           isScissorMapUpdated.current = false;
@@ -945,6 +953,7 @@ export const useMaskListeners = (
               stroke: circle.fill as string,
               selectable: false,
               hoverCursor: 'default',
+              strokeDashArray: hole ? [5] : undefined,
             }
           );
 
@@ -994,7 +1003,8 @@ export const useMaskListeners = (
       );
 
       if (!isAdvDrawing.current) {
-        if (button !== 1) return;
+        // if (button !== 1) return;
+        let hole: boolean, closed: boolean;
 
         const objs = canvas.getObjects();
         let circle: fabric.Circle,
@@ -1011,9 +1021,10 @@ export const useMaskListeners = (
           const circle_ = objs.find((o) => o.type === 'circle' && o.visible);
           const { id: id_, category, fill: color } = circle_ as LabeledObject;
 
+          hole = button === 3;
           id = id_;
           const [polylines, lines, circles] = new MaskLabel({
-            paths: [{ points: [{ x, y }], closed: false, hole: false }],
+            paths: [{ points: [{ x, y }], closed: false, hole }],
             category,
             id,
             scale,
@@ -1042,7 +1053,10 @@ export const useMaskListeners = (
           });
           ({ x, y } = point);
 
-          const { closed } = polyline as any as { closed: boolean };
+          ({ closed, hole } = polyline as any as {
+            closed: boolean;
+            hole: boolean;
+          });
           if (closed) return;
 
           const points = polyline.points!;
@@ -1091,6 +1105,7 @@ export const useMaskListeners = (
             stroke: circle.fill as string,
             selectable: false,
             hoverCursor: 'default',
+            strokeDashArray: hole ? [5] : undefined,
           });
 
           isScissorMapUpdated.current = false;
@@ -1105,6 +1120,7 @@ export const useMaskListeners = (
               stroke: circle.fill as string,
               selectable: false,
               hoverCursor: 'default',
+              strokeDashArray: hole ? [5] : undefined,
             }
           );
 
@@ -1151,6 +1167,7 @@ export const useMaskListeners = (
         const color = tailLine.stroke;
 
         const { polyline } = tailLine as any as { polyline: fabric.Polyline };
+        const { hole } = polyline as any as { hole: boolean };
         const points = polyline.points!;
 
         if (button === 1) {
@@ -1195,6 +1212,7 @@ export const useMaskListeners = (
               stroke: color,
               selectable: false,
               hoverCursor: 'default',
+              strokeDashArray: hole ? [5] : undefined,
             });
 
             isScissorMapUpdated.current = false;
@@ -1217,9 +1235,8 @@ export const useMaskListeners = (
                   obj.type === 'circle' &&
                   (obj as any).lineStarting === tailLine
               )!;
-              const { id, polyline, bgnpoint } = tailLine as any as {
+              const { id, bgnpoint } = tailLine as any as {
                 id: number;
-                polyline: fabric.Polyline;
                 bgnpoint: fabric.Point;
               };
 
@@ -1231,6 +1248,7 @@ export const useMaskListeners = (
                 stroke: color,
                 selectable: false,
                 hoverCursor: 'default',
+                strokeDashArray: hole ? [5] : undefined,
               });
 
               tailLine.setOptions({
@@ -1279,6 +1297,7 @@ export const useMaskListeners = (
                 stroke: color,
                 selectable: false,
                 hoverCursor: 'default',
+                strokeDashArray: hole ? [5] : undefined,
               }
             );
 
@@ -1395,6 +1414,7 @@ export const useMaskListeners = (
                 stroke: tailLine.stroke,
                 selectable: false,
                 hoverCursor: 'default',
+                strokeDashArray: hole ? [5] : undefined,
               });
 
               tailLine_.setOptions({
@@ -1568,6 +1588,7 @@ export const useMaskListeners = (
           stroke: tailLine.stroke,
           selectable: false,
           hoverCursor: 'default',
+          strokeDashArray: tailLine.strokeDashArray,
         });
 
         const { id, polyline, bgnpoint } = tailLine as any as {
