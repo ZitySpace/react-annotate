@@ -43,8 +43,8 @@ export const useListeners = (syncCanvasToState: (id?: number) => void) => {
     advancedDrawPolylineListeners,
   } = usePolylineListeners(syncCanvasToState, listenerGroup);
 
-  const { drawMaskListeners, editMaskListeners } =
-    useMaskListeners(syncCanvasToState);
+  const { drawMaskListeners, editMaskListeners, advancedDrawMaskListeners } =
+    useMaskListeners(syncCanvasToState, listenerGroup);
 
   useEffect(() => {
     if (!canvas) return;
@@ -108,6 +108,9 @@ export const useListeners = (syncCanvasToState: (id?: number) => void) => {
 
     if (group === 'mask:draw')
       listeners = { ...sharedListeners, ...drawMaskListeners };
+
+    if (group === 'mask:draw:advanced')
+      listeners = { ...sharedListeners, ...advancedDrawMaskListeners };
 
     canvas.off();
     Object.entries(listeners).forEach(([event, handler]) =>

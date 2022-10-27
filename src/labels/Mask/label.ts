@@ -432,8 +432,6 @@ export class MaskLabel extends Label {
           })
       );
 
-      console.log(circles[0][0]);
-
       const [r, g, b, a] = color.replace(/[^\d, .]/g, '').split(',');
       polylines.forEach((pl) => {
         pl.stroke = `rgba(${r}, ${g}, ${b}, 0)`;
