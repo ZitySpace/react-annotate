@@ -91,6 +91,102 @@ export const useMaskListeners = (
 
   useEffect(() => {
     if (!canvas) return;
+
+    const drawing = isDrawing.current;
+    const advDrawing = isAdvDrawing.current;
+
+    // AIMode value changes won't be relfected in listeners' logic
+    // listeners still using outdated value, need to reload/refresh listeners
+    refreshListenersRef.current();
+
+    isDrawing.current = drawing;
+    isAdvDrawing.current = advDrawing;
+
+    if ((!drawing && !advDrawing) || (drawing && drawType !== LabelType.Mask))
+      return;
+
+    const objs = canvas.getObjects();
+
+    const tailLine = objs.find(
+      (obj) =>
+        (obj.type === 'polyline' || obj.type === 'line') &&
+        (obj as any).tailLine
+    )!;
+    const { id, polyline, bgnpoint } = tailLine as any as {
+      id: number;
+      polyline: fabric.Polyline;
+      bgnpoint: fabric.Point;
+    };
+    const idx = objs.indexOf(tailLine);
+
+    const circles = objs.filter(
+      (o) => o.type === 'circle' && (o as LabeledObject).id === id
+    ) as fabric.Circle[];
+
+    const circle = circles.find(
+      (c) =>
+        (c as any as { lineStarting: fabric.Line | fabric.Polyline })
+          .lineStarting === tailLine
+    )!;
+
+    let tailLine_: fabric.Line | fabric.Polyline;
+    if (!AIMode) {
+      const { stroke, points, strokeDashArray } = tailLine as fabric.Polyline;
+
+      tailLine_ = new fabric.Line(
+        [
+          points!.at(0)!.x,
+          points!.at(0)!.y,
+          points!.at(-1)!.x,
+          points!.at(-1)!.y,
+        ],
+        {
+          ...LINE_DEFAULT_CONFIG,
+          stroke,
+          selectable: false,
+          hoverCursor: 'default',
+          strokeDashArray,
+        }
+      );
+    } else {
+      const { stroke, x1, y1, x2, y2, strokeDashArray } =
+        tailLine as fabric.Line;
+
+      if (!isScissorMapUpdated.current) {
+        intelligentScissor.buildMap(
+          new fabric.Point((x1! - offset.x) / scale, (y1! - offset.y) / scale)
+        );
+        isScissorMapUpdated.current = true;
+      }
+
+      const points = calcScissorPath(
+        new fabric.Point((x2! - offset.x) / scale, (y2! - offset.y) / scale)
+      );
+
+      tailLine_ = new fabric.Polyline(points, {
+        ...POLYLINE_DEFAULT_CONFIG,
+        stroke,
+        selectable: false,
+        hoverCursor: 'default',
+        strokeDashArray,
+      });
+    }
+
+    tailLine_.setOptions({
+      id,
+      syncToLabel: false,
+      polyline,
+      bgnpoint,
+      endpoint: null,
+      tailLine: true,
+    });
+
+    circle.setOptions({
+      lineStarting: tailLine_,
+    });
+
+    canvas.remove(tailLine).add(tailLine_);
+    tailLine_.moveTo(idx);
   }, [AIMode]);
 
   if (!canvas) return {};

@@ -95,16 +95,18 @@ export const usePolylineListeners = (
     const drawing = isDrawing.current;
     const advDrawing = isAdvDrawing.current;
 
+    // AIMode value changes won't be relfected in listeners' logic
+    // listeners still using outdated value, need to reload/refresh listeners
     refreshListenersRef.current();
+
+    isDrawing.current = drawing;
+    isAdvDrawing.current = advDrawing;
 
     if (
       (!drawing && !advDrawing) ||
       (drawing && drawType !== LabelType.Polyline)
     )
       return;
-
-    isDrawing.current = drawing;
-    isAdvDrawing.current = advDrawing;
 
     const objs = canvas.getObjects();
 
@@ -566,6 +568,7 @@ export const usePolylineListeners = (
     },
 
     'mouse:move': (e: fabric.IEvent<Event>) => {
+      console.log(isDrawing.current);
       if (!isDrawing.current) return;
 
       const { evt } = parseEvent(e as fabric.IEvent<MouseEvent>);
