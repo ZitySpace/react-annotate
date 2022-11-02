@@ -9,6 +9,7 @@ interface StoreData {
   visibleType: LabelType[];
   category: string | null;
   labels: Label[];
+  categories: string[] | null;
 }
 
 const NoLabelsSelected: Label[] = [];
@@ -19,6 +20,7 @@ const StoreDataDefault = {
   visibleType: Object.keys(LabelType).map((key) => LabelType[key]),
   category: null,
   labels: NoLabelsSelected,
+  categories: null,
 };
 
 interface Store extends StoreData {
@@ -28,6 +30,7 @@ interface Store extends StoreData {
   toggleVisibility: () => void;
   calcLabelMode: (label: Label) => string;
   isSelected: (target: number | string) => boolean;
+  setCategories: (categories: string[]) => void;
 }
 
 const store = createStore<Store>((set, get) => ({
@@ -86,6 +89,8 @@ const store = createStore<Store>((set, get) => ({
           ({ category }: { category: string }) => category === t
         )
       : get().labels.some(({ id }: { id: number }) => id === t),
+
+  setCategories: (categories) => set({ categories }),
 }));
 
 const StoreContext = createContext<StoreApi<Store>>(store);

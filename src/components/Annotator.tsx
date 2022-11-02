@@ -10,6 +10,7 @@ import { OperationPanel } from './OperationPanel';
 export const Annotator = ({
   imagesList,
   initIndex = 0,
+  categories,
   getImage,
   onSave,
   onSwitch,
@@ -17,6 +18,7 @@ export const Annotator = ({
 }: {
   imagesList: ImageData[];
   initIndex?: number;
+  categories?: string[];
   getImage?: (imageName: string) => Promise<string>;
   onSave?: (
     curImageData: ImageData,

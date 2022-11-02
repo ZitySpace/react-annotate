@@ -21,6 +21,7 @@ export interface DataOperation {
 export const useData = ({
   imagesList,
   initIndex = 0,
+  categories,
   getImage,
   onSave,
   onSwitch,
@@ -28,6 +29,7 @@ export const useData = ({
 }: {
   imagesList: ImageData[];
   initIndex: number;
+  categories?: string[];
   getImage?: (imageName: string) => Promise<string>;
   onSave?: (
     curImageData: ImageData,
@@ -72,10 +74,12 @@ export const useData = ({
     setName,
   } = useStore(ImageMetaStore, (s: ImageMetaStoreProps) => s);
 
-  const { selectLabels, category: selectedCategory } = useStore(
-    SelectionStore,
-    (s: SelectionStoreProps) => s
-  );
+  const {
+    selectLabels,
+    category: selectedCategory,
+    categories: categoriesInStore,
+    setCategories: setCategoriesInStore,
+  } = useStore(SelectionStore, (s: SelectionStoreProps) => s);
 
   const theLastLoadImageName = useRef<string>();
   theLastLoadImageName.current = imageData.name;
@@ -190,6 +194,20 @@ export const useData = ({
       }
     })();
   }, [imageData.name, canvas]);
+
+  useEffect(() => {
+    !categoriesInStore &&
+      setCategoriesInStore(
+        categories ||
+          [
+            ...new Set(
+              imagesList
+                .map((d) => [...new Set(d.annotations.map((l) => l.category))])
+                .flat()
+            ),
+          ].sort()
+      );
+  }, []);
 
   return operation;
 };

@@ -79,16 +79,20 @@ export const useContainer = () => {
       id='canvas_extended'
     >
       <canvas ref={canvasElmRef} className='hidden' />
-      <SpinnerIcon
+      <div
         className={`${
           isCached(name) || dataReady || dataError ? 'hidden' : ''
         }`}
-      />
+      >
+        <SpinnerIcon />
+      </div>
       <div
         className={`flex flex-col text-gray-800 ${dataError ? '' : 'hidden'}`}
         style={{ zIndex: 999 }}
       >
-        <WarningIcon className='m-auto' />
+        <div className='m-auto'>
+          <WarningIcon />
+        </div>
         <p>Unable to load the picture, please check your network connection.</p>
       </div>
     </div>

@@ -1,22 +1,8 @@
-import React, { MouseEventHandler } from 'react';
+import React from 'react';
 
-const Icon =
-  (children: React.ReactNode) =>
-  ({
-    onClick,
-    className,
-  }: {
-    onClick?: MouseEventHandler;
-    className?: string;
-  }) =>
-    (
-      <div onClick={onClick} className={className}>
-        {children}
-      </div>
-    );
-
-export const SaveIcon = Icon(
+export const SaveIcon = (props: React.ComponentProps<'svg'>) => (
   <svg
+    xmlns='http://www.w3.org/2000/svg'
     className='h-5 w-5'
     viewBox='0 0 24 24'
     fill='none'
@@ -24,6 +10,7 @@ export const SaveIcon = Icon(
     strokeWidth='2'
     strokeLinecap='round'
     strokeLinejoin='round'
+    {...props}
   >
     <path d='M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z' />
     <polyline points='17 21 17 13 7 13 7 21' />
@@ -31,8 +18,70 @@ export const SaveIcon = Icon(
   </svg>
 );
 
-export const PointIcon = Icon(
+export const EditIcon = (props: React.ComponentProps<'svg'>) => (
   <svg
+    xmlns='http://www.w3.org/2000/svg'
+    className='h-6 w-6'
+    viewBox='0 0 24 24'
+    fill='currentColor'
+    {...props}
+  >
+    <path d='M21.731 2.269a2.625 2.625 0 00-3.712 0l-1.157 1.157 3.712 3.712 1.157-1.157a2.625 2.625 0 000-3.712zM19.513 8.199l-3.712-3.712-12.15 12.15a5.25 5.25 0 00-1.32 2.214l-.8 2.685a.75.75 0 00.933.933l2.685-.8a5.25 5.25 0 002.214-1.32L19.513 8.2z' />
+  </svg>
+);
+
+export const TagIcon = (props: React.ComponentProps<'svg'>) => (
+  <svg
+    xmlns='http://www.w3.org/2000/svg'
+    className='w-6 h-6'
+    viewBox='0 0 24 24'
+    fill='currentColor'
+    {...props}
+  >
+    <path
+      fillRule='evenodd'
+      d='M5.25 2.25a3 3 0 00-3 3v4.318a3 3 0 00.879 2.121l9.58 9.581c.92.92 2.39 1.186 3.548.428a18.849 18.849 0 005.441-5.44c.758-1.16.492-2.629-.428-3.548l-9.58-9.581a3 3 0 00-2.122-.879H5.25zM6.375 7.5a1.125 1.125 0 100-2.25 1.125 1.125 0 000 2.25z'
+      clipRule='evenodd'
+    />
+  </svg>
+);
+
+export const CogIcon = (props: React.ComponentProps<'svg'>) => (
+  <svg
+    xmlns='http://www.w3.org/2000/svg'
+    className='w-6 h-6'
+    viewBox='0 0 24 24'
+    fill='currentColor'
+    {...props}
+  >
+    <path d='M17.004 10.407c.138.435-.216.842-.672.842h-3.465a.75.75 0 01-.65-.375l-1.732-3c-.229-.396-.053-.907.393-1.004a5.252 5.252 0 016.126 3.537zM8.12 8.464c.307-.338.838-.235 1.066.16l1.732 3a.75.75 0 010 .75l-1.732 3.001c-.229.396-.76.498-1.067.16A5.231 5.231 0 016.75 12c0-1.362.519-2.603 1.37-3.536zM10.878 17.13c-.447-.097-.623-.608-.394-1.003l1.733-3.003a.75.75 0 01.65-.375h3.465c.457 0 .81.408.672.843a5.252 5.252 0 01-6.126 3.538z' />
+    <path
+      fillRule='evenodd'
+      d='M21 12.75a.75.75 0 000-1.5h-.783a8.22 8.22 0 00-.237-1.357l.734-.267a.75.75 0 10-.513-1.41l-.735.268a8.24 8.24 0 00-.689-1.191l.6-.504a.75.75 0 10-.964-1.149l-.6.504a8.3 8.3 0 00-1.054-.885l.391-.678a.75.75 0 10-1.299-.75l-.39.677a8.188 8.188 0 00-1.295-.471l.136-.77a.75.75 0 00-1.477-.26l-.136.77a8.364 8.364 0 00-1.377 0l-.136-.77a.75.75 0 10-1.477.26l.136.77c-.448.121-.88.28-1.294.47l-.39-.676a.75.75 0 00-1.3.75l.392.678a8.29 8.29 0 00-1.054.885l-.6-.504a.75.75 0 00-.965 1.149l.6.503a8.243 8.243 0 00-.689 1.192L3.8 8.217a.75.75 0 10-.513 1.41l.735.267a8.222 8.222 0 00-.238 1.355h-.783a.75.75 0 000 1.5h.783c.042.464.122.917.238 1.356l-.735.268a.75.75 0 10.513 1.41l.735-.268c.197.417.428.816.69 1.192l-.6.504a.75.75 0 10.963 1.149l.601-.505c.326.323.679.62 1.054.885l-.392.68a.75.75 0 101.3.75l.39-.679c.414.192.847.35 1.294.471l-.136.771a.75.75 0 101.477.26l.137-.772a8.376 8.376 0 001.376 0l.136.773a.75.75 0 101.477-.26l-.136-.772a8.19 8.19 0 001.294-.47l.391.677a.75.75 0 101.3-.75l-.393-.679a8.282 8.282 0 001.054-.885l.601.504a.75.75 0 10.964-1.15l-.6-.503a8.24 8.24 0 00.69-1.191l.735.268a.75.75 0 10.512-1.41l-.734-.268c.115-.438.195-.892.237-1.356h.784zm-2.657-3.06a6.744 6.744 0 00-1.19-2.053 6.784 6.784 0 00-1.82-1.51A6.704 6.704 0 0012 5.25a6.801 6.801 0 00-1.225.111 6.7 6.7 0 00-2.15.792 6.784 6.784 0 00-2.952 3.489.758.758 0 01-.036.099A6.74 6.74 0 005.251 12a6.739 6.739 0 003.355 5.835l.01.006.01.005a6.706 6.706 0 002.203.802c.007 0 .014.002.021.004a6.792 6.792 0 002.301 0l.022-.004a6.707 6.707 0 002.228-.816 6.781 6.781 0 001.762-1.483l.009-.01.009-.012a6.744 6.744 0 001.18-2.064c.253-.708.39-1.47.39-2.264a6.74 6.74 0 00-.408-2.308z'
+      clipRule='evenodd'
+    />
+  </svg>
+);
+
+export const SquaresIcon = (props: React.ComponentProps<'svg'>) => (
+  <svg
+    xmlns='http://www.w3.org/2000/svg'
+    className='w-6 h-6'
+    viewBox='0 0 24 24'
+    fill='currentColor'
+    {...props}
+  >
+    <path
+      fillRule='evenodd'
+      d='M3 6a3 3 0 013-3h2.25a3 3 0 013 3v2.25a3 3 0 01-3 3H6a3 3 0 01-3-3V6zm9.75 0a3 3 0 013-3H18a3 3 0 013 3v2.25a3 3 0 01-3 3h-2.25a3 3 0 01-3-3V6zM3 15.75a3 3 0 013-3h2.25a3 3 0 013 3V18a3 3 0 01-3 3H6a3 3 0 01-3-3v-2.25zm9.75 0a3 3 0 013-3H18a3 3 0 013 3V18a3 3 0 01-3 3h-2.25a3 3 0 01-3-3v-2.25z'
+      clipRule='evenodd'
+    />
+  </svg>
+);
+
+export const PointIcon = (props: React.ComponentProps<'svg'>) => (
+  <svg
+    xmlns='http://www.w3.org/2000/svg'
     className='h-5 w-5'
     viewBox='0 0 24 24'
     strokeWidth='2'
@@ -40,6 +89,7 @@ export const PointIcon = Icon(
     fill='none'
     strokeLinecap='round'
     strokeLinejoin='round'
+    {...props}
   >
     <path stroke='none' d='M0 0h24v24H0z' />
     <circle cx='12' cy='12' r='.5' fill='currentColor' />
@@ -47,8 +97,9 @@ export const PointIcon = Icon(
   </svg>
 );
 
-export const RectangleIcon = Icon(
+export const RectangleIcon = (props: React.ComponentProps<'svg'>) => (
   <svg
+    xmlns='http://www.w3.org/2000/svg'
     className='h-6 w-6'
     viewBox='0 0 24 24'
     strokeWidth='2'
@@ -56,14 +107,16 @@ export const RectangleIcon = Icon(
     fill='none'
     strokeLinecap='round'
     strokeLinejoin='round'
+    {...props}
   >
     <path stroke='none' d='M0 0h24v24H0z' />
     <rect x='4' y='6' width='16' height='12' rx='2' />
   </svg>
 );
 
-export const LineIcon = Icon(
+export const LineIcon = (props: React.ComponentProps<'svg'>) => (
   <svg
+    xmlns='http://www.w3.org/2000/svg'
     className='h-5 w-5'
     viewBox='0 0 24 24'
     strokeWidth='2'
@@ -71,6 +124,7 @@ export const LineIcon = Icon(
     fill='none'
     strokeLinecap='round'
     strokeLinejoin='round'
+    {...props}
   >
     <path stroke='none' d='M0 0h24v24H0z' />
     <circle cx='6' cy='6' r='2' />
@@ -79,8 +133,9 @@ export const LineIcon = Icon(
   </svg>
 );
 
-export const PolylineIcon = Icon(
+export const PolylineIcon = (props: React.ComponentProps<'svg'>) => (
   <svg
+    xmlns='http://www.w3.org/2000/svg'
     className='h-5 w-5'
     viewBox='0 0 24 24'
     fill='none'
@@ -88,6 +143,7 @@ export const PolylineIcon = Icon(
     strokeWidth='0.2'
     strokeLinecap='round'
     strokeLinejoin='round'
+    {...props}
   >
     <g clipPath='url(#clip0_1345_6662)'>
       <path
@@ -98,8 +154,9 @@ export const PolylineIcon = Icon(
   </svg>
 );
 
-export const PolygonIcon = Icon(
+export const PolygonIcon = (props: React.ComponentProps<'svg'>) => (
   <svg
+    xmlns='http://www.w3.org/2000/svg'
     className='h-5 w-5'
     viewBox='0 0 24 24'
     fill='none'
@@ -107,13 +164,15 @@ export const PolygonIcon = Icon(
     strokeWidth='2'
     strokeLinecap='round'
     strokeLinejoin='round'
+    {...props}
   >
     <polygon points='12 2 22 9.27 18.18 21.02 5.82 21.02 2 9.27 12 2' />
   </svg>
 );
 
-export const UndoIcon = Icon(
+export const UndoIcon = (props: React.ComponentProps<'svg'>) => (
   <svg
+    xmlns='http://www.w3.org/2000/svg'
     className='h-5 w-5 transform rotate-45'
     viewBox='0 0 24 24'
     strokeWidth='2'
@@ -121,6 +180,7 @@ export const UndoIcon = Icon(
     fill='none'
     strokeLinecap='round'
     strokeLinejoin='round'
+    {...props}
   >
     <path stroke='none' d='M0 0h24v24H0z' />
     <path d='M15 4.55a8 8 0 0 0 -6 14.9m0 -4.45v5h-5' />
@@ -128,8 +188,9 @@ export const UndoIcon = Icon(
   </svg>
 );
 
-export const RedoIcon = Icon(
+export const RedoIcon = (props: React.ComponentProps<'svg'>) => (
   <svg
+    xmlns='http://www.w3.org/2000/svg'
     className='h-5 w-5 transform -rotate-45'
     viewBox='0 0 24 24'
     strokeWidth='2'
@@ -137,6 +198,7 @@ export const RedoIcon = Icon(
     fill='none'
     strokeLinecap='round'
     strokeLinejoin='round'
+    {...props}
   >
     <path stroke='none' d='M0 0h24v24H0z' />
     <path d='M9 4.55a8 8 0 0 1 6 14.9m0 -4.45v5h5' />
@@ -144,8 +206,9 @@ export const RedoIcon = Icon(
   </svg>
 );
 
-export const ResetIcon = Icon(
+export const ResetIcon = (props: React.ComponentProps<'svg'>) => (
   <svg
+    xmlns='http://www.w3.org/2000/svg'
     className='h-4 w-4'
     viewBox='0 0 24 24'
     fill='none'
@@ -153,6 +216,7 @@ export const ResetIcon = Icon(
     strokeWidth='2'
     strokeLinecap='round'
     strokeLinejoin='round'
+    {...props}
   >
     <polyline points='23 4 23 10 17 10' />
     <polyline points='1 20 1 14 7 14' />
@@ -160,8 +224,9 @@ export const ResetIcon = Icon(
   </svg>
 );
 
-export const NextIcon = Icon(
+export const NextIcon = (props: React.ComponentProps<'svg'>) => (
   <svg
+    xmlns='http://www.w3.org/2000/svg'
     className='h-5 w-5'
     viewBox='0 0 24 24'
     strokeWidth='2'
@@ -169,14 +234,16 @@ export const NextIcon = Icon(
     fill='none'
     strokeLinecap='round'
     strokeLinejoin='round'
+    {...props}
   >
     <path stroke='none' d='M0 0h24v24H0z' />
     <polyline points='9 6 15 12 9 18' />
   </svg>
 );
 
-export const PervIcon = Icon(
+export const PervIcon = (props: React.ComponentProps<'svg'>) => (
   <svg
+    xmlns='http://www.w3.org/2000/svg'
     className='h-5 w-5'
     viewBox='0 0 24 24'
     strokeWidth='2'
@@ -184,14 +251,16 @@ export const PervIcon = Icon(
     fill='none'
     strokeLinecap='round'
     strokeLinejoin='round'
+    {...props}
   >
     <path stroke='none' d='M0 0h24v24H0z' />
     <polyline points='15 6 9 12 15 18' />
   </svg>
 );
 
-export const TrashIcon = Icon(
+export const TrashIcon = (props: React.ComponentProps<'svg'>) => (
   <svg
+    xmlns='http://www.w3.org/2000/svg'
     className='h-5 w-5'
     viewBox='0 0 24 24'
     strokeWidth='2'
@@ -199,6 +268,7 @@ export const TrashIcon = Icon(
     fill='none'
     strokeLinecap='round'
     strokeLinejoin='round'
+    {...props}
   >
     <path stroke='none' d='M0 0h24v24H0z' />
     <line x1='4' y1='7' x2='20' y2='7' />
@@ -209,8 +279,9 @@ export const TrashIcon = Icon(
   </svg>
 );
 
-export const CloseIcon = Icon(
+export const CloseIcon = (props: React.ComponentProps<'svg'>) => (
   <svg
+    xmlns='http://www.w3.org/2000/svg'
     className='h-5 w-5'
     viewBox='0 0 24 24'
     strokeWidth='2'
@@ -218,6 +289,7 @@ export const CloseIcon = Icon(
     strokeLinecap='round'
     fill='none'
     strokeLinejoin='round'
+    {...props}
   >
     <path stroke='none' d='M0 0h24v24H0z' />
     <line x1='18' y1='6' x2='6' y2='18' />
@@ -225,8 +297,45 @@ export const CloseIcon = Icon(
   </svg>
 );
 
-export const VisibleIcon = Icon(
+export const CheckIcon = (props: React.ComponentProps<'svg'>) => (
   <svg
+    xmlns='http://www.w3.org/2000/svg'
+    className='w-6 h-6'
+    fill='none'
+    viewBox='0 0 24 24'
+    strokeWidth='1.5'
+    stroke='currentColor'
+    {...props}
+  >
+    <path
+      strokeLinecap='round'
+      strokeLinejoin='round'
+      d='M4.5 12.75l6 6 9-13.5'
+    />
+  </svg>
+);
+
+export const ArrowRightIcon = (props: React.ComponentProps<'svg'>) => (
+  <svg
+    xmlns='http://www.w3.org/2000/svg'
+    className='w-6 h-6'
+    fill='none'
+    viewBox='0 0 24 24'
+    strokeWidth='1.5'
+    stroke='currentColor'
+    {...props}
+  >
+    <path
+      strokeLinecap='round'
+      strokeLinejoin='round'
+      d='M12.75 15l3-3m0 0l-3-3m3 3h-7.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z'
+    />
+  </svg>
+);
+
+export const VisibleIcon = (props: React.ComponentProps<'svg'>) => (
+  <svg
+    xmlns='http://www.w3.org/2000/svg'
     className='h-5 w-5'
     fill='none'
     viewBox='0 0 24 24'
@@ -234,14 +343,16 @@ export const VisibleIcon = Icon(
     strokeLinecap='round'
     strokeLinejoin='round'
     strokeWidth='2'
+    {...props}
   >
     <path d='M15 12a3 3 0 11-6 0 3 3 0 016 0z' />
     <path d='M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z' />
   </svg>
 );
 
-export const InvisibleIcon = Icon(
+export const InvisibleIcon = (props: React.ComponentProps<'svg'>) => (
   <svg
+    xmlns='http://www.w3.org/2000/svg'
     className='h-5 w-5'
     fill='none'
     viewBox='0 0 24 24'
@@ -249,20 +360,23 @@ export const InvisibleIcon = Icon(
     strokeLinecap='round'
     strokeLinejoin='round'
     strokeWidth='2'
+    {...props}
   >
     <path d='M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21' />
   </svg>
 );
 
-export const MultipleSelectIcon = Icon(
+export const MultipleSelectIcon = (props: React.ComponentProps<'svg'>) => (
   <svg
-    className='h-4 w-4'
+    xmlns='http://www.w3.org/2000/svg'
+    className='h-5 w-5'
     viewBox='0 0 24 24'
     strokeWidth='2'
     stroke='currentColor'
     fill='none'
     strokeLinecap='round'
     strokeLinejoin='round'
+    {...props}
   >
     <path stroke='none' d='M0 0h24v24H0z' />
     <polyline points='9 11 12 14 20 6' />
@@ -270,14 +384,13 @@ export const MultipleSelectIcon = Icon(
   </svg>
 );
 
-export const SpinnerIcon = Icon(
+export const SpinnerIcon = (props: React.ComponentProps<'svg'>) => (
   <svg
-    role='status'
-    className='w-8 h-8 mr-2 text-gray-200 animate-spin'
-    style={{ fill: '#1E90FF' }}
-    viewBox='0 0 100 101'
-    fill='none'
     xmlns='http://www.w3.org/2000/svg'
+    className='w-8 h-8 mr-2 text-gray-200 animate-spin'
+    viewBox='0 0 100 101'
+    fill='#1E90FF'
+    {...props}
   >
     <path
       d='M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z'
@@ -290,24 +403,27 @@ export const SpinnerIcon = Icon(
   </svg>
 );
 
-export const WarningIcon = Icon(
+export const WarningIcon = (props: React.ComponentProps<'svg'>) => (
   <svg
-    className='w-10 h-10 fill-current text-red-500 '
     xmlns='http://www.w3.org/2000/svg'
+    className='w-10 h-10 fill-current text-red-500 '
     viewBox='0 0 24 24'
+    {...props}
   >
     <path d='M0 0h24v24H0V0z' fill='none' />
     <path d='M12 5.99L19.53 19H4.47L12 5.99M12 2L1 21h22L12 2zm1 14h-2v2h2v-2zm0-6h-2v4h2v-4z' />
   </svg>
 );
 
-export const AIIcon = Icon(
+export const AIIcon = (props: React.ComponentProps<'svg'>) => (
   <svg
+    xmlns='http://www.w3.org/2000/svg'
     className='h-6 w-6'
     viewBox='0 0 24 24'
     strokeWidth='1'
     stroke='currentColor'
     fill='currentColor'
+    {...props}
   >
     <text y='17' x='5'>
       AI

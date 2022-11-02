@@ -1,7 +1,16 @@
-import React, { MouseEvent } from 'react';
+import React, { MouseEvent, useState, useRef, useEffect } from 'react';
 import Draggable from 'react-draggable';
 import { Label } from '../../labels';
-import { MultipleSelectIcon } from '../Icons';
+import {
+  SquaresIcon,
+  CogIcon,
+  TagIcon,
+  TrashIcon,
+  CloseIcon,
+  CheckIcon,
+  ArrowRightIcon,
+  MultipleSelectIcon,
+} from '../Icons';
 import { AnnotationsGrid } from './AnnotationsGrid';
 import { CategoryName } from './CategoryName';
 import { groupBy } from '../../utils';
@@ -21,12 +30,15 @@ export const OperationPanel = () => {
     selectLabels,
     toggleMulti,
     category: selectedCategory,
+    categories: categoriesInStore,
+    setCategories: setCategoriesInStore,
   } = useStore(SelectionStore, (s: SelectionStoreProps) => s);
 
-  const { getColor, renameKey: renameColorKey } = useStore(
-    ColorStore,
-    (s: ColorStoreProps) => s
-  );
+  const {
+    colors,
+    getColor,
+    renameKey: renameColorKey,
+  } = useStore(ColorStore, (s: ColorStoreProps) => s);
 
   const [labels, renameCategory] = useStore(
     CanvasStore,
@@ -38,6 +50,13 @@ export const OperationPanel = () => {
       },
     ]
   );
+
+  const [catePicking, setCatePicking] = useState<boolean>(false);
+  const [cateRenaming, setCateRenaming] = useState<boolean>(false);
+  const [cateInput, setCateInput] = useState<string>('');
+  const [renameInput, setRenameInput] = useState<string>('');
+  const [cateHovered, setCateHovered] = useState<string>('');
+  const editInputRef = useRef<HTMLInputElement>(null);
 
   const handleClick = (e: MouseEvent) => {
     const annotations: Label[] = JSON.parse(
@@ -54,21 +73,28 @@ export const OperationPanel = () => {
     selectLabels(newLabels.concat(isAllFocused ? [] : annotations));
   };
 
+  useEffect(() => {
+    setCateInput('');
+  }, [selectedCategory]);
+
   return (
     <div className='absolute w-full h-full pb-9 invisible'>
       <div className='relative h-full p-2 overflow-hidden'>
-        <Draggable
-          bounds='parent'
-          handle='.cate_handle'
-          cancel='.selbar-state-icon'
-        >
-          <div className='bg-gray-100 w-28 bg-opacity-0 absolute top-2 right-2 visible max-h-full w-34 flex flex-col items-end text-xs select-none'>
-            <div className='bg-indigo-400 py-2 px-2 w-full rounded-t-md flex justify-between cate_handle'>
-              <span className='mx-auto'> Category </span>
-              <MultipleSelectIcon
-                className={`text-indigo-200 ${multi ? 'text-indigo-600' : ''}`}
+        <Draggable bounds='parent' handle='#sel_handle'>
+          <div className='bg-gray-100 w-28 bg-opacity-0 absolute top-2 right-2 visible max-h-full flex flex-col items-end text-xs select-none'>
+            <div
+              id='sel_handle'
+              className='bg-indigo-400 py-2 px-2 w-full rounded-t-md flex justify-between hover:cursor-grab'
+            >
+              <span className='w-full text-left font-semibold'>Category</span>
+              <div
+                className={`text-indigo-200 hover:cursor-pointer ${
+                  multi ? 'text-indigo-600' : ''
+                }`}
                 onClick={toggleMulti}
-              />
+              >
+                <MultipleSelectIcon />
+              </div>
             </div>
 
             <div className='h-full w-full overflow-y-auto'>
@@ -84,20 +110,172 @@ export const OperationPanel = () => {
                     data-annotations={JSON.stringify(annotations)}
                     onClick={handleClick}
                   >
-                    <CategoryName
-                      categoryName={categoryName}
-                      renameCategory={renameCategory}
-                    />
+                    <CategoryName categoryName={categoryName} />
                     <AnnotationsGrid annotations={annotations} />
                   </div>
                 </div>
               ))}
-              {/* <div
-                onClick={addCategory}
-                className='text-gray-700 hover:bg-indigo-600 hover:text-white'
+            </div>
+          </div>
+        </Draggable>
+
+        <Draggable bounds='parent' handle='#edit_handle'>
+          <div
+            className='bg-gray-100 bg-opacity-0 absolute top-2 visible max-h-full flex flex-col text-xs select-none'
+            onMouseLeave={() => {
+              setCatePicking(false);
+              editInputRef.current?.blur();
+            }}
+          >
+            <div className='flex'>
+              <div
+                id='edit_handle'
+                className='relative inline-flex items-center rounded-l-md bg-indigo-400 p-2 text-indigo-200 hover:cursor-grab'
               >
-                <PlusSmIcon className='w-5 h-5 m-auto' />
-              </div> */}
+                <SquaresIcon />
+              </div>
+
+              <div className='relative flex '>
+                <span className='absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none text-indigo-200'>
+                  <TagIcon />
+                </span>
+                <input
+                  type='text'
+                  className={`border-0 pl-10 text-xs font-semibold focus:outline-none ${
+                    cateRenaming ? 'w-32' : 'pr-10 rounded-r-md w-80'
+                  }`}
+                  ref={editInputRef}
+                  placeholder={selectedCategory || ''}
+                  value={cateInput}
+                  onChange={(e) => setCateInput(e.target.value)}
+                  onMouseEnter={() => {
+                    setCatePicking(true);
+                    editInputRef.current?.focus();
+                  }}
+                />
+
+                {cateRenaming ? (
+                  <div
+                    className='pr-2 flex items-center bg-white rounded-r-md'
+                    onMouseEnter={() => setCatePicking(false)}
+                  >
+                    <span
+                      className={`px-1  ${
+                        categoriesInStore?.includes(cateInput)
+                          ? 'text-indigo-600'
+                          : 'text-indigo-200'
+                      }`}
+                    >
+                      <ArrowRightIcon onClick={() => {}} />
+                    </span>
+
+                    <input
+                      type='text'
+                      className='border-0 text-xs font-semibold focus:outline-none w-20'
+                      value={renameInput}
+                      onChange={(e) => setRenameInput(e.target.value)}
+                    />
+
+                    <span
+                      className={`px-1  ${
+                        categoriesInStore?.includes(cateInput)
+                          ? 'text-indigo-600 hover:cursor-pointer'
+                          : 'text-indigo-200 hover:cursor-not-allowed'
+                      }`}
+                    >
+                      <TrashIcon onClick={() => {}} />
+                    </span>
+
+                    <span
+                      className={`px-1  ${
+                        categoriesInStore?.includes(cateInput) &&
+                        renameInput !== ''
+                          ? 'text-indigo-600 hover:cursor-pointer'
+                          : 'text-indigo-200 hover:cursor-not-allowed'
+                      }`}
+                    >
+                      <CheckIcon onClick={() => {}} />
+                    </span>
+
+                    <span className='px-1 text-indigo-600 hover:cursor-pointer'>
+                      <CloseIcon
+                        onClick={() => {
+                          setCateRenaming(false);
+                          setCateInput('');
+                        }}
+                      />
+                    </span>
+                  </div>
+                ) : (
+                  <div className='absolute inset-y-0 right-0 pr-2 flex items-center '>
+                    <span
+                      className={`${
+                        selectedCategory
+                          ? 'text-indigo-200 hover:cursor-not-allowed'
+                          : 'text-indigo-600 hover:cursor-pointer'
+                      }  `}
+                    >
+                      <CogIcon onClick={() => setCateRenaming(true)} />
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div
+              className={`bg-gray-100 mt-1 p-2 rounded-md max-w-md h-64 overflow-auto ${
+                catePicking ? '' : 'hidden'
+              }`}
+            >
+              <div className='flex flex-wrap max-h-full'>
+                {(categoriesInStore || [])
+                  .filter(
+                    (cate) => cateInput === '' || cate.startsWith(cateInput)
+                  )
+                  .map((cate) => (
+                    <span
+                      key={cate}
+                      className={`px-2 py-1 border-2 rounded-md m-1 text-xs font-semibold text-center ${
+                        cate === selectedCategory || cate === cateHovered
+                          ? 'text-white'
+                          : ''
+                      }`}
+                      style={
+                        cate === selectedCategory
+                          ? {
+                              backgroundColor: getColor(cate),
+                              borderColor: getColor(cate),
+                            }
+                          : cate === cateHovered
+                          ? {
+                              backgroundColor: colors.hasOwnProperty(cate)
+                                ? getColor(cate)
+                                : 'gray',
+                              borderColor: colors.hasOwnProperty(cate)
+                                ? getColor(cate)
+                                : 'gray',
+                            }
+                          : {
+                              borderColor: colors.hasOwnProperty(cate)
+                                ? getColor(cate)
+                                : 'gray',
+                            }
+                      }
+                      onMouseEnter={() => setCateHovered(cate)}
+                      onMouseLeave={() => setCateHovered('')}
+                      onClick={() => {
+                        if (selectedCategory) {
+                        }
+
+                        if (cateRenaming) {
+                          setCateInput(cate);
+                        }
+                      }}
+                    >
+                      {cate}
+                    </span>
+                  ))}
+              </div>
             </div>
           </div>
         </Draggable>
