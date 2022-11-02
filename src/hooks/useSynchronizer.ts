@@ -99,6 +99,8 @@ export const useSynchronizer = () => {
       canvas.add(...canvasObjects);
     });
 
+    // we are using fabric's default listeners to edit rectangle
+    // need to first make it active
     const activeObjects = canvas
       .getObjects()
       .filter((obj) => isSelected((obj as any).id));

@@ -39,9 +39,10 @@ export const ButtonBar = ({
   } = useStore(CVStore, (s: CVStoreProps) => s);
 
   const {
-    undo,
-    redo,
-    reset,
+    curState: getCurState,
+    undo: undoState,
+    redo: redoState,
+    reset: resetState,
     canUndo,
     canRedo,
     canReset,
@@ -59,6 +60,30 @@ export const ButtonBar = ({
   } = useStore(SelectionStore, (s: SelectionStoreProps) => s);
 
   const { prevImg, nextImg, save } = dataOperation;
+
+  const undo = () => {
+    const ids = selectedLabels.map((l) => l.id);
+    if (!undoState()) return;
+
+    const curState = getCurState();
+    selectLabels(curState.filter((label) => ids.includes(label.id)));
+  };
+
+  const redo = () => {
+    const ids = selectedLabels.map((l) => l.id);
+    if (!redoState()) return;
+
+    const curState = getCurState();
+    selectLabels(curState.filter((label) => ids.includes(label.id)));
+  };
+
+  const reset = () => {
+    const ids = selectedLabels.map((l) => l.id);
+    if (!resetState()) return;
+
+    const curState = getCurState();
+    selectLabels(curState.filter((label) => ids.includes(label.id)));
+  };
 
   const deleteObj = () => {
     selectLabels([]);

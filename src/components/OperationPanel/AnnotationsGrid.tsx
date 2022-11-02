@@ -18,12 +18,12 @@ export const AnnotationsGrid = ({ annotations }: { annotations: Label[] }) => {
     e.stopPropagation();
     const annoIndex = e.currentTarget['dataset']['annoIndex'];
     const anno = annotations[annoIndex];
-    const isFocused = isSelected(anno.id);
+    const selected = isSelected(anno.id);
     const newLabels = multi
       ? selectedLabels.filter(({ id }: { id: number }) => id !== anno.id)
       : [];
 
-    if (isFocused) selectLabels(newLabels);
+    if (selected) selectLabels(newLabels);
     else selectLabels([...newLabels, anno]);
   };
 

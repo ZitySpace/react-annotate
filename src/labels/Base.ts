@@ -103,4 +103,6 @@ export abstract class Label {
     color: string,
     mode: string
   ): (fabric.Object | fabric.Object[] | fabric.Object[][])[];
+
+  abstract clone(): Label;
 }

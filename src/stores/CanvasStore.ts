@@ -1,7 +1,6 @@
 import { createContext } from 'react';
 import { createStore, StoreApi } from 'zustand';
 import { Label } from '../labels';
-import produce from 'immer';
 
 type CanvasState = Array<Label>;
 
@@ -35,6 +34,7 @@ interface Store extends StoreData {
   updateCanSave: (canSave: boolean) => void;
 
   deleteObjects: (ids: number[]) => boolean;
+  assignCategory: (ids: number[], category: string) => boolean;
   renameCategory: (oldCategory: string, newCategory: string) => void;
 
   setLock: (lock: boolean) => void;
@@ -86,15 +86,20 @@ const store = createStore<Store>((set, get) => {
         ? false
         : get().pushState(newState);
     },
-    renameCategory: (oldName: string, newName: string) => {
-      set(
-        produce((s: Store) => {
-          s.curState().forEach((label: Label) => {
-            label.category =
-              label.category === oldName ? newName : label.category;
-          });
-        })
+    renameCategory: (oldName: string, newName: string) => {},
+    assignCategory: (ids, category) => {
+      const curState = get().curState();
+
+      const changed = curState.some(
+        (label) => ids.includes(label.id) && label.category !== category
       );
+      if (!changed) return false;
+
+      const newState = curState.map((label) => label.clone());
+      newState.forEach((label) => {
+        if (ids.includes(label.id)) label.category = category;
+      });
+      return get().pushState(newState);
     },
     setLock: (lock: boolean) => {
       set((s: Store) => ({

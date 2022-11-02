@@ -40,10 +40,12 @@ export const OperationPanel = () => {
     renameKey: renameColorKey,
   } = useStore(ColorStore, (s: ColorStoreProps) => s);
 
-  const [labels, renameCategory] = useStore(
+  const [getCurState, groupedAnnos, assignCategory, renameCategory] = useStore(
     CanvasStore,
     (s: CanvasStoreProps) => [
+      s.curState,
       s.curState() ? groupBy(s.curState(), 'category') : [],
+      s.assignCategory,
       (oldName: string, newName: string) => {
         s.renameCategory(oldName, newName);
         renameColorKey(oldName, newName);
@@ -63,19 +65,19 @@ export const OperationPanel = () => {
       e.currentTarget['dataset']['annotations']
     );
 
-    const isAllFocused = annotations.every((label) => isSelected(label.id));
+    const allSelected = annotations.every((label) => isSelected(label.id));
     const newLabels = multi
       ? selectedLabels.filter(
           ({ id }: { id: number }) =>
             !annotations.map(({ id }) => id).includes(id)
         )
       : [];
-    selectLabels(newLabels.concat(isAllFocused ? [] : annotations));
+    selectLabels(newLabels.concat(allSelected ? [] : annotations));
   };
 
   useEffect(() => {
     setCateInput('');
-  }, [selectedCategory]);
+  }, [selectedLabels]);
 
   return (
     <div className='absolute w-full h-full pb-9 invisible'>
@@ -98,23 +100,27 @@ export const OperationPanel = () => {
             </div>
 
             <div className='h-full w-full overflow-y-auto'>
-              {labels.map(([categoryName, annotations]: [string, Label[]]) => (
-                <div className='flex flex-row' key={categoryName}>
-                  <div
-                    className={`w-28 p-2 flex flex-col items-end border-indigo-600 ${
-                      categoryName === selectedCategory ? 'border-b-4' : ''
-                    }`}
-                    style={{
-                      backgroundColor: getColor(categoryName),
-                    }}
-                    data-annotations={JSON.stringify(annotations)}
-                    onClick={handleClick}
-                  >
-                    <CategoryName categoryName={categoryName} />
-                    <AnnotationsGrid annotations={annotations} />
+              {groupedAnnos.map(
+                ([categoryName, annotations]: [string, Label[]]) => (
+                  <div className='flex flex-row relative' key={categoryName}>
+                    <div
+                      className='w-28 p-2 flex flex-col'
+                      style={{
+                        backgroundColor: getColor(categoryName),
+                      }}
+                      data-annotations={JSON.stringify(annotations)}
+                      onClick={handleClick}
+                    >
+                      <CategoryName categoryName={categoryName} />
+                      <AnnotationsGrid annotations={annotations} />
+                    </div>
+
+                    {categoryName === selectedCategory && (
+                      <span className='absolute right-0 h-full w-1 bg-indigo-600'></span>
+                    )}
                   </div>
-                </div>
-              ))}
+                )
+              )}
             </div>
           </div>
         </Draggable>
@@ -265,6 +271,12 @@ export const OperationPanel = () => {
                       onMouseLeave={() => setCateHovered('')}
                       onClick={() => {
                         if (selectedCategory) {
+                          const ids = selectedLabels.map((l) => l.id);
+                          if (!assignCategory(ids, cate)) return;
+                          const curState = getCurState();
+                          selectLabels(
+                            curState.filter((label) => ids.includes(label.id))
+                          );
                         }
 
                         if (cateRenaming) {
