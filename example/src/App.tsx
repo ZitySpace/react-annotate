@@ -39,9 +39,21 @@ const App = () => {
       <Annotator
         imagesList={imagesList}
         initIndex={6}
-        onSave={console.log}
-        onSwitch={() => {}}
-        onError={console.log}
+        onSave={(d: ImageData) => {
+          console.log(d);
+          return true;
+        }}
+        onError={(m: string, c: any) => {
+          console.log(m, c);
+        }}
+        onAddCategory={(c: string) => {
+          console.log('add new category ', c);
+          return true;
+        }}
+        onRenameCategory={(o: string, n: string) => {
+          console.log(o, ' -> ', n);
+          return true;
+        }}
       />
     </div>
   );

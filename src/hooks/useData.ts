@@ -24,24 +24,13 @@ export const useData = ({
   categories,
   getImage,
   onSave,
-  onSwitch,
   onError,
 }: {
   imagesList: ImageData[];
   initIndex: number;
   categories?: string[];
   getImage?: (imageName: string) => Promise<string>;
-  onSave?: (
-    curImageData: ImageData,
-    curIndex: number,
-    imagesList: ImageData[]
-  ) => void;
-  onSwitch?: (
-    curImageData: ImageData,
-    curIndex: number,
-    imagesList: ImageData[],
-    type: 'prev' | 'next'
-  ) => void;
+  onSave: (curImageData: ImageData) => boolean;
   onError?: (message: string, context: any) => void;
 }) => {
   // initialize images list
@@ -87,16 +76,15 @@ export const useData = ({
   const operation: DataOperation = {
     save: () => {
       const updatedData = { ...imageData, annotations: [...curState] };
+      if (!onSave(updatedData)) return;
       updateImageData(updatedData);
       updateCanSave(false);
-      onSave && onSave(updatedData, imageIndex, imagesList);
     },
 
     prevImg: () => {
       if (dataReady) {
         const updatedData = { ...imageData, annotations: [...curState] };
         updateImageData(updatedData);
-        onSwitch && onSwitch(updatedData, imageIndex, imagesList, 'prev');
       }
       prev();
     },
@@ -105,7 +93,6 @@ export const useData = ({
       if (dataReady) {
         const updatedData = { ...imageData, annotations: [...curState] };
         updateImageData(updatedData);
-        onSwitch && onSwitch(updatedData, imageIndex, imagesList, 'next');
       }
       next();
     },

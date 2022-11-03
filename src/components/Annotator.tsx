@@ -13,25 +13,18 @@ export const Annotator = ({
   categories,
   getImage,
   onSave,
-  onSwitch,
   onError,
+  onAddCategory,
+  onRenameCategory,
 }: {
   imagesList: ImageData[];
   initIndex?: number;
   categories?: string[];
   getImage?: (imageName: string) => Promise<string>;
-  onSave?: (
-    curImageData: ImageData,
-    curIndex: number,
-    imagesList: ImageData[]
-  ) => void;
-  onSwitch?: (
-    curImageData: ImageData,
-    curIndex: number,
-    imagesList: ImageData[],
-    type: 'prev' | 'next'
-  ) => void;
+  onSave: (curImageData: ImageData) => boolean;
   onError?: (message: string, context: any) => void;
+  onAddCategory: (category: string) => boolean;
+  onRenameCategory: (oldCategory: string, newCategory: string) => boolean;
 }) => {
   const Container = useContainer(); // Initialize canvas, set canvas dom's style and handle the resize event
 
@@ -41,7 +34,6 @@ export const Annotator = ({
     initIndex,
     getImage,
     onSave,
-    onSwitch,
     onError,
   });
 
@@ -52,7 +44,10 @@ export const Annotator = ({
   return (
     <div className='w-full h-full flex flex-col justify-center items-center relative'>
       {Container}
-      <OperationPanel />
+      <OperationPanel
+        onAddCategory={onAddCategory}
+        onRenameCategory={onRenameCategory}
+      />
       <ButtonBar dataOperation={dataOperation} />
     </div>
   );

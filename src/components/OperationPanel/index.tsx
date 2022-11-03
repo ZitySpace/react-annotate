@@ -21,8 +21,15 @@ import {
   SelectionStoreProps,
 } from '../../stores/SelectionStore';
 import { ColorStore, ColorStoreProps } from '../../stores/ColorStore';
+import { Modal, ModalProps } from '../Common/modal';
 
-export const OperationPanel = () => {
+export const OperationPanel = ({
+  onAddCategory,
+  onRenameCategory,
+}: {
+  onAddCategory: (category: string) => boolean;
+  onRenameCategory: (oldCategory: string, newCategory: string) => boolean;
+}) => {
   const {
     multi,
     labels: selectedLabels,
@@ -59,6 +66,30 @@ export const OperationPanel = () => {
   const [renameInput, setRenameInput] = useState<string>('');
   const [cateHovered, setCateHovered] = useState<string>('');
   const editInputRef = useRef<HTMLInputElement>(null);
+  const [modalConfig, setModalConfig] = useState<ModalProps>({
+    title: '',
+    body: '',
+    open: false,
+    setOpen: (open: boolean) => setModalConfig({ ...modalConfig, open }),
+    yesCallback: () => {},
+  });
+
+  const openModal = (cfg: {
+    title?: string;
+    body?: string;
+    yesCallback?: Function;
+    confirmAlias?: string;
+    type?: 'warning' | 'success' | 'error' | 'default';
+    canCancel?: boolean;
+    canConfirm?: boolean;
+  }) => {
+    const cfg_ = { ...modalConfig, ...cfg };
+    setModalConfig({
+      ...cfg_,
+      open: true,
+      setOpen: (open: boolean) => setModalConfig({ ...cfg_, open }),
+    });
+  };
 
   const handleClick = (e: MouseEvent) => {
     const annotations: Label[] = JSON.parse(
@@ -75,8 +106,16 @@ export const OperationPanel = () => {
     selectLabels(newLabels.concat(allSelected ? [] : annotations));
   };
 
+  const updateSelectedToCategory = (cate: string) => {
+    const ids = selectedLabels.map((l) => l.id);
+    if (!assignCategory(ids, cate)) return;
+    const curState = getCurState();
+    selectLabels(curState.filter((label) => ids.includes(label.id)));
+  };
+
   useEffect(() => {
     setCateInput('');
+    selectedLabels.length && setCateRenaming(false);
   }, [selectedLabels]);
 
   return (
@@ -158,6 +197,29 @@ export const OperationPanel = () => {
                     setCatePicking(true);
                     editInputRef.current?.focus();
                   }}
+                  onKeyDown={(e) => {
+                    if (
+                      selectedLabels.length &&
+                      cateInput &&
+                      e.key === 'Enter'
+                    ) {
+                      e.preventDefault();
+                      e.stopPropagation();
+
+                      if (categoriesInStore?.includes(cateInput))
+                        updateSelectedToCategory(cateInput);
+                      else
+                        openModal({
+                          type: 'warning',
+                          title: 'Confirm',
+                          body: 'Add a new category and assign selected objects with the new category?',
+                          yesCallback: () => {
+                            if (!onAddCategory(cateInput)) return;
+                            updateSelectedToCategory(cateInput);
+                          },
+                        });
+                    }
+                  }}
                 />
 
                 {cateRenaming ? (
@@ -221,7 +283,11 @@ export const OperationPanel = () => {
                           : 'text-indigo-600 hover:cursor-pointer'
                       }  `}
                     >
-                      <CogIcon onClick={() => setCateRenaming(true)} />
+                      <CogIcon
+                        onClick={() => {
+                          if (!selectedCategory) setCateRenaming(true);
+                        }}
+                      />
                     </span>
                   </div>
                 )}
@@ -270,14 +336,7 @@ export const OperationPanel = () => {
                       onMouseEnter={() => setCateHovered(cate)}
                       onMouseLeave={() => setCateHovered('')}
                       onClick={() => {
-                        if (selectedCategory) {
-                          const ids = selectedLabels.map((l) => l.id);
-                          if (!assignCategory(ids, cate)) return;
-                          const curState = getCurState();
-                          selectLabels(
-                            curState.filter((label) => ids.includes(label.id))
-                          );
-                        }
+                        if (selectedCategory) updateSelectedToCategory(cate);
 
                         if (cateRenaming) {
                           setCateInput(cate);
@@ -292,6 +351,8 @@ export const OperationPanel = () => {
           </div>
         </Draggable>
       </div>
+
+      <Modal {...modalConfig} />
     </div>
   );
 };
