@@ -216,6 +216,9 @@ export const OperationPanel = ({
                           yesCallback: () => {
                             if (!onAddCategory(cateInput)) return;
                             updateSelectedToCategory(cateInput);
+                            setCategoriesInStore(
+                              [...(categoriesInStore || []), cateInput].sort()
+                            );
                           },
                         });
                     }
