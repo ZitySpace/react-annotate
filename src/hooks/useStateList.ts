@@ -9,7 +9,6 @@ export interface UseStateListReturnProps<T> {
   setIndex: (newIndex: number) => void;
   setIndexByState: (state: T) => void;
   updateState: (nowState: T, idx?: number) => void;
-  forEach: (func: (state: T) => void) => void;
 }
 
 export function useStateList<T>(
@@ -56,11 +55,6 @@ export function useStateList<T>(
 
       updateState: (newState: T, idx: number = index.current) => {
         list.splice(idx, 1, newState);
-        update();
-      },
-
-      forEach: (func: (s: T) => void) => {
-        list.forEach(func);
         update();
       },
     }),

@@ -26,11 +26,11 @@ import { ImageData } from '../../interfaces/basic';
 import { DataOperation } from '../../hooks/useData';
 
 export const OperationPanel = ({
-  dataOperation,
+  imagesList,
   onAddCategory,
   onRenameCategory,
 }: {
-  dataOperation: DataOperation;
+  imagesList: ImageData[];
   onAddCategory: (category: string) => boolean;
   onRenameCategory: (oldCategory: string, newCategory: string) => boolean;
 }) => {
@@ -51,17 +51,14 @@ export const OperationPanel = ({
     renameKey: renameColorKey,
   } = useStore(ColorStore, (s: ColorStoreProps) => s);
 
-  const [getCurState, groupedAnnos, assignCategory, updateCanSave] = useStore(
-    CanvasStore,
-    (s: CanvasStoreProps) => [
+  const [getCurState, groupedAnnos, assignCategory, updateCanSave, setStack] =
+    useStore(CanvasStore, (s: CanvasStoreProps) => [
       s.curState,
       s.curState() ? groupBy(s.curState(), 'category') : [],
       s.assignCategory,
       s.updateCanSave,
-    ]
-  );
-
-  const { renameCategory } = dataOperation;
+      s.setStack,
+    ]);
 
   const [catePicking, setCatePicking] = useState<boolean>(false);
   const [cateRenaming, setCateRenaming] = useState<boolean>(false);
@@ -114,6 +111,26 @@ export const OperationPanel = ({
     if (!assignCategory(ids, cate)) return;
     const curState = getCurState();
     selectLabels(curState.filter((label) => ids.includes(label.id)));
+  };
+
+  const renameCategory = (oldCate: string, newCate: string) => {
+    const renamedCurState = getCurState().map((l_) => {
+      const l = l_.clone();
+      if (l.category === oldCate) l.category = newCate;
+      return l;
+    });
+
+    imagesList.forEach((d) =>
+      d.annotations.forEach(
+        (l) => l.category === oldCate && (l.category = newCate)
+      )
+    );
+
+    renameColorKey(oldCate, newCate);
+    setStack([renamedCurState]);
+    setCateInput('');
+    setRenameInput('');
+    setCateRenaming(false);
   };
 
   useEffect(() => {
@@ -220,7 +237,12 @@ export const OperationPanel = ({
                             if (!onAddCategory(cateInput)) return;
                             updateSelectedToCategory(cateInput);
                             setCategoriesInStore(
-                              [...(categoriesInStore || []), cateInput].sort()
+                              [
+                                ...new Set([
+                                  ...(categoriesInStore || []),
+                                  cateInput,
+                                ]),
+                              ].sort()
                             );
                           },
                         });
@@ -299,10 +321,12 @@ export const OperationPanel = ({
                               renameCategory(cateInput, renameInput);
                               setCategoriesInStore(
                                 [
-                                  ...(categoriesInStore || []).filter(
-                                    (c) => c !== cateInput
-                                  ),
-                                  renameInput,
+                                  ...new Set([
+                                    ...(categoriesInStore || []).filter(
+                                      (c) => c !== cateInput
+                                    ),
+                                    renameInput,
+                                  ]),
                                 ].sort()
                               );
                             },

@@ -74,7 +74,8 @@ const store = createStore<Store>((set, get) => ({
     set(
       produce((s: Store) => {
         if (s.colors.hasOwnProperty(oldKey)) {
-          s.colors[newKey] = s.colors[oldKey];
+          if (!s.colors.hasOwnProperty(newKey))
+            s.colors[newKey] = s.colors[oldKey];
           delete s.colors[oldKey];
         }
       })
