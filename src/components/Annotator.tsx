@@ -24,7 +24,11 @@ export const Annotator = ({
   onSave: (curImageData: ImageData) => boolean;
   onError?: (message: string, context: any) => void;
   onAddCategory: (category: string) => boolean;
-  onRenameCategory: (oldCategory: string, newCategory: string) => boolean;
+  onRenameCategory: (
+    oldCategory: string,
+    newCategory: string,
+    timestamp?: string
+  ) => boolean;
 }) => {
   const Container = useContainer(); // Initialize canvas, set canvas dom's style and handle the resize event
 

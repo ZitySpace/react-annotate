@@ -23,7 +23,7 @@ import {
 import { ColorStore, ColorStoreProps } from '../../stores/ColorStore';
 import { Modal, ModalProps } from '../Common/modal';
 import { ImageData } from '../../interfaces/basic';
-import { DataOperation } from '../../hooks/useData';
+import { getLocalTimeISOString } from '../../labels/utils';
 
 export const OperationPanel = ({
   imagesList,
@@ -32,7 +32,11 @@ export const OperationPanel = ({
 }: {
   imagesList: ImageData[];
   onAddCategory: (category: string) => boolean;
-  onRenameCategory: (oldCategory: string, newCategory: string) => boolean;
+  onRenameCategory: (
+    oldCategory: string,
+    newCategory: string,
+    timestamp?: string
+  ) => boolean;
 }) => {
   const {
     multi,
@@ -51,13 +55,13 @@ export const OperationPanel = ({
     renameKey: renameColorKey,
   } = useStore(ColorStore, (s: ColorStoreProps) => s);
 
-  const [getCurState, groupedAnnos, assignCategory, updateCanSave, setStack] =
+  const [getCurState, groupedAnnos, assignCategory, setStack, updateCanSave] =
     useStore(CanvasStore, (s: CanvasStoreProps) => [
       s.curState,
       s.curState() ? groupBy(s.curState(), 'category') : [],
       s.assignCategory,
-      s.updateCanSave,
       s.setStack,
+      s.updateCanSave,
     ]);
 
   const [catePicking, setCatePicking] = useState<boolean>(false);
@@ -113,21 +117,30 @@ export const OperationPanel = ({
     selectLabels(curState.filter((label) => ids.includes(label.id)));
   };
 
-  const renameCategory = (oldCate: string, newCate: string) => {
+  const renameCategory = (
+    oldCate: string,
+    newCate: string,
+    timestamp?: string
+  ) => {
     const renamedCurState = getCurState().map((l_) => {
       const l = l_.clone();
       if (l.category === oldCate) l.category = newCate;
       return l;
     });
 
+    const now = timestamp || getLocalTimeISOString();
     imagesList.forEach((d) =>
-      d.annotations.forEach(
-        (l) => l.category === oldCate && (l.category = newCate)
-      )
+      d.annotations.forEach((l) => {
+        if (l.category === oldCate) {
+          l.category = newCate;
+          l.timestamp = now;
+        }
+      })
     );
 
     renameColorKey(oldCate, newCate);
     setStack([renamedCurState]);
+    updateCanSave(true);
     setCateInput('');
     setRenameInput('');
     setCateRenaming(false);
@@ -316,9 +329,14 @@ export const OperationPanel = ({
                                 : 'Rename'
                             } category "${cateInput}" to "${renameInput}"?`,
                             yesCallback: () => {
-                              if (!onRenameCategory(cateInput, renameInput))
+                              const now = getLocalTimeISOString();
+
+                              if (
+                                !onRenameCategory(cateInput, renameInput, now)
+                              )
                                 return;
-                              renameCategory(cateInput, renameInput);
+
+                              renameCategory(cateInput, renameInput, now);
                               setCategoriesInStore(
                                 [
                                   ...new Set([

@@ -1,6 +1,7 @@
 import { createContext } from 'react';
 import { createStore, StoreApi } from 'zustand';
 import { Label } from '../labels';
+import { getLocalTimeISOString } from '../labels/utils/label';
 
 type CanvasState = Array<Label>;
 
@@ -47,6 +48,7 @@ const store = createStore<Store>((set, get) => {
       canRedo: index < stack.length,
       canUndo: index > 1,
       canReset: stack.length > 1,
+      canSave: index > 1 || index < stack.length,
       lock: false,
     });
     return true;
@@ -94,8 +96,12 @@ const store = createStore<Store>((set, get) => {
       if (!todo) return false;
 
       const newState = curState.map((label) => label.clone());
+      const now = getLocalTimeISOString();
       newState.forEach((label) => {
-        if (ids.includes(label.id)) label.category = category;
+        if (ids.includes(label.id)) {
+          label.category = category;
+          label.timestamp = now;
+        }
       });
       return get().pushState(newState);
     },

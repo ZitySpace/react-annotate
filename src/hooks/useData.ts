@@ -44,9 +44,9 @@ export const useData = ({
 
   const { initIntelligentScissor } = useStore(CVStore, (s: CVStoreProps) => s);
 
-  const [curState, setStack, updateCanSave] = useStore(
+  const [curState, setStack, canSave] = useStore(
     CanvasStore,
-    (s: CanvasStoreProps) => [s.curState(), s.setStack, s.updateCanSave]
+    (s: CanvasStoreProps) => [s.curState(), s.setStack, s.canSave]
   );
 
   const { canvas, setInitSize: setCanvasInitSize } = useStore(
@@ -75,34 +75,29 @@ export const useData = ({
 
   const operation: DataOperation = {
     save: () => {
-      const updatedData = { ...imageData, annotations: [...curState] };
-      if (!onSave(updatedData)) return;
+      if (!canSave) return;
+
+      // always save raw annotations in imageCoordSystem for imageData
+      const updatedData = {
+        ...imageData,
+        annotations: curState.map((anno) => anno.toImageCoordSystem(false)),
+      };
       updateImageData(updatedData);
-      updateCanSave(false);
+
+      if (!onSave(updatedData))
+        console.log(`failed to save annotations for ${imageData.name}`);
     },
 
     prevImg: () => {
-      if (dataReady) {
-        const updatedData = { ...imageData, annotations: [...curState] };
-        updateImageData(updatedData);
-      }
+      if (dataReady) operation.save();
       prev();
     },
 
     nextImg: () => {
-      if (dataReady) {
-        const updatedData = { ...imageData, annotations: [...curState] };
-        updateImageData(updatedData);
-      }
+      if (dataReady) operation.save();
       next();
     },
   };
-
-  useEffect(() => {
-    updateCanSave(
-      JSON.stringify(curState) !== JSON.stringify(imageData.annotations)
-    );
-  }, [curState]);
 
   useEffect(() => {
     if (!canvas) return;

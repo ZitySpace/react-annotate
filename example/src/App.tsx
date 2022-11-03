@@ -50,8 +50,8 @@ const App = () => {
           console.log('add new category ', c);
           return true;
         }}
-        onRenameCategory={(o: string, n: string) => {
-          console.log(o, ' -> ', n);
+        onRenameCategory={(o: string, n: string, t?: string) => {
+          console.log(o, ' -> ', n, ' @ ', t);
           return true;
         }}
       />
