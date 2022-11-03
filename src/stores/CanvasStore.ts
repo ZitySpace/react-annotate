@@ -35,7 +35,6 @@ interface Store extends StoreData {
 
   deleteObjects: (ids: number[]) => boolean;
   assignCategory: (ids: number[], category: string) => boolean;
-  renameCategory: (oldCategory: string, newCategory: string) => void;
 
   setLock: (lock: boolean) => void;
 }
@@ -86,14 +85,13 @@ const store = createStore<Store>((set, get) => {
         ? false
         : get().pushState(newState);
     },
-    renameCategory: (oldName: string, newName: string) => {},
     assignCategory: (ids, category) => {
       const curState = get().curState();
 
-      const changed = curState.some(
+      const todo = curState.some(
         (label) => ids.includes(label.id) && label.category !== category
       );
-      if (!changed) return false;
+      if (!todo) return false;
 
       const newState = curState.map((label) => label.clone());
       newState.forEach((label) => {

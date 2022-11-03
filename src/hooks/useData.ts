@@ -16,6 +16,7 @@ export interface DataOperation {
   prevImg: () => void;
   nextImg: () => void;
   save: () => void;
+  renameCategory: (oldCate: string, newCate: string) => void;
 }
 
 export const useData = ({
@@ -35,11 +36,12 @@ export const useData = ({
 }) => {
   // initialize images list
   const {
+    prev,
+    next,
     state: imageData,
     currentIndex: imageIndex,
     updateState: updateImageData,
-    prev,
-    next,
+    forEach: forEachImageData,
   } = useStateList<ImageData>(imagesList, initIndex);
 
   const { initIntelligentScissor } = useStore(CVStore, (s: CVStoreProps) => s);
@@ -95,6 +97,25 @@ export const useData = ({
         updateImageData(updatedData);
       }
       next();
+    },
+
+    renameCategory: (oldCate: string, newCate: string) => {
+      const renamedCurState = curState.map((l_) => {
+        const l = l_.clone();
+        if (l.category === oldCate) l.category = newCate;
+        return l;
+      });
+      operation.save();
+
+      const renameFunc = (d: ImageData) => {
+        const annos = d.annotations;
+        annos.forEach((label) => {
+          if (label.category === oldCate) label.category = newCate;
+        });
+      };
+      forEachImageData(renameFunc);
+
+      setStack([renamedCurState]);
     },
   };
 

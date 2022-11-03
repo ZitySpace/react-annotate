@@ -22,11 +22,15 @@ import {
 } from '../../stores/SelectionStore';
 import { ColorStore, ColorStoreProps } from '../../stores/ColorStore';
 import { Modal, ModalProps } from '../Common/modal';
+import { ImageData } from '../../interfaces/basic';
+import { DataOperation } from '../../hooks/useData';
 
 export const OperationPanel = ({
+  dataOperation,
   onAddCategory,
   onRenameCategory,
 }: {
+  dataOperation: DataOperation;
   onAddCategory: (category: string) => boolean;
   onRenameCategory: (oldCategory: string, newCategory: string) => boolean;
 }) => {
@@ -47,18 +51,17 @@ export const OperationPanel = ({
     renameKey: renameColorKey,
   } = useStore(ColorStore, (s: ColorStoreProps) => s);
 
-  const [getCurState, groupedAnnos, assignCategory, renameCategory] = useStore(
+  const [getCurState, groupedAnnos, assignCategory, updateCanSave] = useStore(
     CanvasStore,
     (s: CanvasStoreProps) => [
       s.curState,
       s.curState() ? groupBy(s.curState(), 'category') : [],
       s.assignCategory,
-      (oldName: string, newName: string) => {
-        s.renameCategory(oldName, newName);
-        renameColorKey(oldName, newName);
-      },
+      s.updateCanSave,
     ]
   );
+
+  const { renameCategory } = dataOperation;
 
   const [catePicking, setCatePicking] = useState<boolean>(false);
   const [cateRenaming, setCateRenaming] = useState<boolean>(false);
@@ -187,7 +190,7 @@ export const OperationPanel = ({
                 <input
                   type='text'
                   className={`border-0 pl-10 text-xs font-semibold focus:outline-none ${
-                    cateRenaming ? 'w-32' : 'pr-10 rounded-r-md w-80'
+                    cateRenaming ? 'w-32' : 'pr-10 rounded-r-md w-40'
                   }`}
                   ref={editInputRef}
                   placeholder={selectedCategory || ''}
@@ -254,7 +257,13 @@ export const OperationPanel = ({
                           : 'text-indigo-200 hover:cursor-not-allowed'
                       }`}
                     >
-                      <TrashIcon onClick={() => {}} />
+                      <TrashIcon
+                        onClick={() => {
+                          if (!categoriesInStore?.includes(cateInput)) return;
+
+                          console.log('delete category');
+                        }}
+                      />
                     </span>
 
                     <span
@@ -265,7 +274,41 @@ export const OperationPanel = ({
                           : 'text-indigo-200 hover:cursor-not-allowed'
                       }`}
                     >
-                      <CheckIcon onClick={() => {}} />
+                      <CheckIcon
+                        onClick={() => {
+                          if (
+                            !(
+                              categoriesInStore?.includes(cateInput) &&
+                              renameInput !== '' &&
+                              cateInput !== renameInput
+                            )
+                          )
+                            return;
+
+                          openModal({
+                            type: 'warning',
+                            title: 'Confirm',
+                            body: `${
+                              categoriesInStore.includes(renameInput)
+                                ? 'Merge'
+                                : 'Rename'
+                            } category "${cateInput}" to "${renameInput}"?`,
+                            yesCallback: () => {
+                              if (!onRenameCategory(cateInput, renameInput))
+                                return;
+                              renameCategory(cateInput, renameInput);
+                              setCategoriesInStore(
+                                [
+                                  ...(categoriesInStore || []).filter(
+                                    (c) => c !== cateInput
+                                  ),
+                                  renameInput,
+                                ].sort()
+                              );
+                            },
+                          });
+                        }}
+                      />
                     </span>
 
                     <span className='px-1 text-indigo-600 hover:cursor-pointer'>
@@ -273,6 +316,7 @@ export const OperationPanel = ({
                         onClick={() => {
                           setCateRenaming(false);
                           setCateInput('');
+                          setRenameInput('');
                         }}
                       />
                     </span>

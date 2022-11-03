@@ -45,6 +45,7 @@ export const Annotator = ({
     <div className='w-full h-full flex flex-col justify-center items-center relative'>
       {Container}
       <OperationPanel
+        dataOperation={dataOperation}
         onAddCategory={onAddCategory}
         onRenameCategory={onRenameCategory}
       />

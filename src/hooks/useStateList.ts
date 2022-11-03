@@ -4,11 +4,12 @@ import useUpdate from './useUpdate';
 export interface UseStateListReturnProps<T> {
   state: T;
   currentIndex: number;
-  setIndex: (newIndex: number) => void;
-  setList: (state: T) => void;
-  updateState: (nowState: T, idx?: number) => void;
   next: () => void;
   prev: () => void;
+  setIndex: (newIndex: number) => void;
+  setIndexByState: (state: T) => void;
+  updateState: (nowState: T, idx?: number) => void;
+  forEach: (func: (state: T) => void) => void;
 }
 
 export function useStateList<T>(
@@ -40,7 +41,7 @@ export function useStateList<T>(
         update();
       },
 
-      setList: (state: T) => {
+      setIndexByState: (state: T) => {
         const newIndex = list.length ? list.indexOf(state) : -1;
 
         if (newIndex === -1) {
@@ -55,6 +56,11 @@ export function useStateList<T>(
 
       updateState: (newState: T, idx: number = index.current) => {
         list.splice(idx, 1, newState);
+        update();
+      },
+
+      forEach: (func: (s: T) => void) => {
+        list.forEach(func);
         update();
       },
     }),
