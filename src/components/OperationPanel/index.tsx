@@ -293,9 +293,43 @@ export const OperationPanel = ({
                     >
                       <TrashIcon
                         onClick={() => {
-                          if (!categoriesInStore?.includes(cateInput)) return;
+                          if (
+                            !categoriesInStore?.includes(cateInput) ||
+                            cateInput === UNKNOWN_CATEGORY_NAME
+                          )
+                            return;
 
-                          console.log('delete category');
+                          openModal({
+                            type: 'warning',
+                            title: 'Confirm',
+                            body: `Delete category "${cateInput}"? Labels of "${cateInput}" will be updated to ${UNKNOWN_CATEGORY_NAME}.`,
+                            yesCallback: () => {
+                              const now = getLocalTimeISOString();
+
+                              if (
+                                !onRenameCategory(
+                                  cateInput,
+                                  UNKNOWN_CATEGORY_NAME,
+                                  now
+                                )
+                              )
+                                return;
+
+                              renameCategory(
+                                cateInput,
+                                UNKNOWN_CATEGORY_NAME,
+                                now
+                              );
+                              setCategoriesInStore(
+                                placeAtLast(
+                                  (categoriesInStore || []).filter(
+                                    (c) => c !== cateInput
+                                  ),
+                                  UNKNOWN_CATEGORY_NAME
+                                )
+                              );
+                            },
+                          });
                         }}
                       />
                     </span>
