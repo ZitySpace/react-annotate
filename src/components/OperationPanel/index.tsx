@@ -13,7 +13,7 @@ import {
 } from '../Icons';
 import { AnnotationsGrid } from './AnnotationsGrid';
 import { CategoryName } from './CategoryName';
-import { groupBy } from '../../utils';
+import { groupBy, placeAtLast } from '../../utils';
 import { useStore } from 'zustand';
 import { CanvasStore, CanvasStoreProps } from '../../stores/CanvasStore';
 import {
@@ -24,6 +24,7 @@ import { ColorStore, ColorStoreProps } from '../../stores/ColorStore';
 import { Modal, ModalProps } from '../Common/modal';
 import { ImageData } from '../../interfaces/basic';
 import { getLocalTimeISOString } from '../../labels/utils';
+import { UNKNOWN_CATEGORY_NAME } from '../../labels/config';
 
 export const OperationPanel = ({
   imagesList,
@@ -250,12 +251,10 @@ export const OperationPanel = ({
                             if (!onAddCategory(cateInput)) return;
                             updateSelectedToCategory(cateInput);
                             setCategoriesInStore(
-                              [
-                                ...new Set([
-                                  ...(categoriesInStore || []),
-                                  cateInput,
-                                ]),
-                              ].sort()
+                              placeAtLast(
+                                [...(categoriesInStore || []), cateInput],
+                                UNKNOWN_CATEGORY_NAME
+                              )
                             );
                           },
                         });
@@ -338,14 +337,15 @@ export const OperationPanel = ({
 
                               renameCategory(cateInput, renameInput, now);
                               setCategoriesInStore(
-                                [
-                                  ...new Set([
+                                placeAtLast(
+                                  [
                                     ...(categoriesInStore || []).filter(
                                       (c) => c !== cateInput
                                     ),
                                     renameInput,
-                                  ]),
-                                ].sort()
+                                  ],
+                                  UNKNOWN_CATEGORY_NAME
+                                )
                               );
                             },
                           });

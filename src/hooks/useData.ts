@@ -2,6 +2,8 @@ import { fabric } from 'fabric';
 import { useEffect, useRef } from 'react';
 import { useStore } from 'zustand';
 import { DataState, ImageData } from '../interfaces/basic';
+import { UNKNOWN_CATEGORY_NAME } from '../labels/config';
+import { placeAtLast } from '../utils';
 import {
   CanvasMetaStore,
   CanvasMetaStoreProps,
@@ -180,14 +182,16 @@ export const useData = ({
   useEffect(() => {
     !categoriesInStore &&
       setCategoriesInStore(
-        categories ||
-          [
+        placeAtLast(
+          categories || [
             ...new Set(
               imagesList
                 .map((d) => [...new Set(d.annotations.map((l) => l.category))])
                 .flat()
             ),
-          ].sort()
+          ],
+          UNKNOWN_CATEGORY_NAME
+        )
       );
   }, []);
 

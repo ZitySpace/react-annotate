@@ -23,3 +23,17 @@ export const mostRepeatedValue = (array: any[]) =>
     (a, b) =>
       array.filter((v) => v === b).length - array.filter((v) => v === a).length
   )[0];
+
+export const placeAtLast = (
+  array: string[],
+  item: string,
+  sort: boolean = true,
+  unique: boolean = true
+) => {
+  const array_ = unique ? [...new Set(array)] : array;
+  const idx = array_.indexOf(item);
+
+  if (idx !== -1) array_.splice(idx, 1);
+
+  return sort ? [...array_.sort(), item] : [...array_, item];
+};

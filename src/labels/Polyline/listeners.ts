@@ -5,7 +5,7 @@ import { useRef, useEffect } from 'react';
 import { setup } from '../listeners/setup';
 import { parseEvent, getBoundedValue } from '../utils';
 import {
-  NEW_CATEGORY_NAME,
+  UNKNOWN_CATEGORY_NAME,
   POINT_DEFAULT_CONFIG,
   LINE_DEFAULT_CONFIG,
   POLYLINE_DEFAULT_CONFIG,
@@ -205,7 +205,7 @@ export const usePolylineListeners = (
         const { x, y } = canvas.getPointer(evt);
         if (!inImageOI(x, y)) return;
 
-        const category = selectedCategory || NEW_CATEGORY_NAME;
+        const category = selectedCategory || UNKNOWN_CATEGORY_NAME;
         const id = Math.max(-1, ...curState.map(({ id }) => id)) + 1;
         const color = getColor(category);
 

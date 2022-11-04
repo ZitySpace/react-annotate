@@ -6,7 +6,7 @@ export const IS_TOUCH_SCREEN = 'ontouchstart' in window;
 
 export const STROKE_WIDTH = 2;
 export const RADIUS = 4;
-export const NEW_CATEGORY_NAME = 'new_category';
+export const UNKNOWN_CATEGORY_NAME = 'UNKNOWN_CATEGORY';
 export const TRANSPARENT = 'rgba(255,0,0,0)';
 export const DEFAULT_COLOR = 'rgba(0,0,0,1)';
 export const MAX_FONT_SIZE = 14;

@@ -2,7 +2,7 @@ import { fabric } from 'fabric';
 
 import { setup } from '../listeners/setup';
 import { parseEvent, getBoundedValue } from '../utils';
-import { NEW_CATEGORY_NAME } from '../config';
+import { UNKNOWN_CATEGORY_NAME } from '../config';
 import { CoordSystemType, LabelRenderMode, LabeledObject } from '../Base';
 import { PointLabel } from './label';
 
@@ -32,7 +32,7 @@ export const usePointListeners = (syncCanvasToState: () => void) => {
 
       if (!inImageOI(x, y)) return;
 
-      const category = selectedCategory || NEW_CATEGORY_NAME;
+      const category = selectedCategory || UNKNOWN_CATEGORY_NAME;
       const id = Math.max(-1, ...curState.map(({ id }) => id)) + 1;
       const color = getColor(category);
 
