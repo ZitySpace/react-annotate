@@ -960,6 +960,7 @@ export const useMaskListeners = (
       setListenersRef.current('mask:draw:advanced');
       setStateOpsLock(true);
 
+      canvas.discardActiveObject();
       objs
         .filter((o) => (o as LabeledObject).id === id)
         .forEach((o) => {
