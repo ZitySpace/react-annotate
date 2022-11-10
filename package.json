@@ -9,10 +9,10 @@
     "build": "NODE_ENV=production rollup -c",
     "test": "jest",
     "test:watch": "jest --watch",
-    "lint": "eslint '*.{js,json}' '{src,example/src}/**/*.{ts,tsx}'",
-    "lint:fix": "eslint --fix '*.{js,json}' '{src,example/src}/**/*.{ts,tsx}'",
-    "prettier": "prettier -w src example/src .github",
-    "prettier:check": "prettier --check src example/src .github"
+    "lint": "eslint '*.{js,json}' 'src/**/*.{ts,tsx}'",
+    "lint:fix": "eslint --fix '*.{js,json}' 'src/**/*.{ts,tsx}'",
+    "prettier": "prettier -w src .github",
+    "prettier:check": "prettier --check src .github"
   },
   "main": "dist/index.js",
   "module": "dist/index.esm.js",
