@@ -69,7 +69,7 @@ export const POLYGON_DEFAULT_CONFIG: fabric.IPolylineOptions = {
   ...NOT_DIRECTED_OPERATABLE,
   perPixelTargetFind: true,
   selectable: true,
-  fillRule: 'evenodd',
+  fillRule: 'nonzero',
 };
 
 export const POLYLINE_DEFAULT_CONFIG: fabric.IPolylineOptions = {
