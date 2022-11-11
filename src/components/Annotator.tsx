@@ -6,6 +6,7 @@ import { useSynchronizer } from '../hooks/useSynchronizer';
 import { ImageData } from '../interfaces/basic';
 import { ButtonBar } from './ButtonBar';
 import { OperationPanel } from './OperationPanel';
+import { WarningIcon } from './Icons';
 
 export const Annotator = ({
   imagesList,
@@ -30,6 +31,14 @@ export const Annotator = ({
     timestamp?: string
   ) => boolean;
 }) => {
+  if (!imagesList || !imagesList.length)
+    return (
+      <div className='w-full h-full flex flex-col justify-center items-center space-y-4 text-gray-800'>
+        <WarningIcon />
+        <p>Empty annotation data.</p>
+      </div>
+    );
+
   const Container = useContainer(); // Initialize canvas, set canvas dom's style and handle the resize event
 
   // handle data import/export
@@ -41,7 +50,7 @@ export const Annotator = ({
     onError,
   });
 
-  // useKeyboard(dataOperation); // listeners for keyboard for support shortcuts.
+  // useKeyboard(dataOperation); // listeners for keyboard shortcuts.
 
   useSynchronizer(); // Core entrance
 

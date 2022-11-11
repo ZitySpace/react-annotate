@@ -87,12 +87,12 @@ export const useContainer = () => {
         <SpinnerIcon />
       </div>
       <div
-        className={`flex flex-col text-gray-800 ${dataError ? '' : 'hidden'}`}
+        className={`flex flex-col justify-center items-center space-y-4 text-gray-800 ${
+          dataError ? '' : 'hidden'
+        }`}
         style={{ zIndex: 999 }}
       >
-        <div className='m-auto'>
-          <WarningIcon />
-        </div>
+        <WarningIcon />
         <p>Unable to load the picture, please check your network connection.</p>
       </div>
     </div>
