@@ -13,7 +13,6 @@ import { CVStore, CVStoreProps } from '../stores/CVStore';
 import { ImageMetaStore, ImageMetaStoreProps } from '../stores/ImageMetaStore';
 import { SelectionStore, SelectionStoreProps } from '../stores/SelectionStore';
 import { useStateList } from './useStateList';
-import { anyTypeAnnotation } from '@babel/types';
 
 export interface DataOperation {
   prevImg: () => void;

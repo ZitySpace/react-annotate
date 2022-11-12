@@ -6,7 +6,6 @@ import { useSynchronizer } from '../hooks/useSynchronizer';
 import { ImageData } from '../interfaces/basic';
 import { ButtonBar } from './ButtonBar';
 import { OperationPanel } from './OperationPanel';
-import { WarningIcon } from './Icons';
 
 export const Annotator = ({
   imagesList,
