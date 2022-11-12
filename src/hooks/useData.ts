@@ -168,6 +168,11 @@ export const useData = ({
           onError('Failed to load image', {
             name: imageData.name,
           });
+
+        if (theLastLoadImageName.current !== imageData.name) return;
+
+        setStack([[]]);
+        selectLabels([], true);
         setDataLoadingState(
           DataState.Error,
           'Failed to load image, please check image url or network connection.'
@@ -184,6 +189,11 @@ export const useData = ({
               name: imageData.name,
               error: err instanceof Error ? err.message : (err as string),
             });
+
+          if (theLastLoadImageName.current !== imageData.name) return;
+
+          setStack([[]]);
+          selectLabels([], true);
           setDataLoadingState(
             DataState.Error,
             err instanceof Error ? err.message : (err as string)
@@ -191,6 +201,8 @@ export const useData = ({
         }
       } else {
         onError && onError('Empty or invalid image data');
+        setStack([[]]);
+        selectLabels([], true);
         setDataLoadingState(
           DataState.Error,
           'Empty or invalid image data, please check image annotations.'
