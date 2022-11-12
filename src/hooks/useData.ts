@@ -13,6 +13,7 @@ import { CVStore, CVStoreProps } from '../stores/CVStore';
 import { ImageMetaStore, ImageMetaStoreProps } from '../stores/ImageMetaStore';
 import { SelectionStore, SelectionStoreProps } from '../stores/SelectionStore';
 import { useStateList } from './useStateList';
+import { anyTypeAnnotation } from '@babel/types';
 
 export interface DataOperation {
   prevImg: () => void;
@@ -33,13 +34,14 @@ export const useData = ({
   categories?: string[];
   getImage?: (imageName: string) => Promise<string>;
   onSave: (curImageData: ImageData) => boolean;
-  onError?: (message: string, context: any) => void;
+  onError?: (message: string, context?: any) => void;
 }) => {
   // initialize images list
   const {
     prev,
     next,
-    state: imageData,
+    setIndex,
+    state: imageState,
     currentIndex: imageIndex,
     updateState: updateImageData,
   } = useStateList<ImageData>(imagesList, initIndex);
@@ -72,6 +74,10 @@ export const useData = ({
     setCategories: setCategoriesInStore,
   } = useStore(SelectionStore, (s: SelectionStoreProps) => s);
 
+  const imageData = imageState
+    ? imageState
+    : { name: '', src: '', annotations: [] };
+
   const theLastLoadImageName = useRef<string>();
   theLastLoadImageName.current = imageData.name;
 
@@ -102,6 +108,10 @@ export const useData = ({
   };
 
   useEffect(() => {
+    setIndex(0);
+  }, [imagesList]);
+
+  useEffect(() => {
     if (!canvas) return;
 
     setName(imageData.name);
@@ -109,6 +119,7 @@ export const useData = ({
 
     (async () => {
       const image = new Image();
+
       image.onload = () => {
         if (theLastLoadImageName.current !== imageData.name) return;
 
@@ -151,49 +162,57 @@ export const useData = ({
 
         setDataLoadingState(DataState.Ready);
       };
+
       image.onerror = () => {
         onError &&
-          onError('Load image failed', {
+          onError('Failed to load image', {
             name: imageData.name,
           });
-        setDataLoadingState(DataState.Error);
+        setDataLoadingState(
+          DataState.Error,
+          'Failed to load image, please check image url or network connection.'
+        );
       };
 
-      try {
-        if (imageData.url) image.src = imageData.url;
-        else {
-          if (!getImage)
-            throw new Error(
-              'Image url or getImage method has to be set to display images.'
-            );
+      if (imageData.url) image.src = imageData.url;
+      else if (imageData.name && getImage) {
+        try {
           image.src = await getImage(imageData.name);
+        } catch (err) {
+          onError &&
+            onError('Failed to request image', {
+              name: imageData.name,
+              error: err instanceof Error ? err.message : (err as string),
+            });
+          setDataLoadingState(
+            DataState.Error,
+            err instanceof Error ? err.message : (err as string)
+          );
         }
-      } catch (err) {
-        onError &&
-          onError('Request image failed', {
-            name: imageData.name,
-            error: err instanceof Error ? err.message : (err as string),
-          });
-        setDataLoadingState(DataState.Error);
+      } else {
+        onError && onError('Empty or invalid image data');
+        setDataLoadingState(
+          DataState.Error,
+          'Empty or invalid image data, please check image annotations.'
+        );
       }
     })();
   }, [imageData.name, canvas]);
 
   useEffect(() => {
-    !categoriesInStore &&
-      setCategoriesInStore(
-        placeAtLast(
-          categories || [
-            ...new Set(
-              imagesList
-                .map((d) => [...new Set(d.annotations.map((l) => l.category))])
-                .flat()
-            ),
-          ],
-          UNKNOWN_CATEGORY_NAME
-        )
-      );
-  }, []);
+    setCategoriesInStore(
+      placeAtLast(
+        categories || [
+          ...new Set(
+            imagesList
+              .map((d) => [...new Set(d.annotations.map((l) => l.category))])
+              .flat()
+          ),
+        ],
+        UNKNOWN_CATEGORY_NAME
+      )
+    );
+  }, [imagesList]);
 
   return operation;
 };

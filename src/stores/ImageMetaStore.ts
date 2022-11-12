@@ -14,6 +14,7 @@ interface StoreData {
   dataReady: boolean;
   dataError: boolean;
   cached: Set<string>;
+  msg: string;
 }
 
 const StoreDataDefault = {
@@ -25,6 +26,7 @@ const StoreDataDefault = {
   dataReady: false,
   dataError: false,
   cached: new Set<string>(),
+  msg: '',
 };
 
 interface Store extends StoreData {
@@ -37,7 +39,7 @@ interface Store extends StoreData {
     scale: number;
     offset: { x: number; y: number };
   }) => void;
-  setDataLoadingState: (state: DataState) => void;
+  setDataLoadingState: (state: DataState, msg?: string) => void;
   isCached: (name: string | null) => boolean;
   setName: (name: string | null) => void;
 }
@@ -58,10 +60,13 @@ const store = createStore<Store>((set, get) => ({
   setScaleOffset: ({ scale, offset }) => {
     set({ scale, offset });
   },
-  setDataLoadingState: (state: DataState = DataState.Loading) => {
+  setDataLoadingState: (
+    state: DataState = DataState.Loading,
+    msg: string = ''
+  ) => {
     const dataReady = state === DataState.Ready;
     const dataError = state === DataState.Error;
-    set({ dataReady, dataError });
+    set({ dataReady, dataError, msg });
   },
   isCached: (name: string | null = null) =>
     name !== null && get().cached.has(name),

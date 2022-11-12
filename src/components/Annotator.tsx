@@ -23,7 +23,7 @@ export const Annotator = ({
   categories?: string[];
   getImage?: (imageName: string) => Promise<string>;
   onSave: (curImageData: ImageData) => boolean;
-  onError?: (message: string, context: any) => void;
+  onError?: (message: string, context?: any) => void;
   onAddCategory: (category: string) => boolean;
   onRenameCategory: (
     oldCategory: string,
@@ -31,14 +31,6 @@ export const Annotator = ({
     timestamp?: string
   ) => boolean;
 }) => {
-  if (!imagesList || !imagesList.length)
-    return (
-      <div className='w-full h-full flex flex-col justify-center items-center space-y-4 text-gray-800'>
-        <WarningIcon />
-        <p>Empty annotation data.</p>
-      </div>
-    );
-
   const Container = useContainer(); // Initialize canvas, set canvas dom's style and handle the resize event
 
   // handle data import/export

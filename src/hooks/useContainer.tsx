@@ -20,7 +20,7 @@ export const useContainer = () => {
     setInitSize: setCanvasInitSize,
   } = useStore(CanvasMetaStore, (s: CanvasMetaStoreProps) => s);
 
-  const { name, isCached, dataReady, dataError } = useStore(
+  const { name, isCached, dataReady, dataError, msg } = useStore(
     ImageMetaStore,
     (s: ImageMetaStoreProps) => s
   );
@@ -93,7 +93,7 @@ export const useContainer = () => {
         style={{ zIndex: 999 }}
       >
         <WarningIcon />
-        <p>Unable to load the picture, please check your network connection.</p>
+        <p>{msg}</p>
       </div>
     </div>
   );

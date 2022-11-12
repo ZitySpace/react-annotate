@@ -568,7 +568,6 @@ export const usePolylineListeners = (
     },
 
     'mouse:move': (e: fabric.IEvent<Event>) => {
-      console.log(isDrawing.current);
       if (!isDrawing.current) return;
 
       const { evt } = parseEvent(e as fabric.IEvent<MouseEvent>);
