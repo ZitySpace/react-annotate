@@ -3,7 +3,7 @@ import React from 'react';
 export const SaveIcon = (props: React.ComponentProps<'svg'>) => (
   <svg
     xmlns='http://www.w3.org/2000/svg'
-    className='h-5 w-5'
+    className='ra-h-5 ra-w-5'
     viewBox='0 0 24 24'
     fill='none'
     stroke='currentColor'
@@ -21,7 +21,7 @@ export const SaveIcon = (props: React.ComponentProps<'svg'>) => (
 export const EditIcon = (props: React.ComponentProps<'svg'>) => (
   <svg
     xmlns='http://www.w3.org/2000/svg'
-    className='h-6 w-6'
+    className='ra-h-6 ra-w-6'
     viewBox='0 0 24 24'
     fill='currentColor'
     {...props}
@@ -33,7 +33,7 @@ export const EditIcon = (props: React.ComponentProps<'svg'>) => (
 export const TagIcon = (props: React.ComponentProps<'svg'>) => (
   <svg
     xmlns='http://www.w3.org/2000/svg'
-    className='w-6 h-6'
+    className='ra-w-6 ra-h-6'
     viewBox='0 0 24 24'
     fill='currentColor'
     {...props}
@@ -49,7 +49,7 @@ export const TagIcon = (props: React.ComponentProps<'svg'>) => (
 export const CogIcon = (props: React.ComponentProps<'svg'>) => (
   <svg
     xmlns='http://www.w3.org/2000/svg'
-    className='w-6 h-6'
+    className='ra-w-6 ra-h-6'
     viewBox='0 0 24 24'
     fill='currentColor'
     {...props}
@@ -66,7 +66,7 @@ export const CogIcon = (props: React.ComponentProps<'svg'>) => (
 export const SquaresIcon = (props: React.ComponentProps<'svg'>) => (
   <svg
     xmlns='http://www.w3.org/2000/svg'
-    className='w-6 h-6'
+    className='ra-w-6 ra-h-6'
     viewBox='0 0 24 24'
     fill='currentColor'
     {...props}
@@ -82,7 +82,7 @@ export const SquaresIcon = (props: React.ComponentProps<'svg'>) => (
 export const PointIcon = (props: React.ComponentProps<'svg'>) => (
   <svg
     xmlns='http://www.w3.org/2000/svg'
-    className='h-5 w-5'
+    className='ra-h-5 ra-w-5'
     viewBox='0 0 24 24'
     strokeWidth='2'
     stroke='currentColor'
@@ -100,7 +100,7 @@ export const PointIcon = (props: React.ComponentProps<'svg'>) => (
 export const RectangleIcon = (props: React.ComponentProps<'svg'>) => (
   <svg
     xmlns='http://www.w3.org/2000/svg'
-    className='h-6 w-6'
+    className='ra-h-6 ra-w-6'
     viewBox='0 0 24 24'
     strokeWidth='2'
     stroke='currentColor'
@@ -117,7 +117,7 @@ export const RectangleIcon = (props: React.ComponentProps<'svg'>) => (
 export const LineIcon = (props: React.ComponentProps<'svg'>) => (
   <svg
     xmlns='http://www.w3.org/2000/svg'
-    className='h-5 w-5'
+    className='ra-h-5 ra-w-5'
     viewBox='0 0 24 24'
     strokeWidth='2'
     stroke='currentColor'
@@ -136,7 +136,7 @@ export const LineIcon = (props: React.ComponentProps<'svg'>) => (
 export const PolylineIcon = (props: React.ComponentProps<'svg'>) => (
   <svg
     xmlns='http://www.w3.org/2000/svg'
-    className='h-5 w-5'
+    className='ra-h-5 ra-w-5'
     viewBox='0 0 24 24'
     fill='none'
     stroke='currentColor'
@@ -157,7 +157,7 @@ export const PolylineIcon = (props: React.ComponentProps<'svg'>) => (
 export const PolygonIcon = (props: React.ComponentProps<'svg'>) => (
   <svg
     xmlns='http://www.w3.org/2000/svg'
-    className='h-5 w-5'
+    className='ra-h-5 ra-w-5'
     viewBox='0 0 24 24'
     fill='none'
     stroke='currentColor'
@@ -173,7 +173,7 @@ export const PolygonIcon = (props: React.ComponentProps<'svg'>) => (
 export const UndoIcon = (props: React.ComponentProps<'svg'>) => (
   <svg
     xmlns='http://www.w3.org/2000/svg'
-    className='h-5 w-5 transform rotate-45'
+    className='ra-h-5 ra-w-5 ra-transform ra-rotate-45'
     viewBox='0 0 24 24'
     strokeWidth='2'
     stroke='currentColor'
@@ -191,7 +191,7 @@ export const UndoIcon = (props: React.ComponentProps<'svg'>) => (
 export const RedoIcon = (props: React.ComponentProps<'svg'>) => (
   <svg
     xmlns='http://www.w3.org/2000/svg'
-    className='h-5 w-5 transform -rotate-45'
+    className='ra-h-5 ra-w-5 ra-transform -ra-rotate-45'
     viewBox='0 0 24 24'
     strokeWidth='2'
     stroke='currentColor'
@@ -209,7 +209,7 @@ export const RedoIcon = (props: React.ComponentProps<'svg'>) => (
 export const ResetIcon = (props: React.ComponentProps<'svg'>) => (
   <svg
     xmlns='http://www.w3.org/2000/svg'
-    className='h-4 w-4'
+    className='ra-h-4 ra-w-4'
     viewBox='0 0 24 24'
     fill='none'
     stroke='currentColor'
@@ -227,7 +227,7 @@ export const ResetIcon = (props: React.ComponentProps<'svg'>) => (
 export const NextIcon = (props: React.ComponentProps<'svg'>) => (
   <svg
     xmlns='http://www.w3.org/2000/svg'
-    className='h-5 w-5'
+    className='ra-h-5 ra-w-5'
     viewBox='0 0 24 24'
     strokeWidth='2'
     stroke='currentColor'
@@ -244,7 +244,7 @@ export const NextIcon = (props: React.ComponentProps<'svg'>) => (
 export const PervIcon = (props: React.ComponentProps<'svg'>) => (
   <svg
     xmlns='http://www.w3.org/2000/svg'
-    className='h-5 w-5'
+    className='ra-h-5 ra-w-5'
     viewBox='0 0 24 24'
     strokeWidth='2'
     stroke='currentColor'
@@ -261,7 +261,7 @@ export const PervIcon = (props: React.ComponentProps<'svg'>) => (
 export const TrashIcon = (props: React.ComponentProps<'svg'>) => (
   <svg
     xmlns='http://www.w3.org/2000/svg'
-    className='h-5 w-5'
+    className='ra-h-5 ra-w-5'
     viewBox='0 0 24 24'
     strokeWidth='2'
     stroke='currentColor'
@@ -282,7 +282,7 @@ export const TrashIcon = (props: React.ComponentProps<'svg'>) => (
 export const CloseIcon = (props: React.ComponentProps<'svg'>) => (
   <svg
     xmlns='http://www.w3.org/2000/svg'
-    className='h-5 w-5'
+    className='ra-h-5 ra-w-5'
     viewBox='0 0 24 24'
     strokeWidth='2'
     stroke='currentColor'
@@ -300,7 +300,7 @@ export const CloseIcon = (props: React.ComponentProps<'svg'>) => (
 export const CheckIcon = (props: React.ComponentProps<'svg'>) => (
   <svg
     xmlns='http://www.w3.org/2000/svg'
-    className='w-6 h-6'
+    className='ra-w-6 ra-h-6'
     fill='none'
     viewBox='0 0 24 24'
     strokeWidth='1.5'
@@ -318,7 +318,7 @@ export const CheckIcon = (props: React.ComponentProps<'svg'>) => (
 export const CheckCircleIcon = (props: React.ComponentProps<'svg'>) => (
   <svg
     xmlns='http://www.w3.org/2000/svg'
-    className='w-6 h-6'
+    className='ra-w-6 ra-h-6'
     fill='none'
     viewBox='0 0 24 24'
     strokeWidth='1.5'
@@ -336,7 +336,7 @@ export const CheckCircleIcon = (props: React.ComponentProps<'svg'>) => (
 export const ExclamationCircleIcon = (props: React.ComponentProps<'svg'>) => (
   <svg
     xmlns='http://www.w3.org/2000/svg'
-    className='w-6 h-6'
+    className='ra-w-6 ra-h-6'
     fill='none'
     viewBox='0 0 24 24'
     strokeWidth='1.5'
@@ -354,7 +354,7 @@ export const ExclamationCircleIcon = (props: React.ComponentProps<'svg'>) => (
 export const ArrowRightIcon = (props: React.ComponentProps<'svg'>) => (
   <svg
     xmlns='http://www.w3.org/2000/svg'
-    className='w-6 h-6'
+    className='ra-w-6 ra-h-6'
     fill='none'
     viewBox='0 0 24 24'
     strokeWidth='1.5'
@@ -372,7 +372,7 @@ export const ArrowRightIcon = (props: React.ComponentProps<'svg'>) => (
 export const VisibleIcon = (props: React.ComponentProps<'svg'>) => (
   <svg
     xmlns='http://www.w3.org/2000/svg'
-    className='h-5 w-5'
+    className='ra-h-5 ra-w-5'
     fill='none'
     viewBox='0 0 24 24'
     stroke='currentColor'
@@ -389,7 +389,7 @@ export const VisibleIcon = (props: React.ComponentProps<'svg'>) => (
 export const InvisibleIcon = (props: React.ComponentProps<'svg'>) => (
   <svg
     xmlns='http://www.w3.org/2000/svg'
-    className='h-5 w-5'
+    className='ra-h-5 ra-w-5'
     fill='none'
     viewBox='0 0 24 24'
     stroke='currentColor'
@@ -405,7 +405,7 @@ export const InvisibleIcon = (props: React.ComponentProps<'svg'>) => (
 export const MultipleSelectIcon = (props: React.ComponentProps<'svg'>) => (
   <svg
     xmlns='http://www.w3.org/2000/svg'
-    className='h-5 w-5'
+    className='ra-h-5 ra-w-5'
     viewBox='0 0 24 24'
     strokeWidth='2'
     stroke='currentColor'
@@ -423,7 +423,7 @@ export const MultipleSelectIcon = (props: React.ComponentProps<'svg'>) => (
 export const SpinnerIcon = (props: React.ComponentProps<'svg'>) => (
   <svg
     xmlns='http://www.w3.org/2000/svg'
-    className='w-8 h-8 mr-2 text-gray-200 animate-spin'
+    className='ra-w-8 ra-h-8 ra-mr-2 ra-text-gray-200 ra-animate-spin'
     viewBox='0 0 100 101'
     fill='#1E90FF'
     {...props}
@@ -442,7 +442,7 @@ export const SpinnerIcon = (props: React.ComponentProps<'svg'>) => (
 export const WarningIcon = (props: React.ComponentProps<'svg'>) => (
   <svg
     xmlns='http://www.w3.org/2000/svg'
-    className='w-10 h-10 fill-current text-red-500 '
+    className='ra-w-10 ra-h-10 ra-fill-current ra-text-red-500'
     viewBox='0 0 24 24'
     {...props}
   >
@@ -454,7 +454,7 @@ export const WarningIcon = (props: React.ComponentProps<'svg'>) => (
 export const AIIcon = (props: React.ComponentProps<'svg'>) => (
   <svg
     xmlns='http://www.w3.org/2000/svg'
-    className='h-6 w-6'
+    className='ra-h-6 ra-w-6'
     viewBox='0 0 24 24'
     strokeWidth='1'
     stroke='currentColor'

@@ -46,7 +46,7 @@ export const Annotator = ({
   useSynchronizer(); // Core entrance
 
   return (
-    <div className='w-full h-full flex flex-col justify-center items-center relative'>
+    <div className='ra-w-full ra-h-full ra-flex ra-flex-col ra-justify-center ra-items-center ra-relative'>
       {Container}
       <OperationPanel
         imagesList={imagesList}

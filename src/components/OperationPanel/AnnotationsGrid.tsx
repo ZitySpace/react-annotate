@@ -28,15 +28,15 @@ export const AnnotationsGrid = ({ annotations }: { annotations: Label[] }) => {
   };
 
   return (
-    <div className='grid grid-cols-4 gap-1 mr-0.5 flex-row-reverse'>
+    <div className='ra-grid ra-grid-cols-4 ra-gap-1 ra-mr-0.5 ra-flex-row-reverse'>
       {annotations.map((anno, index) => (
         <div
           key={anno.id}
-          className={`h-5 w-5 rounded-md flex justify-center items-center border border-transparent hover:border-indigo-600
+          className={`ra-h-5 ra-w-5 ra-rounded-md ra-flex ra-justify-center ra-items-center ra-border ra-border-transparent hover:ra-border-indigo-600
             ${
               isSelected(anno.id)
-                ? 'bg-indigo-600 text-gray-100'
-                : 'bg-gray-200'
+                ? 'ra-bg-indigo-600 ra-text-gray-100'
+                : 'ra-bg-gray-200'
             }`}
           data-anno-index={index}
           onClick={handleClick}

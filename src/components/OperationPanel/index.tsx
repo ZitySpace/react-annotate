@@ -153,18 +153,20 @@ export const OperationPanel = ({
   }, [selectedLabels]);
 
   return (
-    <div className='absolute w-full h-full pb-9 invisible'>
-      <div className='relative h-full p-2 overflow-hidden'>
+    <div className='ra-absolute ra-w-full ra-h-full ra-pb-9 ra-invisible'>
+      <div className='ra-relative ra-h-full ra-p-2 ra-overflow-hidden'>
         <Draggable bounds='parent' handle='#sel_handle'>
-          <div className='bg-gray-100 w-28 bg-opacity-0 absolute top-2 right-2 visible max-h-full flex flex-col items-end text-xs select-none'>
+          <div className='ra-bg-gray-100 ra-w-28 ra-bg-opacity-0 ra-absolute ra-top-2 ra-right-2 ra-visible ra-max-h-full ra-flex ra-flex-col ra-items-end ra-text-xs ra-select-none'>
             <div
               id='sel_handle'
-              className='bg-indigo-400 py-2 px-2 w-full rounded-t-md flex justify-between hover:cursor-grab'
+              className='ra-bg-indigo-400 ra-py-2 ra-px-2 ra-w-full ra-rounded-t-md ra-flex ra-justify-between hover:ra-cursor-grab'
             >
-              <span className='w-full text-left font-semibold'>Category</span>
+              <span className='ra-w-full ra-text-left ra-font-semibold'>
+                Category
+              </span>
               <div
-                className={`text-indigo-200 hover:cursor-pointer ${
-                  multi ? 'text-indigo-600' : ''
+                className={`ra-text-indigo-200 hover:ra-cursor-pointer ${
+                  multi ? 'ra-text-indigo-600' : ''
                 }`}
                 onClick={toggleMulti}
               >
@@ -172,12 +174,15 @@ export const OperationPanel = ({
               </div>
             </div>
 
-            <div className='h-full w-full overflow-y-auto'>
+            <div className='ra-h-full ra-w-full ra-overflow-y-auto'>
               {groupedAnnos.map(
                 ([categoryName, annotations]: [string, Label[]]) => (
-                  <div className='flex flex-row relative' key={categoryName}>
+                  <div
+                    className='ra-flex ra-flex-row ra-relative'
+                    key={categoryName}
+                  >
                     <div
-                      className='w-28 p-2 flex flex-col'
+                      className='ra-w-28 ra-p-2 ra-flex ra-flex-col'
                       style={{
                         backgroundColor: getColor(categoryName),
                       }}
@@ -189,7 +194,7 @@ export const OperationPanel = ({
                     </div>
 
                     {categoryName === selectedCategory && (
-                      <span className='absolute right-0 h-full w-1 bg-indigo-600'></span>
+                      <span className='ra-absolute ra-right-0 ra-h-full ra-w-1 ra-bg-indigo-600'></span>
                     )}
                   </div>
                 )
@@ -200,28 +205,30 @@ export const OperationPanel = ({
 
         <Draggable bounds='parent' handle='#edit_handle'>
           <div
-            className='bg-gray-100 bg-opacity-0 absolute top-2 visible max-h-full flex flex-col text-xs select-none'
+            className='ra-bg-gray-100 ra-bg-opacity-0 ra-absolute ra-top-2 ra-visible ra-max-h-full ra-flex ra-flex-col ra-text-xs ra-select-none'
             onMouseLeave={() => {
               setCatePicking(false);
               editInputRef.current?.blur();
             }}
           >
-            <div className='flex'>
+            <div className='ra-flex'>
               <div
                 id='edit_handle'
-                className='relative inline-flex items-center rounded-l-md bg-indigo-400 p-2 text-indigo-200 hover:cursor-grab'
+                className='ra-relative ra-inline-flex ra-items-center ra-rounded-l-md ra-bg-indigo-400 ra-p-2 ra-text-indigo-200 hover:ra-cursor-grab'
               >
                 <SquaresIcon />
               </div>
 
-              <div className='relative flex '>
-                <span className='absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none text-indigo-200'>
+              <div className='ra-relative ra-flex '>
+                <span className='ra-absolute ra-inset-y-0 ra-left-0 ra-pl-2 ra-flex ra-items-center ra-pointer-events-none ra-text-indigo-200'>
                   <TagIcon />
                 </span>
                 <input
                   type='text'
-                  className={`border-0 pl-10 text-xs font-semibold focus:outline-none ${
-                    cateRenaming ? 'w-32' : 'pr-10 rounded-r-md w-40'
+                  className={`ra-border-0 ra-pl-10 ra-text-xs ra-font-semibold focus:ra-outline-none ${
+                    cateRenaming
+                      ? 'ra-w-32'
+                      : 'ra-pr-10 ra-rounded-r-md ra-w-40'
                   }`}
                   ref={editInputRef}
                   placeholder={selectedCategory || ''}
@@ -264,14 +271,14 @@ export const OperationPanel = ({
 
                 {cateRenaming ? (
                   <div
-                    className='pr-2 flex items-center bg-white rounded-r-md'
+                    className='ra-pr-2 ra-flex ra-items-center ra-bg-white ra-rounded-r-md'
                     onMouseEnter={() => setCatePicking(false)}
                   >
                     <span
-                      className={`px-1  ${
+                      className={`ra-px-1  ${
                         categoriesInStore?.includes(cateInput)
-                          ? 'text-indigo-600'
-                          : 'text-indigo-200'
+                          ? 'ra-text-indigo-600'
+                          : 'ra-text-indigo-200'
                       }`}
                     >
                       <ArrowRightIcon onClick={() => {}} />
@@ -279,16 +286,16 @@ export const OperationPanel = ({
 
                     <input
                       type='text'
-                      className='border-0 text-xs font-semibold focus:outline-none w-20'
+                      className='ra-border-0 ra-text-xs ra-font-semibold focus:ra-outline-none ra-w-20'
                       value={renameInput}
                       onChange={(e) => setRenameInput(e.target.value)}
                     />
 
                     <span
-                      className={`px-1  ${
+                      className={`ra-px-1  ${
                         categoriesInStore?.includes(cateInput)
-                          ? 'text-indigo-600 hover:cursor-pointer'
-                          : 'text-indigo-200 hover:cursor-not-allowed'
+                          ? 'ra-text-indigo-600 hover:ra-cursor-pointer'
+                          : 'ra-text-indigo-200 hover:ra-cursor-not-allowed'
                       }`}
                     >
                       <TrashIcon
@@ -335,11 +342,11 @@ export const OperationPanel = ({
                     </span>
 
                     <span
-                      className={`px-1  ${
+                      className={`ra-px-1  ${
                         categoriesInStore?.includes(cateInput) &&
                         renameInput !== ''
-                          ? 'text-indigo-600 hover:cursor-pointer'
-                          : 'text-indigo-200 hover:cursor-not-allowed'
+                          ? 'ra-text-indigo-600 hover:ra-cursor-pointer'
+                          : 'ra-text-indigo-200 hover:ra-cursor-not-allowed'
                       }`}
                     >
                       <CheckIcon
@@ -387,7 +394,7 @@ export const OperationPanel = ({
                       />
                     </span>
 
-                    <span className='px-1 text-indigo-600 hover:cursor-pointer'>
+                    <span className='ra-px-1 ra-text-indigo-600 hover:ra-cursor-pointer'>
                       <CloseIcon
                         onClick={() => {
                           setCateRenaming(false);
@@ -398,12 +405,12 @@ export const OperationPanel = ({
                     </span>
                   </div>
                 ) : (
-                  <div className='absolute inset-y-0 right-0 pr-2 flex items-center '>
+                  <div className='ra-absolute ra-inset-y-0 ra-right-0 ra-pr-2 ra-flex ra-items-center '>
                     <span
                       className={`${
                         selectedCategory
-                          ? 'text-indigo-200 hover:cursor-not-allowed'
-                          : 'text-indigo-600 hover:cursor-pointer'
+                          ? 'ra-text-indigo-200 hover:ra-cursor-not-allowed'
+                          : 'ra-text-indigo-600 hover:ra-cursor-pointer'
                       }  `}
                     >
                       <CogIcon
@@ -418,11 +425,11 @@ export const OperationPanel = ({
             </div>
 
             <div
-              className={`bg-gray-100 mt-1 p-2 rounded-md max-w-md h-64 overflow-auto ${
-                catePicking ? '' : 'hidden'
+              className={`ra-bg-gray-100 ra-mt-1 ra-p-2 ra-rounded-md ra-max-w-md ra-h-64 ra-overflow-auto ${
+                catePicking ? '' : 'ra-hidden'
               }`}
             >
-              <div className='flex flex-wrap max-h-full'>
+              <div className='ra-flex ra-flex-wrap ra-max-h-full'>
                 {(categoriesInStore || [])
                   .filter(
                     (cate) => cateInput === '' || cate.startsWith(cateInput)
@@ -430,9 +437,9 @@ export const OperationPanel = ({
                   .map((cate) => (
                     <span
                       key={cate}
-                      className={`px-2 py-1 border-2 rounded-md m-1 text-xs font-semibold text-center ${
+                      className={`ra-px-2 ra-py-1 ra-border-2 ra-rounded-md ra-m-1 ra-text-xs ra-font-semibold ra-text-center ${
                         cate === selectedCategory || cate === cateHovered
-                          ? 'text-white'
+                          ? 'ra-text-white'
                           : ''
                       }`}
                       style={

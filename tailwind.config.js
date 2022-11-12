@@ -7,4 +7,5 @@ module.exports = {
   corePlugins: {
     preflight: false,
   },
+  prefix: 'ra-',
 };

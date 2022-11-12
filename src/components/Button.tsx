@@ -12,16 +12,16 @@ export const Button = ({
   onClick: (event: any) => void;
 }) => {
   const defaultCls =
-    'h-6 w-6 rounded-sm md:h-8 md:w-8 md:rounded-full flex justify-center items-center bg-gray-200 cursor-pointer';
+    'ra-h-6 ra-w-6 ra-rounded-sm md:ra-h-8 md:ra-w-8 md:ra-rounded-full ra-flex ra-justify-center ra-items-center ra-bg-gray-200 ra-cursor-pointer';
   const textClass = isUsing
-    ? 'text-gray-100'
+    ? 'ra-text-gray-100'
     : canUse
-    ? 'hover:text-gray-100'
-    : 'text-gray-400';
+    ? 'hover:ra-text-gray-100'
+    : 'ra-text-gray-400';
   const bgClass = isUsing
-    ? 'bg-indigo-600 '
+    ? 'ra-bg-indigo-600 '
     : canUse
-    ? 'hover:bg-indigo-600'
+    ? 'hover:ra-bg-indigo-600'
     : '';
 
   const click = (event: any) => {

@@ -47,9 +47,9 @@ export const useContainer = () => {
     extendElm.style.position = 'absolute';
     extendElm.style.top = '0';
     extendElm.style.touchAction = 'none';
-    extendElm.classList.add('bg-gray-200');
-    lowerCanvasElm.classList.remove('hidden');
-    upperCanvasElm.classList.remove('hidden');
+    extendElm.classList.add('ra-bg-gray-200');
+    lowerCanvasElm.classList.remove('ra-hidden');
+    upperCanvasElm.classList.remove('ra-hidden');
 
     setCanvas(canvas);
     setCanvasInitSize(canvas_w, canvas_h);
@@ -75,20 +75,20 @@ export const useContainer = () => {
 
   return (
     <div
-      className='h-full relative pb-9 select-none w-full flex justify-center items-center overflow-y-hidden'
+      className='ra-h-full ra-relative ra-pb-9 ra-select-none ra-w-full ra-flex ra-justify-center ra-items-center ra-overflow-y-hidden'
       id='canvas_extended'
     >
-      <canvas ref={canvasElmRef} className='hidden' />
+      <canvas ref={canvasElmRef} className='ra-hidden' />
       <div
         className={`${
-          isCached(name) || dataReady || dataError ? 'hidden' : ''
+          isCached(name) || dataReady || dataError ? 'ra-hidden' : ''
         }`}
       >
         <SpinnerIcon />
       </div>
       <div
-        className={`flex flex-col justify-center items-center space-y-4 text-gray-800 ${
-          dataError ? '' : 'hidden'
+        className={`ra-flex ra-flex-col ra-justify-center ra-items-center ra-space-y-4 ra-text-gray-800 ${
+          dataError ? '' : 'ra-hidden'
         }`}
         style={{ zIndex: 999 }}
       >

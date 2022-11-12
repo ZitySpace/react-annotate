@@ -108,8 +108,8 @@ export const ButtonBar = ({
   const isDrawing = drawType !== LabelType.None;
 
   return (
-    <div className='h-9 flex justify-center space-x-8 items-center absolute bottom-0 select-none'>
-      <div className='flex justify-center space-x-1'>
+    <div className='ra-h-9 ra-flex ra-justify-center ra-space-x-8 ra-items-center ra-absolute ra-bottom-0 ra-select-none'>
+      <div className='ra-flex ra-justify-center ra-space-x-1'>
         <Button
           onClick={() => {
             console.log('close clicked');
@@ -123,7 +123,7 @@ export const ButtonBar = ({
         </Button>
       </div>
 
-      <div className='flex justify-center space-x-1'>
+      <div className='ra-flex ra-justify-center ra-space-x-1'>
         <Button canUse={!!selectedLabels.length} onClick={deleteObj}>
           <TrashIcon />
         </Button>
@@ -177,7 +177,7 @@ export const ButtonBar = ({
         </Button>
       </div>
 
-      <div className='flex justify-center space-x-1'>
+      <div className='ra-flex ra-justify-center ra-space-x-1'>
         <Button canUse={true} onClick={prevImg}>
           <PervIcon />
         </Button>
