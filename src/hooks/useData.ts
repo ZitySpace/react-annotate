@@ -107,10 +107,6 @@ export const useData = ({
   };
 
   useEffect(() => {
-    setIndex(0);
-  }, [imagesList]);
-
-  useEffect(() => {
     if (!canvas) return;
 
     setName(imageData.name);
@@ -208,9 +204,11 @@ export const useData = ({
         );
       }
     })();
-  }, [imageData.name, canvas]);
+  }, [imageData.name, canvas, imagesList]);
 
   useEffect(() => {
+    setIndex(0);
+
     setCategoriesInStore(
       placeAtLast(
         categories || [
