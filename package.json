@@ -1,5 +1,5 @@
 {
-  "name": "@ZitySpace/react-annotate",
+  "name": "@zityspace/react-annotate",
   "version": "0.1.0",
   "description": "React library for annotating computer vision datasets",
   "author": "ZitySpace",
@@ -79,5 +79,8 @@
     "randomcolor": "^0.6.2",
     "react-draggable": "^4.4.4",
     "tinyqueue": "^2.0.3"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
