@@ -17,12 +17,12 @@ export default [
       {
         file: packageJson.main,
         format: 'cjs',
-        sourcemap: true,
+        sourcemap: !isProduction,
       },
       {
         file: packageJson.module,
         format: 'es',
-        sourcemap: true,
+        sourcemap: !isProduction,
       },
     ],
     watch: {
