@@ -21,6 +21,8 @@ import {
 } from '../labels/utils';
 import { useListeners } from '../labels/listeners';
 
+import { InspectStore, InspectStoreProps } from '../stores/InspectStore';
+
 export const useSynchronizer = () => {
   const { canvas } = useStore(CanvasMetaStore, (s: CanvasMetaStoreProps) => s);
   const { setReady: setCVReady } = useStore(CVStore, (s: CVStoreProps) => s);
@@ -46,6 +48,8 @@ export const useSynchronizer = () => {
     isSelected,
     calcLabelMode,
   } = useStore(SelectionStore, (s: SelectionStoreProps) => s);
+
+  const { setRMode } = useStore(InspectStore, (s: InspectStoreProps) => s);
 
   const syncCanvasToState = (id?: number) => {
     if (!canvas) return;
@@ -91,13 +95,19 @@ export const useSynchronizer = () => {
     if (!canvas) return;
     console.log('syncStateToCanvas called'); // TODO: remove
 
+    const rmode: { id: number; mode: string }[] = [];
+
     canvas.remove(...canvas.getObjects());
     state.forEach((anno: Label) => {
       const color = getColor(anno.category);
       const mode = calcLabelMode(anno);
       const canvasObjects = anno.toCanvasObjects(color, mode).flat(2);
       canvas.add(...canvasObjects);
+
+      rmode.push({ id: anno.id, mode });
     });
+
+    setRMode(rmode);
 
     // we are using fabric's default listeners to edit rectangle
     // need to first make it active
