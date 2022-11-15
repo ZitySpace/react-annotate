@@ -4,6 +4,10 @@
   "description": "React library for annotating computer vision datasets",
   "author": "ZitySpace",
   "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ZitySpace/react-annotate"
+  },
   "scripts": {
     "dev": "NODE_ENV=development rollup -c -w",
     "build": "NODE_ENV=production rollup -c",

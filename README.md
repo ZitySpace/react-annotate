@@ -1,6 +1,6 @@
 # react-annotate
 
-![react-annotate](./docs/screenshot.jpg)
+![react-annotate](https://raw.githubusercontent.com/ZitySpace/react-annotate/beta/docs/screenshot.jpg)
 
 Play with the [demo](https://react-annotate-demo.vercel.app/)
 
