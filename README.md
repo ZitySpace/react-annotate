@@ -1,5 +1,7 @@
 # react-annotate
 
+![react-annotate](./docs/screenshot.jpg)
+
 Play with the [demo](https://react-annotate-demo.vercel.app/)
 
 ## Install
@@ -118,7 +120,11 @@ For each label, it can be in different `RenderMode`: _hidden_, _preview_, _drawi
 
 A `ListenerGroup` is a set of event listeners that will get registered on the canvas, it dictates what interactions you can have with the canvas and labels. As an example, when adding/drawing a new `BoxLabel`, then `box:draw` listener group will be registered for the canvas, when editing a `LineLabel`, then `line:edit` listener group will be registered, when mouse is not over any label, then the canvas transists to `default` listener group. Each label type typically has `:draw` and `:edit` listener groups, for some label types that involve more complicated interactions, you may need to implement extra listener groups such as `:edit:advanced` for `PolylineLabel` and `MaskLabel`.
 
+This [demo](https://react-annotate-demo-1qva3ugji-zityspace.vercel.app/) shows the current `ListenerGroup` and each label's `RenderMode`.
+
 Such design gives great flexibility to extend to new label types. Basically with the following decided, you can create a new label type: 1. what data props/keys are needed to construct the new label type, 2. how to render the label at each `RenderMode`, 3. what's the interaction when drawing/editing this label. However, in your implementation of listener groups for a new label type, you have to be careful to take care of transitions between different listener groups.
+
+`StateStack` stores the history of all labels' states for an image, so you can redo/undo changes. Switching to a new image will reset the stack.
 
 Data props that are needed to construct each label type are straightforward:
 

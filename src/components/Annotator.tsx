@@ -7,9 +7,6 @@ import { ImageData } from '../interfaces/basic';
 import { ButtonBar } from './ButtonBar';
 import { OperationPanel } from './OperationPanel';
 
-import { useStore } from 'zustand';
-import { InspectStore, InspectStoreProps } from '../stores/InspectStore';
-
 export const Annotator = ({
   imagesList,
   initIndex = 0,
@@ -33,8 +30,6 @@ export const Annotator = ({
     timestamp?: string
   ) => boolean;
 }) => {
-  const { lgroup, rmode } = useStore(InspectStore, (s: InspectStoreProps) => s);
-
   const Container = useContainer(); // Initialize canvas, set canvas dom's style and handle the resize event
 
   // handle data import/export
@@ -59,23 +54,6 @@ export const Annotator = ({
         onRenameCategory={onRenameCategory}
       />
       <ButtonBar dataOperation={dataOperation} />
-
-      <div className='ra-absolute ra-top-32 ra-left-10 ra-w-40 ra-h-auto ra-rounded-md ra-border ra-bg-white ra-p-2 ra-shadow-sm ra-flex ra-flex-col ra-justify-start ra-items-center ra-space-y-4'>
-        <span className='ra-text-sm'>Current listener group</span>
-        <span className='ra-text-lg'>{lgroup}</span>
-        <span className='ra-text-sm'>Label render mode</span>
-        <div className='ra-flex ra-flex-col ra-space-y-1'>
-          {rmode.map((m, i) => (
-            <div
-              key={i}
-              className='ra-flex ra-justify-left ra-space-x-4 ra-text-lg'
-            >
-              <span>{m.id}</span>
-              <span>{m.mode}</span>
-            </div>
-          ))}
-        </div>
-      </div>
     </div>
   );
 };

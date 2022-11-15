@@ -9,13 +9,8 @@ import { useMaskListeners } from '../Mask/listeners';
 import { LabelType, LabeledObject } from '../Base';
 import { parseEvent } from '../utils';
 
-import { useStore } from 'zustand';
-import { InspectStore, InspectStoreProps } from '../../stores/InspectStore';
-
 export const useListeners = (syncCanvasToState: (id?: number) => void) => {
   const listenerGroup = useRef<string>('default');
-
-  const { setLGroup } = useStore(InspectStore, (s: InspectStoreProps) => s);
 
   const {
     canvas,
@@ -123,8 +118,6 @@ export const useListeners = (syncCanvasToState: (id?: number) => void) => {
     );
 
     listenerGroup.current = group;
-
-    setLGroup(group);
   };
 
   const trySwitchGroup = (e: fabric.IEvent<Event>, currGroup: string) => {
