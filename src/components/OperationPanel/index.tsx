@@ -32,12 +32,12 @@ export const OperationPanel = ({
   onRenameCategory,
 }: {
   imagesList: ImageData[];
-  onAddCategory: (category: string) => boolean;
+  onAddCategory: (category: string) => Promise<boolean> | boolean;
   onRenameCategory: (
     oldCategory: string,
     newCategory: string,
     timestamp?: string
-  ) => boolean;
+  ) => Promise<boolean> | boolean;
 }) => {
   const {
     multi,
@@ -254,8 +254,8 @@ export const OperationPanel = ({
                           type: 'warning',
                           title: 'Confirm',
                           body: 'Add a new category and assign selected objects with the new category?',
-                          yesCallback: () => {
-                            if (!onAddCategory(cateInput)) return;
+                          yesCallback: async () => {
+                            if (!(await onAddCategory(cateInput))) return;
                             updateSelectedToCategory(cateInput);
                             setCategoriesInStore(
                               placeAtLast(
@@ -310,15 +310,15 @@ export const OperationPanel = ({
                             type: 'warning',
                             title: 'Confirm',
                             body: `Delete category "${cateInput}"? Labels of "${cateInput}" will be updated to ${UNKNOWN_CATEGORY_NAME}.`,
-                            yesCallback: () => {
+                            yesCallback: async () => {
                               const now = getLocalTimeISOString();
 
                               if (
-                                !onRenameCategory(
+                                !(await onRenameCategory(
                                   cateInput,
                                   UNKNOWN_CATEGORY_NAME,
                                   now
-                                )
+                                ))
                               )
                                 return;
 
@@ -368,11 +368,15 @@ export const OperationPanel = ({
                                 ? 'Merge'
                                 : 'Rename'
                             } category "${cateInput}" to "${renameInput}"?`,
-                            yesCallback: () => {
+                            yesCallback: async () => {
                               const now = getLocalTimeISOString();
 
                               if (
-                                !onRenameCategory(cateInput, renameInput, now)
+                                !(await onRenameCategory(
+                                  cateInput,
+                                  renameInput,
+                                  now
+                                ))
                               )
                                 return;
 

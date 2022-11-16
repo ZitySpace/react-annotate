@@ -20,15 +20,15 @@ export const Annotator = ({
   imagesList: ImageData[];
   initIndex?: number;
   categories?: string[];
-  getImage?: (imageName: string) => Promise<string>;
-  onSave: (curImageData: ImageData) => boolean;
+  getImage?: (imageName: string) => Promise<string> | string;
+  onSave: (curImageData: ImageData) => Promise<boolean> | boolean;
   onError?: (message: string, context?: any) => void;
-  onAddCategory: (category: string) => boolean;
+  onAddCategory: (category: string) => Promise<boolean> | boolean;
   onRenameCategory: (
     oldCategory: string,
     newCategory: string,
     timestamp?: string
-  ) => boolean;
+  ) => Promise<boolean> | boolean;
 }) => {
   const Container = useContainer(); // Initialize canvas, set canvas dom's style and handle the resize event
 

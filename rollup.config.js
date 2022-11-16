@@ -50,8 +50,8 @@ export default [
         },
         extensions: ['.css'],
         minimize: isProduction,
-        extract: 'index.css',
-        inject: false,
+        extract: false,
+        inject: true,
       }),
     ],
     external: [

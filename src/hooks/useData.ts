@@ -31,8 +31,8 @@ export const useData = ({
   imagesList: ImageData[];
   initIndex: number;
   categories?: string[];
-  getImage?: (imageName: string) => Promise<string>;
-  onSave: (curImageData: ImageData) => boolean;
+  getImage?: (imageName: string) => Promise<string> | string;
+  onSave: (curImageData: ImageData) => Promise<boolean> | boolean;
   onError?: (message: string, context?: any) => void;
 }) => {
   // initialize images list
@@ -81,7 +81,7 @@ export const useData = ({
   theLastLoadImageName.current = imageData.name;
 
   const operation: DataOperation = {
-    save: () => {
+    save: async () => {
       if (!canSave) return;
 
       // always save raw annotations in imageCoordSystem for imageData
@@ -91,7 +91,7 @@ export const useData = ({
       };
       updateImageData(updatedData);
 
-      if (!onSave(updatedData))
+      if (!(await onSave(updatedData)))
         console.log(`failed to save annotations for ${imageData.name}`);
     },
 

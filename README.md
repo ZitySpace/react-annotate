@@ -63,18 +63,18 @@ const Example = () => {
     <Annotator
       imagesList={imagesList}
       initIndex={0}
-      onSave={(image: ImageData) => {
+      onSave={async (image: ImageData) => {
         console.log(image);
         return true;
       }}
       onError={(msg: string, context: any) => {
         console.log(msg, context);
       }}
-      onAddCategory={(category: string) => {
+      onAddCategory={async (category: string) => {
         console.log('add new category ', category);
         return true;
       }}
-      onRenameCategory={(
+      onRenameCategory={async (
         oldName: string,
         newName: string,
         timestamp?: string
@@ -96,15 +96,15 @@ Typically, the whole process is first fetch a batch of annotations with image me
   imagesList: ImageData[];
   initIndex?: number;
   categories?: string[];
-  getImage?: (imageName: string) => Promise<string>;
-  onSave: (curImageData: ImageData) => boolean;
+  getImage?: (imageName: string) => Promise<string> | string;
+  onSave: (curImageData: ImageData) => Promise<boolean> | boolean;
   onError?: (message: string, context?: any) => void;
-  onAddCategory: (category: string) => boolean;
+  onAddCategory: (category: string) => Promise<boolean> | boolean;
   onRenameCategory: (
     oldCategory: string,
     newCategory: string,
     timestamp?: string
-  ) => boolean;
+  ) => Promise<boolean> | boolean;
 }
 ```
 
