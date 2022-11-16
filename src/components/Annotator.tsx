@@ -36,6 +36,7 @@ export const Annotator = ({
   const dataOperation = useData({
     imagesList,
     initIndex,
+    categories,
     getImage,
     onSave,
     onError,

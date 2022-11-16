@@ -211,12 +211,13 @@ export const useData = ({
 
     setCategoriesInStore(
       placeAtLast(
-        categories || [
-          ...new Set(
-            imagesList
+        [
+          ...new Set([
+            ...(categories || []),
+            ...imagesList
               .map((d) => [...new Set(d.annotations.map((l) => l.category))])
-              .flat()
-          ),
+              .flat(),
+          ]),
         ],
         UNKNOWN_CATEGORY_NAME
       )
