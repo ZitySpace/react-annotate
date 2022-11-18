@@ -118,7 +118,7 @@ Major concepts are: `Label`, `RenderMode`, `ListenerGroup`, `StateStack`. Curren
 
 For each label, it can be in different `RenderMode`: _hidden_, _preview_, _drawing_, _selected_. All labels of an image are initially rendered with _preview_ mode. When adding/drawing a new label, all existed labels are in _hidden_ mode, and the label on drawing is in _drawing_ mode. Labels can be selected/filtered by clicking on the canvas objects, or clicking on the category and ids. Nonselected labels will be in _hidden_ mode, while selected labels will be in _selected_ mode, or _preview_ mode depending on how many labels are selected.
 
-A `ListenerGroup` is a set of event listeners that will get registered on the canvas, it dictates what interactions you can have with the canvas and labels. As an example, when adding/drawing a new `BoxLabel`, then `box:draw` listener group will be registered for the canvas, when editing a `LineLabel`, then `line:edit` listener group will be registered, when mouse is not over any label, then the canvas transists to `default` listener group. Each label type typically has `:draw` and `:edit` listener groups, for some label types that involve more complicated interactions, you may need to implement extra listener groups such as `:edit:advanced` for `PolylineLabel` and `MaskLabel`.
+A `ListenerGroup` is a set of event listeners that will get registered on the canvas, it dictates what interactions you can have with the canvas and labels. As an example, when adding/drawing a new `BoxLabel`, then `box:draw` listener group will be registered for the canvas, when editing a `LineLabel`, then `line:edit` listener group will be registered, when mouse is not over any label, then the canvas transists to `default` listener group. Each label type typically has `:draw` and `:edit` listener groups, for some label types that involve more complicated interactions, you may need to implement extra listener groups such as `:draw:advanced` for `PolylineLabel` and `MaskLabel`.
 
 This [demo](https://react-annotate-demo-1qva3ugji-zityspace.vercel.app/) shows the current `ListenerGroup` and each label's `RenderMode`.
 
@@ -179,6 +179,86 @@ const aMaskLabel = new MaskLabel({
 ```
 
 ## How to annotate
+
+### Selections / filters
+
+Select/filter one or multiple labels: click on the label, or a category, or ids. The selected category is persisted so when switching to other images, only labels of selected category are in preview or selected mode.
+
+<img src="docs/selection.gif" style="height: 480px">
+
+### Category ops
+
+Update category of a label:
+
+<img src="docs/update-category.gif" style="width: 540px">
+
+Create a new category for selected label:
+
+<img src="docs/new-category.gif" style="width: 540px">
+
+Delete a category:
+
+<img src="docs/delete-category.gif" style="width: 540px">
+
+Rename a category:
+
+<img src="docs/rename-category.gif" style="width: 540px">
+
+### Label ops
+
+Operations on `PointLabel`, `LineLabel`, `BoxLabel` are straightforward:
+
+<img src="docs/point-line-box-ops.gif" style="width: 540px">
+
+Operations on `PolylineLabel` and `MaskLabel` are more complicated, both of them supporting "AI mode", Currently AI mode is just using opencv's intelligentScissor to find lines, it maybe helpful for `PolylineLabel` but not so much for `MaskLabel`, we will soon integrate/enable related AI predictions into the annotation process based on label types.
+
+#### `PolylineLabel` ops
+
+- drawing: `polyline:draw` listener group
+  - right click will delete previous point
+  - switch on/off AI mode
+  - double click will stop drawing
+
+<img src="docs/polyline-ops-drawing.gif" style="width: 540px">
+
+- editing: `polyline:edit` listener group
+  - right click will delete a point
+  - right click on point A, hold and release on point B will delete segments A-to-B or {lineStart-to-A, B-to-lineEnd} depending on it is case lineStart-A-B-lineEnd or it is case lineStart-B-A-lineEnd, in later case the polyline will be break into sub-polylines as intermediate state
+  - double click on a point will switch to advanced drawing mode
+
+<img src="docs/polyline-ops-editing.gif" style="width: 540px">
+
+- advanced drawing: `polyline:draw:advanced` listener group
+  - click on the endpoint of a polyline or sub-polyline will start extending it, otherwise it will start drawing a new sub-polyline
+  - double click will stop extending, if it is double clicked on an endpoint of another sub-polyline, then two sub-polylines will be merged
+
+<img src="docs/polyline-ops-advdrawing.gif" style="width: 540px">
+
+#### `MaskLabel` ops
+
+`MaskLabel` has two properties `closed`, `hole`. A hole closed path encircled by a non-hole closed path will become a mask with hole.
+
+- drawing: `mask:draw` listener group
+  - right click will delete previous point
+  - double click will stop drawing, if it is double clicked on the starting point, then form a closed mask, otherwise form an open path
+
+<img src="docs/mask-ops-drawing.gif" style="width: 540px">
+
+- editing: `mask:edit` listener group
+  - right click will delete a point
+  - right click on point A, hold and release on point B will delete segments A-to-B or {lineStart-to-A, B-to-lineEnd}
+  - double click on a point will switch to advanced drawing mode
+
+<img src="docs/mask-ops-editing.gif" style="width: 540px">
+
+- advanced drawing: `mask:draw:advanced` listener group
+  - right click on a point will reverse hole property of the path
+  - left click on a point of a closed path, of a point that is not the endpoint of an open path, then no response
+  - left click on an endpoint of open path will start extending it
+  - click not on a point will start drawing a new path, with hole property true if right click and false if left click
+  - double click will stop extending, if it is double clicked on an endpoint of another path, then two paths will be merged
+
+<img src="docs/mask-ops-advdrawing.gif" style="width: 540px">
 
 ## Create your own label type
 
