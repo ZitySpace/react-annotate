@@ -184,21 +184,21 @@ const aMaskLabel = new MaskLabel({
 
 Select/filter one or multiple labels: click on the label, or a category, or ids. The selected category is persisted so when switching to other images, only labels of selected category are in preview or selected mode.
 
-<img src="docs/selection.gif" style="height: 480px">
+<img src="https://raw.githubusercontent.com/ZitySpace/react-annotate/beta/docs/selection.gif" style="height: 480px">
 
 ### Category ops
 
 Update category of a label:
 
-<img src="docs/update-category.gif" style="width: 540px">
+<img src="https://raw.githubusercontent.com/ZitySpace/react-annotate/beta/docs/update-category.gif" style="width: 540px">
 
 Create a new category for selected label:
 
-<img src="docs/new-category.gif" style="width: 540px">
+<img src="https://raw.githubusercontent.com/ZitySpace/react-annotate/beta/docs/new-category.gif" style="width: 540px">
 
 Delete a category:
 
-<img src="docs/delete-category.gif" style="width: 540px">
+<img src="https://raw.githubusercontent.com/ZitySpace/react-annotate/beta/docs/delete-category.gif" style="width: 540px">
 
 Rename a category:
 
@@ -208,7 +208,7 @@ Rename a category:
 
 Operations on `PointLabel`, `LineLabel`, `BoxLabel` are straightforward:
 
-<img src="docs/point-line-box-ops.gif" style="width: 540px">
+<img src="https://raw.githubusercontent.com/ZitySpace/react-annotate/beta/docs/point-line-box-ops.gif" style="width: 540px">
 
 Operations on `PolylineLabel` and `MaskLabel` are more complicated, both of them supporting "AI mode", Currently AI mode is just using opencv's intelligentScissor to find lines, it maybe helpful for `PolylineLabel` but not so much for `MaskLabel`, we will soon integrate/enable related AI predictions into the annotation process based on label types.
 
@@ -219,20 +219,20 @@ Operations on `PolylineLabel` and `MaskLabel` are more complicated, both of them
   - switch on/off AI mode
   - double click will stop drawing
 
-<img src="docs/polyline-ops-drawing.gif" style="width: 540px">
+<img src="https://raw.githubusercontent.com/ZitySpace/react-annotate/beta/docs/polyline-ops-drawing.gif" style="width: 540px">
 
 - editing: `polyline:edit` listener group
   - right click will delete a point
   - right click on point A, hold and release on point B will delete segments A-to-B or {lineStart-to-A, B-to-lineEnd} depending on it is case lineStart-A-B-lineEnd or it is case lineStart-B-A-lineEnd, in later case the polyline will be break into sub-polylines as intermediate state
   - double click on a point will switch to advanced drawing mode
 
-<img src="docs/polyline-ops-editing.gif" style="width: 540px">
+<img src="https://raw.githubusercontent.com/ZitySpace/react-annotate/beta/docs/polyline-ops-editing.gif" style="width: 540px">
 
 - advanced drawing: `polyline:draw:advanced` listener group
   - click on the endpoint of a polyline or sub-polyline will start extending it, otherwise it will start drawing a new sub-polyline
   - double click will stop extending, if it is double clicked on an endpoint of another sub-polyline, then two sub-polylines will be merged
 
-<img src="docs/polyline-ops-advdrawing.gif" style="width: 540px">
+<img src="https://raw.githubusercontent.com/ZitySpace/react-annotate/beta/docs/polyline-ops-advdrawing.gif" style="width: 540px">
 
 #### `MaskLabel` ops
 
@@ -242,14 +242,14 @@ Operations on `PolylineLabel` and `MaskLabel` are more complicated, both of them
   - right click will delete previous point
   - double click will stop drawing, if it is double clicked on the starting point, then form a closed mask, otherwise form an open path
 
-<img src="docs/mask-ops-drawing.gif" style="width: 540px">
+<img src="https://raw.githubusercontent.com/ZitySpace/react-annotate/beta/docs/mask-ops-drawing.gif" style="width: 540px">
 
 - editing: `mask:edit` listener group
   - right click will delete a point
   - right click on point A, hold and release on point B will delete segments A-to-B or {lineStart-to-A, B-to-lineEnd}
   - double click on a point will switch to advanced drawing mode
 
-<img src="docs/mask-ops-editing.gif" style="width: 540px">
+<img src="https://raw.githubusercontent.com/ZitySpace/react-annotate/beta/docs/mask-ops-editing.gif" style="width: 540px">
 
 - advanced drawing: `mask:draw:advanced` listener group
   - right click on a point will reverse hole property of the path
@@ -258,7 +258,7 @@ Operations on `PolylineLabel` and `MaskLabel` are more complicated, both of them
   - click not on a point will start drawing a new path, with hole property true if right click and false if left click
   - double click will stop extending, if it is double clicked on an endpoint of another path, then two paths will be merged
 
-<img src="docs/mask-ops-advdrawing.gif" style="width: 540px">
+<img src="https://raw.githubusercontent.com/ZitySpace/react-annotate/beta/docs/mask-ops-advdrawing.gif" style="width: 540px">
 
 ## Create your own label type
 
