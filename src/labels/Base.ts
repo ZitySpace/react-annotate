@@ -5,6 +5,7 @@ export enum LabelType {
   Box = 'box',
   Mask = 'mask',
   Polyline = 'polyline',
+  Keypoints = 'keypoints',
 }
 
 export enum CoordSystemType {

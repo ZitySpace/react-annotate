@@ -17,6 +17,7 @@ import {
   PointIcon,
   PolylineIcon,
   PolygonIcon,
+  KeypointsIcon,
   RectangleIcon,
   RedoIcon,
   ResetIcon,
@@ -98,6 +99,7 @@ export const ButtonBar = ({
   const drawBox = draw(LabelType.Box);
   const drawPolyline = draw(LabelType.Polyline);
   const drawPolygon = draw(LabelType.Mask);
+  const drawKeypoints = draw(LabelType.Keypoints);
 
   const isDrawingMe = (labelType: LabelType | null) => drawType === labelType;
   const isDrawingPoint = isDrawingMe(LabelType.Point);
@@ -105,6 +107,7 @@ export const ButtonBar = ({
   const isDrawingBox = isDrawingMe(LabelType.Box);
   const isDrawingPolyline = isDrawingMe(LabelType.Polyline);
   const isDrawingPolygon = isDrawingMe(LabelType.Mask);
+  const isDrawingKeypoints = isDrawingMe(LabelType.Keypoints);
   const isDrawing = drawType !== LabelType.None;
 
   return (
@@ -154,6 +157,14 @@ export const ButtonBar = ({
           onClick={drawPolygon}
         >
           <PolygonIcon />
+        </Button>
+
+        <Button
+          canUse={dataReady}
+          isUsing={isDrawingKeypoints}
+          onClick={drawKeypoints}
+        >
+          <KeypointsIcon />
         </Button>
 
         <Button canUse={canUndo && !isDrawing} onClick={undo}>

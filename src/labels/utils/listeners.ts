@@ -4,6 +4,7 @@ import { LineLabel } from '../Line/label';
 import { BoxLabel } from '../Box/label';
 import { MaskLabel } from '../Mask/label';
 import { PolylineLabel } from '../Polyline/label';
+import { KeypointsLabel } from '../Keypoints/label';
 
 export const getBoundedValue = (value: number, min: number, max: number) => {
   return Math.min(Math.max(min, value), max);
@@ -70,6 +71,14 @@ export const newLabelFromCanvasObject = ({
       })
     : labelType === LabelType.Polyline
     ? PolylineLabel.newFromCanvasObject({
+        grp: grp!,
+        scale,
+        offset,
+        timestamp,
+        hash,
+      })
+    : labelType === LabelType.Keypoints
+    ? KeypointsLabel.newFromCanvasObject({
         grp: grp!,
         scale,
         offset,

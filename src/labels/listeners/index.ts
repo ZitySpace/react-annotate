@@ -6,6 +6,7 @@ import { usePointListeners } from '../Point/listeners';
 import { useLineListeners } from '../Line/listeners';
 import { usePolylineListeners } from '../Polyline/listeners';
 import { useMaskListeners } from '../Mask/listeners';
+import { useKeypointsListeners } from '../Keypoints/listeners';
 import { LabelType, LabeledObject } from '../Base';
 import { parseEvent } from '../utils';
 
@@ -45,6 +46,9 @@ export const useListeners = (syncCanvasToState: (id?: number) => void) => {
 
   const { drawMaskListeners, editMaskListeners, advancedDrawMaskListeners } =
     useMaskListeners(syncCanvasToState, listenerGroup);
+
+  const { drawKeypointsListeners, editKeypointsListeners } =
+    useKeypointsListeners(syncCanvasToState);
 
   useEffect(() => {
     if (!canvas) return;
@@ -111,6 +115,12 @@ export const useListeners = (syncCanvasToState: (id?: number) => void) => {
 
     if (group === 'mask:draw:advanced')
       listeners = { ...sharedListeners, ...advancedDrawMaskListeners };
+
+    if (group === 'keypoints:edit')
+      listeners = { ...sharedListeners, ...editKeypointsListeners };
+
+    if (group === 'keypoints:draw')
+      listeners = { ...sharedListeners, ...drawKeypointsListeners };
 
     canvas.off();
     Object.entries(listeners).forEach(([event, handler]) =>

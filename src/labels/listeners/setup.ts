@@ -67,8 +67,9 @@ export const setup = () => {
     const label = newLabelFromCanvasObject({
       scale,
       offset,
-      ...(obj.labelType === LabelType.Polyline ||
-      obj.labelType === LabelType.Mask
+      ...([LabelType.Polyline, LabelType.Mask, LabelType.Keypoints].includes(
+        obj.labelType
+      )
         ? {
             grp: canvas?.getObjects().filter((o) => {
               const { id, syncToLabel } = o as LabeledObject;

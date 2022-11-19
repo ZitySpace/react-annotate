@@ -69,8 +69,11 @@ export const useSynchronizer = () => {
         return newLabelFromCanvasObject({
           scale,
           offset,
-          ...(objs[0].labelType === LabelType.Polyline ||
-          objs[0].labelType === LabelType.Mask
+          ...([
+            LabelType.Polyline,
+            LabelType.Mask,
+            LabelType.Keypoints,
+          ].includes(objs[0].labelType)
             ? {
                 grp: objs,
               }

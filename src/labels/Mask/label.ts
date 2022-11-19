@@ -1,6 +1,12 @@
 import { fabric } from 'fabric';
 import md5 from 'md5';
-import { Label, LabelType, CoordSystemType, LabelRenderMode } from '../Base';
+import {
+  Label,
+  LabelType,
+  CoordSystemType,
+  LabelRenderMode,
+  LabeledObject,
+} from '../Base';
 import {
   LINE_DEFAULT_CONFIG,
   POINT_DEFAULT_CONFIG,
@@ -73,7 +79,12 @@ export class MaskLabel extends Label {
     timestamp?: string;
     hash?: string;
   }) => {
-    const { category, id, timestamp: timestamp_, hash: hash_ } = grp[0] as any;
+    const {
+      category,
+      id,
+      timestamp: timestamp_,
+      hash: hash_,
+    } = grp[0] as LabeledObject;
     const paths = grp.map((pl) => {
       const { closed, hole } = pl as any as { closed: boolean; hole: boolean };
       return {
