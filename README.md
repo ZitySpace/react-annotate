@@ -112,72 +112,6 @@ You can either specify url for each image, or pass in a `getImage()` function, w
 
 **Import:** _react-annotate is only an annotation ui component, it does not contain the logic to persist the changes of annotations. Therefore you need to implement `onSave()`, `onAddCategory()` and `onRenameCategory()`, typically api calls to your backend, to persist the changes. Otherwise, after loading a new batch of annotations, the changes on previous batch will be lost. Switching to the prev/next image and if current image annotation has been changed, it will trigger `onSave()`; when adding a new category or renaming a category, it will trigger `onAddCategory()` and `onRenameCategory()`. The optional `onError()` handles the failure of loading an image._
 
-## Concepts
-
-Major concepts are: `Label`, `RenderMode`, `ListenerGroup`, `StateStack`. Currently this library supports 5 label types: `PointLabel`, `LineLabel`, `BoxLabel`, `PolylineLabel`, `MaskLabel`. `Label` is their base class.
-
-For each label, it can be in different `RenderMode`: _hidden_, _preview_, _drawing_, _selected_. All labels of an image are initially rendered with _preview_ mode. When adding/drawing a new label, all existed labels are in _hidden_ mode, and the label on drawing is in _drawing_ mode. Labels can be selected/filtered by clicking on the canvas objects, or clicking on the category and ids. Nonselected labels will be in _hidden_ mode, while selected labels will be in _selected_ mode, or _preview_ mode depending on how many labels are selected.
-
-A `ListenerGroup` is a set of event listeners that will get registered on the canvas, it dictates what interactions you can have with the canvas and labels. As an example, when adding/drawing a new `BoxLabel`, then `box:draw` listener group will be registered for the canvas, when editing a `LineLabel`, then `line:edit` listener group will be registered, when mouse is not over any label, then the canvas transists to `default` listener group. Each label type typically has `:draw` and `:edit` listener groups, for some label types that involve more complicated interactions, you may need to implement extra listener groups such as `:draw:advanced` for `PolylineLabel` and `MaskLabel`.
-
-This [demo](https://react-annotate-demo-1qva3ugji-zityspace.vercel.app/) shows the current `ListenerGroup` and each label's `RenderMode`.
-
-Such design gives great flexibility to extend to new label types. Basically with the following decided, you can create a new label type: 1. what data props/keys are needed to construct the new label type, 2. how to render the label at each `RenderMode`, 3. what's the interaction when drawing/editing this label. However, in your implementation of listener groups for a new label type, you have to be careful to take care of transitions between different listener groups.
-
-`StateStack` stores the history of all labels' states for an image, so you can redo/undo changes. Switching to a new image will reset the stack.
-
-Data props that are needed to construct each label type are straightforward:
-
-```typescript
-// x: number, y: number, id: number, category: string ...
-const aPointLabel = new PointLabel({
-  x,
-  y,
-  category,
-  id,
-});
-
-const aLineLabel = new LineLabel({
-  x1,
-  y1,
-  x2,
-  y2,
-  category,
-  id,
-});
-
-const aBoxLabel = new BoxLabel({
-  x,
-  y,
-  w,
-  h,
-  category,
-  id,
-});
-
-// paths: {x: number; y: number}[][]
-// Why it is 2D paths instead of 1D path?
-// We want to support advanced editing that one Polyline can be break into
-// multiple sub-polylines as intermediate state and in the end get connected
-// and merged back as a single polyline
-const aPolylineLabel = new PolylineLabel({
-  paths,
-  category,
-  id,
-});
-
-// paths: { points: {x: number; y: number}[]; closed?: boolean; hole?: boolean }[]
-// The simplest mask can be seemed as one closed path. A mask with holes can be
-// seemed as multiple paths with some of them hole = true. Like PolylineLabel, a
-// mask (or closed path) can also be break into multiple open paths as intermediate
-// state and in the end get connected and merged back as closed paths.
-const aMaskLabel = new MaskLabel({
-  paths,
-  category,
-  id,
-});
-```
-
 ## How to annotate
 
 ### Selections / filters
@@ -260,8 +194,6 @@ Operations on `PolylineLabel` and `MaskLabel` are more complicated, both of them
 
 <img src="https://raw.githubusercontent.com/ZitySpace/react-annotate/beta/docs/mask-ops-advdrawing.gif" style="width: 540px">
 
-## Create your own label type
-
 ## Limitations
 
 The design of this library tries to strike a balance between the optimization of the annotation experience for each label type, and the consistency of the implementations among all the label types. Currently this leads to certain limitations:
@@ -269,10 +201,6 @@ The design of this library tries to strike a balance between the optimization of
 - Touch screen is not supported
 - Display on small screen is not optimized
 - The library is based on [fabricjs](https://github.com/fabricjs/fabric.js), which limits the label types and certain interactions. However, we are not limited in terms of what to use underhood, as we integrate more labels, we might bring in other lower level dependancies best suited for that label type.
-
-## Why another annotation tool
-
-There are already many [awesome-data-annotation](https://github.com/taivop/awesome-data-annotation) options, why bother making another one? We think an ideal annotation tool should be portable, slim and smart. AI is moving fast, the future AI development experience will be mostly on web in a low code manner, so many of the QT based tools will become obsolete, annotation tool as a react/vue component, or an electron app seems a natural choice. Some of the current options are indeed built on the webpage, however besides pure annotation they tend to also include many data management functions. Based on your need this could be an advantage or disadvantage. If you want to control the data management part and only seek for a pure annotation option, give this tool a try. If the labels currently have don't fit your requirements, you can add a new customized label type. Lastly, some of the best annotation experiences are powered by AI models, but they are usually behind a commercialized product. Given the fact that so many open sourced AI models and cheap apis available, isn't it awesome if we could wire up these AI "magics" with our annotation experience through a simple interface. We are not there yet, but that's the motivation for us to build this tool.
 
 ## License
 
