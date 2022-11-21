@@ -4,7 +4,7 @@ import { setup } from '../listeners/setup';
 import { parseEvent, getBoundedValue } from '../utils';
 import { UNKNOWN_CATEGORY_NAME } from '../config';
 import { CoordSystemType, LabelRenderMode, LabeledObject } from '../Base';
-import { KeypointsLabel } from './label';
+import { KeypointsLabel, keypointsLabelConfig as cfg } from './label';
 
 export const useKeypointsListeners = (syncCanvasToState: () => void) => {
   const {
@@ -37,7 +37,6 @@ export const useKeypointsListeners = (syncCanvasToState: () => void) => {
         scale,
         offset,
         coordSystem: CoordSystemType.Canvas,
-        config: { structure: [] },
       }).toCanvasObjects(color, LabelRenderMode.Drawing)[0] as fabric.Circle;
     },
   };

@@ -15,7 +15,7 @@ npm install @zityspace/react-annotate
 Simple example to annotate bounding boxes:
 
 ```tsx
-import { Annotator, ImageData, BoxLabel } from '@zityspace/react-annotate';
+import { Annotator, ImageData } from '@zityspace/react-annotate';
 
 const Example = () => {
   // fake a batch (or one page) of annotations fetched from an api or a local file
@@ -54,9 +54,7 @@ const Example = () => {
 
   const imagesList: ImageData[] = imagesListRaw.map((image) => ({
     ...image,
-    annotations: image.annotations.map(
-      (box, id) => new BoxLabel({ ...box, id })
-    ),
+    annotations: image.annotations.map((box) => ({ ...box, type: 'box' })),
   }));
 
   return (
@@ -87,7 +85,7 @@ const Example = () => {
 };
 ```
 
-The classes you will use are `Annotator`, `ImageData` and different types of label `PointLabel`, `BoxLabel`, `MaskLabel` etc.
+The classes you will use are `Annotator`, `ImageData`.
 
 Typically, the whole process is first fetch a batch of annotations with image meta information and annotations on each image, then transform the annotations on each image into interested labels, and lastly feed them into the `Annotator`, there you get a nice UI for annotation. The complete props for `Annotator` are:
 
@@ -105,12 +103,72 @@ Typically, the whole process is first fetch a batch of annotations with image me
     newCategory: string,
     timestamp?: string
   ) => Promise<boolean> | boolean;
+  labelConfigs?: LabelConfigs;
 }
 ```
 
 You can either specify url for each image, or pass in a `getImage()` function, which uses the image name to request the image blob and then return `URL.createObjectURL(imageBlob)`. It is also recommended to pass in `categorie` of the whole dataset to `Annotator`. Otherwise it will be infered from `imagesList`, which is only one batch of annotations thus the infered `categories` is not complete.
 
 **Import:** _react-annotate is only an annotation ui component, it does not contain the logic to persist the changes of annotations. Therefore you need to implement `onSave()`, `onAddCategory()` and `onRenameCategory()`, typically api calls to your backend, to persist the changes. Otherwise, after loading a new batch of annotations, the changes on previous batch will be lost. Switching to the prev/next image and if current image annotation has been changed, it will trigger `onSave()`; when adding a new category or renaming a category, it will trigger `onAddCategory()` and `onRenameCategory()`. The optional `onError()` handles the failure of loading an image._
+
+Other related types/interfaces are:
+
+```typescript
+interface ImageData {
+  name: string;
+  width?: number;
+  height?: number;
+  annotations: Annotations;
+  url?: string;
+  [k: string]: unknown;
+}
+
+type Annotations = ((
+  | {
+      type: 'point';
+      x: number;
+      y: number;
+    }
+  | {
+      type: 'line';
+      x1: number;
+      y1: number;
+      x2: number;
+      y2: number;
+    }
+  | {
+      type: 'box';
+      x: number;
+      y: number;
+      w: number;
+      h: number;
+    }
+  | {
+      type: 'polyline';
+      paths: { x: number; y: number }[][];
+    }
+  | {
+      type: 'mask';
+      paths: {
+        points: { x: number; y: number }[];
+        closed?: boolean;
+        hole?: boolean;
+      }[];
+    }
+  | {
+      type: 'keypoints';
+      keypoints: { x: number; y: number; vis: boolean; sid: number }[];
+    }
+) & {
+  category: string;
+  timestamp?: string;
+  hash?: string;
+})[];
+
+interface LabelConfigs {
+  keypoints?: { skeleton: [number, number][] };
+}
+```
 
 ## How to annotate
 

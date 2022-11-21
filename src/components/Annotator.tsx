@@ -4,10 +4,9 @@ import { useData } from '../hooks/useData';
 import { useKeyboard } from '../hooks/useKeyboard';
 import { useSynchronizer } from '../hooks/useSynchronizer';
 import { ImageData, LabeledImageData, LabelConfigs } from '../interfaces/basic';
-import { LabelType, LabelConfig } from '../labels/Base';
+import { setKeypointsLabelConfig } from '../labels/Keypoints';
 import { ButtonBar } from './ButtonBar';
 import { OperationPanel } from './OperationPanel';
-import { useStore } from 'zustand';
 import { annosToLabels } from '../utils';
 
 export const Annotator = ({
@@ -38,30 +37,14 @@ export const Annotator = ({
   // transform raw Annotations in imagesList to Labels
   const imagesListRef = useRef<ImageData[]>([]);
   const labeledImagesListRef = useRef<LabeledImageData[]>([]);
-  const sharedLabelConfigsRef = useRef<{
-    [key in Exclude<LabelType, LabelType.None>]?: LabelConfig;
-  }>({});
 
   if (imagesListRef.current !== imagesList) {
-    if (
-      labelConfigs &&
-      Object.keys(labelConfigs).length > 0 &&
-      Object.keys(sharedLabelConfigsRef.current).length === 0
-    )
-      Object.entries(labelConfigs).forEach(
-        ([labelType, labelConfig]) =>
-          (sharedLabelConfigsRef.current[labelType] = new LabelConfig({
-            labelType: labelType as LabelType,
-            values: labelConfig,
-          }))
-      );
+    if (labelConfigs?.keypoints)
+      setKeypointsLabelConfig(labelConfigs?.keypoints);
 
     labeledImagesListRef.current = imagesList.map((img) => ({
       ...img,
-      annotations: annosToLabels(
-        img.annotations,
-        sharedLabelConfigsRef.current
-      ),
+      annotations: annosToLabels(img.annotations),
     }));
 
     imagesListRef.current = imagesList;

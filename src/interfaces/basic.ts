@@ -1,4 +1,5 @@
 import { Label, LabelType } from '../labels';
+import { KeypointsLabelConfig } from '../labels/Keypoints';
 
 export type Annotations = ((
   | {
@@ -42,11 +43,9 @@ export type Annotations = ((
   hash?: string;
 })[];
 
-export type LabelConfigs = {
-  [key in Exclude<LabelType, LabelType.None>]?: {
-    [key: string]: any;
-  };
-};
+export interface LabelConfigs {
+  keypoints?: KeypointsLabelConfig;
+}
 
 export interface ImageData {
   name: string;

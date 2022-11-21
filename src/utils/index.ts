@@ -1,6 +1,5 @@
 import {
   Label,
-  LabelConfig,
   LabelType,
   PointLabel,
   LineLabel,
@@ -50,12 +49,7 @@ export const placeAtLast = (
   return sort ? [...array_.sort(), item] : [...array_, item];
 };
 
-export const annosToLabels = (
-  annos: Annotations,
-  sharedLabelConfigs: {
-    [key in Exclude<LabelType, LabelType.None>]?: LabelConfig;
-  }
-) => {
+export const annosToLabels = (annos: Annotations) => {
   const labels: Label[] = [];
   let id: number = 0;
 
@@ -75,8 +69,7 @@ export const annosToLabels = (
     } else if (labelType === LabelType.Mask) {
       label = new MaskLabel({ ...anno, id });
     } else if (labelType === LabelType.Keypoints) {
-      const config = sharedLabelConfigs[LabelType.Keypoints]!;
-      label = new KeypointsLabel({ ...anno, id, config });
+      label = new KeypointsLabel({ ...anno, id });
     } else return;
 
     labels.push(label);

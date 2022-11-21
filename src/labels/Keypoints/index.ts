@@ -1,1 +1,6 @@
-export { KeypointsLabel } from './label';
+export {
+  KeypointsLabel,
+  KeypointsLabelConfig,
+  keypointsLabelConfig,
+  setKeypointsLabelConfig,
+} from './label';
