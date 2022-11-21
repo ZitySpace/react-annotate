@@ -29,6 +29,22 @@ export interface LabeledObject extends fabric.Object {
   syncToLabel: boolean;
 }
 
+export class LabelConfig {
+  readonly labelType: LabelType;
+  values: { [key: string]: any };
+
+  constructor({
+    labelType,
+    values,
+  }: {
+    labelType: LabelType;
+    values: { [key: string]: any };
+  }) {
+    this.labelType = labelType;
+    this.values = values;
+  }
+}
+
 export abstract class Label {
   readonly labelType: LabelType;
   category: string;
@@ -38,6 +54,7 @@ export abstract class Label {
   coordSystem: CoordSystemType;
   timestamp: string;
   hash: string;
+  config: LabelConfig;
 
   protected constructor({
     labelType,
@@ -48,6 +65,7 @@ export abstract class Label {
     coordSystem,
     timestamp,
     hash,
+    config,
   }: {
     labelType: LabelType;
     category: string;
@@ -57,6 +75,7 @@ export abstract class Label {
     coordSystem: CoordSystemType;
     timestamp: string;
     hash: string;
+    config?: LabelConfig | { [key: string]: any };
   }) {
     this.labelType = labelType;
     this.category = category;
@@ -66,6 +85,9 @@ export abstract class Label {
     this.coordSystem = coordSystem;
     this.timestamp = timestamp;
     this.hash = hash;
+
+    if (config instanceof LabelConfig) this.config = config;
+    else this.config = new LabelConfig({ labelType, values: config || {} });
   }
 
   protected _toCanvasCoordSystem(

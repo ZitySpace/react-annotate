@@ -1,59 +1,52 @@
-import { Label } from '../labels';
+import { Label, LabelType } from '../labels';
 
-export interface Annotations {
-  point?: {
-    x: number;
-    y: number;
-    category: string;
-    timestamp?: string;
-    hash?: string;
-  }[];
+export type Annotations = ((
+  | {
+      type: LabelType.Point;
+      x: number;
+      y: number;
+    }
+  | {
+      type: LabelType.Line;
+      x1: number;
+      y1: number;
+      x2: number;
+      y2: number;
+    }
+  | {
+      type: LabelType.Box;
+      x: number;
+      y: number;
+      w: number;
+      h: number;
+    }
+  | {
+      type: LabelType.Polyline;
+      paths: { x: number; y: number }[][];
+    }
+  | {
+      type: LabelType.Mask;
+      paths: {
+        points: { x: number; y: number }[];
+        closed?: boolean;
+        hole?: boolean;
+      }[];
+    }
+  | {
+      type: LabelType.Keypoints;
+      keypoints: { x: number; y: number; vis: boolean; sid: number }[];
+    }
+) & {
+  category: string;
+  timestamp?: string;
+  hash?: string;
+})[];
 
-  line?: {
-    x1: number;
-    y1: number;
-    x2: number;
-    y2: number;
-    category: string;
-    timestamp?: string;
-    hash?: string;
-  }[];
-
-  box?: {
-    x: number;
-    y: number;
-    w: number;
-    h: number;
-    category: string;
-    timestamp?: string;
-    hash?: string;
-  }[];
-
-  polyline?: {
-    paths: { x: number; y: number }[][];
-    category: string;
-    timestamp?: string;
-    hash?: string;
-  }[];
-
-  mask?: {
-    paths: {
-      points: { x: number; y: number }[];
-      closed?: boolean;
-      hole?: boolean;
-    }[];
-    category: string;
-    timestamp?: string;
-    hash?: string;
-  }[];
-
-  keypoints?: {
-    keypoints: { x: number; y: number; vis: boolean; sid: number }[];
-    category: string;
-    timestamp?: string;
-    hash?: string;
-  }[];
-}
+export type LabelConfigs = {
+  [key in Exclude<LabelType, LabelType.None>]?: {
+    [key: string]: any;
+  };
+};
 
 export interface ImageData {
   name: string;

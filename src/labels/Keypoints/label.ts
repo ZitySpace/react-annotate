@@ -7,6 +7,7 @@ import {
   CoordSystemType,
   LabelRenderMode,
   LabeledObject,
+  LabelConfig,
 } from '../Base';
 import {
   LINE_DEFAULT_CONFIG,
@@ -16,8 +17,8 @@ import {
 } from '../config';
 import { getLocalTimeISOString } from '../utils/label';
 
-interface Keypoints {
-  points: { x: number; y: number; vis: boolean; sid: number }[];
+type Keypoints = { x: number; y: number; vis: boolean; sid: number }[];
+interface KeypointsLabelConfig {
   structure: [number, number][];
 }
 
@@ -41,6 +42,7 @@ export class KeypointsLabel extends Label {
     coordSystem = CoordSystemType.Image,
     timestamp,
     hash,
+    config,
   }: {
     keypoints: Keypoints;
     category: string;
@@ -50,6 +52,7 @@ export class KeypointsLabel extends Label {
     coordSystem?: CoordSystemType;
     timestamp?: string;
     hash?: string;
+    config: LabelConfig | KeypointsLabelConfig;
   }) {
     const labelType = LabelType.Keypoints;
     const now = getLocalTimeISOString();
@@ -63,6 +66,7 @@ export class KeypointsLabel extends Label {
       coordSystem,
       timestamp: timestamp || now,
       hash: hash || md5(now),
+      config: config || [],
     });
 
     this.keypoints = keypoints;
@@ -88,9 +92,9 @@ export class KeypointsLabel extends Label {
       hash: hash_,
     } = grp[0] as LabeledObject;
 
-    const { structure } = grp[0] as any as { structure: [number, number][] };
+    const { labelConfig } = grp[0] as any as { labelConfig: LabelConfig };
 
-    const points = grp.map((circle) => {
+    const keypoints = grp.map((circle) => {
       const { vis, sid } = circle as any as { vis: boolean; sid: number };
       const { left, top } = circle as fabric.Circle;
 
@@ -98,7 +102,7 @@ export class KeypointsLabel extends Label {
     });
 
     return new KeypointsLabel({
-      keypoints: { points, structure },
+      keypoints,
       category,
       id,
       scale,
@@ -106,15 +110,13 @@ export class KeypointsLabel extends Label {
       coordSystem: CoordSystemType.Canvas,
       timestamp: timestamp || timestamp_,
       hash: hash || hash_,
+      config: labelConfig,
     });
   };
 
   clone = () =>
     new KeypointsLabel({
-      keypoints: {
-        points: this.keypoints.points.map((pt) => ({ ...pt })),
-        structure: [...this.keypoints.structure],
-      },
+      keypoints: this.keypoints.map((pt) => ({ ...pt })),
       category: this.category,
       id: this.id,
       scale: this.scale,
@@ -122,6 +124,7 @@ export class KeypointsLabel extends Label {
       coordSystem: this.coordSystem,
       timestamp: this.timestamp,
       hash: this.hash,
+      config: this.config,
     });
 
   toCanvasCoordSystem = (
@@ -134,14 +137,11 @@ export class KeypointsLabel extends Label {
     },
     inplace = true
   ) => {
-    const keypoints = {
-      points: this.keypoints.points.map((pt) => ({
-        ...super._toCanvasCoordSystem(scale, offset, { x: pt.x, y: pt.y }),
-        vis: pt.vis,
-        sid: pt.sid,
-      })),
-      structure: [...this.keypoints.structure],
-    } as Keypoints;
+    const keypoints = this.keypoints.map((pt) => ({
+      ...super._toCanvasCoordSystem(scale, offset, { x: pt.x, y: pt.y }),
+      vis: pt.vis,
+      sid: pt.sid,
+    }));
 
     const t = inplace ? this : this.clone();
 
@@ -153,14 +153,11 @@ export class KeypointsLabel extends Label {
   };
 
   toImageCoordSystem = (inplace = true) => {
-    const keypoints = {
-      points: this.keypoints.points.map((pt) => ({
-        ...super._toImageCoordSystem({ x: pt.x, y: pt.y }),
-        vis: pt.vis,
-        sid: pt.sid,
-      })),
-      structure: [...this.keypoints.structure],
-    } as Keypoints;
+    const keypoints = this.keypoints.map((pt) => ({
+      ...super._toImageCoordSystem({ x: pt.x, y: pt.y }),
+      vis: pt.vis,
+      sid: pt.sid,
+    }));
 
     const t = inplace ? this : this.clone();
 
@@ -172,11 +169,12 @@ export class KeypointsLabel extends Label {
   };
 
   toCanvasObjects = (color: string, mode: string) => {
-    const { keypoints, labelType, category, id, timestamp, hash } = this;
+    const { keypoints, labelType, category, id, timestamp, hash, config } =
+      this;
 
-    const { points, structure } = keypoints;
+    const structure = (config.values as KeypointsLabelConfig).structure;
 
-    const circles = points.map((pt) => {
+    const circles = keypoints.map((pt) => {
       const circle = new fabric.Circle({
         ...POINT_DEFAULT_CONFIG,
         left: pt.x,
@@ -194,7 +192,7 @@ export class KeypointsLabel extends Label {
         syncToLabel: true,
         vis: pt.vis,
         sid: pt.sid,
-        structure,
+        labelConfig: config,
       });
 
       return circle;
@@ -208,15 +206,15 @@ export class KeypointsLabel extends Label {
       return circles;
     }
 
-    const points_ = points
+    const keypoints_ = keypoints
       .filter((pt) => pt.sid !== -1)
       .reduce((acc, pt) => ({ ...acc, [pt.sid]: pt }), {}) as {
       [key: number]: { x: number; y: number; vis: boolean; sid: number };
     };
 
     const lines = structure.reduce((acc: fabric.Line[], lk) => {
-      const p0 = points_[lk[0]];
-      const p1 = points_[lk[1]];
+      const p0 = keypoints_[lk[0]];
+      const p1 = keypoints_[lk[1]];
       if (!p0 || !p1) return acc;
 
       const line = new fabric.Line([p0.x, p0.y, p1.x, p1.y], {
@@ -242,8 +240,8 @@ export class KeypointsLabel extends Label {
     if (mode === LabelRenderMode.Drawing || mode === LabelRenderMode.Selected)
       return [lines, circles];
 
-    const xs = points.filter((pt) => pt.sid !== -1).map((pt) => pt.x);
-    const ys = points.filter((pt) => pt.sid !== -1).map((pt) => pt.y);
+    const xs = keypoints.filter((pt) => pt.sid !== -1).map((pt) => pt.x);
+    const ys = keypoints.filter((pt) => pt.sid !== -1).map((pt) => pt.y);
     const idxOfTopPoint = ys.indexOf(Math.min(...ys));
 
     const textbox = new fabric.Textbox(this.id.toString(), {

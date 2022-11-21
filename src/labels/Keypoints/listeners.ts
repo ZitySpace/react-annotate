@@ -31,15 +31,13 @@ export const useKeypointsListeners = (syncCanvasToState: () => void) => {
       const color = getColor(category);
 
       const circle = new KeypointsLabel({
-        keypoints: {
-          points: [{ x, y, vis: true, sid: -1 }],
-          structure: [],
-        },
+        keypoints: [{ x, y, vis: true, sid: -1 }],
         category,
         id,
         scale,
         offset,
         coordSystem: CoordSystemType.Canvas,
+        config: { structure: [] },
       }).toCanvasObjects(color, LabelRenderMode.Drawing)[0] as fabric.Circle;
     },
   };

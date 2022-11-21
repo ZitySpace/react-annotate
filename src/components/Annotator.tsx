@@ -3,14 +3,11 @@ import { useContainer } from '../hooks/useContainer';
 import { useData } from '../hooks/useData';
 import { useKeyboard } from '../hooks/useKeyboard';
 import { useSynchronizer } from '../hooks/useSynchronizer';
-import { ImageData, LabeledImageData } from '../interfaces/basic';
+import { ImageData, LabeledImageData, LabelConfigs } from '../interfaces/basic';
+import { LabelType, LabelConfig } from '../labels/Base';
 import { ButtonBar } from './ButtonBar';
 import { OperationPanel } from './OperationPanel';
 import { useStore } from 'zustand';
-import {
-  KeypointsLabelConfigStore,
-  KeypointsLabelConfigStoreProps,
-} from '../labels/Keypoints/ConfigStore';
 import { annosToLabels } from '../utils';
 
 export const Annotator = ({
@@ -36,27 +33,37 @@ export const Annotator = ({
     newCategory: string,
     timestamp?: string
   ) => Promise<boolean> | boolean;
-  labelConfigs?: { [key: string]: any };
+  labelConfigs?: LabelConfigs;
 }) => {
   // transform raw Annotations in imagesList to Labels
-  const { setConfig: setKeypointsLabelConfig } = useStore(
-    KeypointsLabelConfigStore,
-    (s: KeypointsLabelConfigStoreProps) => s
-  );
-
   const imagesListRef = useRef<ImageData[]>([]);
   const labeledImagesListRef = useRef<LabeledImageData[]>([]);
+  const sharedLabelConfigsRef = useRef<{
+    [key in Exclude<LabelType, LabelType.None>]?: LabelConfig;
+  }>({});
 
   if (imagesListRef.current !== imagesList) {
-    if (labelConfigs)
-      Object.entries(labelConfigs).forEach(([labelType, config]) => {
-        if (labelType === 'keypoints') setKeypointsLabelConfig(config);
-      });
+    if (
+      labelConfigs &&
+      Object.keys(labelConfigs).length > 0 &&
+      Object.keys(sharedLabelConfigsRef.current).length === 0
+    )
+      Object.entries(labelConfigs).forEach(
+        ([labelType, labelConfig]) =>
+          (sharedLabelConfigsRef.current[labelType] = new LabelConfig({
+            labelType: labelType as LabelType,
+            values: labelConfig,
+          }))
+      );
 
     labeledImagesListRef.current = imagesList.map((img) => ({
       ...img,
-      annotations: annosToLabels(img.annotations),
+      annotations: annosToLabels(
+        img.annotations,
+        sharedLabelConfigsRef.current
+      ),
     }));
+
     imagesListRef.current = imagesList;
   }
 

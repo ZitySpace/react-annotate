@@ -1,5 +1,7 @@
 import {
   Label,
+  LabelConfig,
+  LabelType,
   PointLabel,
   LineLabel,
   BoxLabel,
@@ -48,74 +50,69 @@ export const placeAtLast = (
   return sort ? [...array_.sort(), item] : [...array_, item];
 };
 
-export const annosToLabels = (annos: Annotations) => {
+export const annosToLabels = (
+  annos: Annotations,
+  sharedLabelConfigs: {
+    [key in Exclude<LabelType, LabelType.None>]?: LabelConfig;
+  }
+) => {
   const labels: Label[] = [];
   let id: number = 0;
 
-  for (const labelType in annos) {
-    const labelCls =
-      labelType === 'point'
-        ? PointLabel
-        : labelType === 'line'
-        ? LineLabel
-        : labelType === 'box'
-        ? BoxLabel
-        : labelType === 'polyline'
-        ? PolylineLabel
-        : labelType === 'mask'
-        ? MaskLabel
-        : labelType === 'keypoints'
-        ? KeypointsLabel
-        : null;
+  annos.forEach((anno) => {
+    const { type: labelType } = anno;
 
-    if (!labelCls) continue;
+    let label: Label;
 
-    annos[labelType].forEach((anno: any) => {
-      labels.push(new labelCls({ ...anno, id }));
-      id++;
-    });
-  }
+    if (labelType === LabelType.Point) {
+      label = new PointLabel({ ...anno, id });
+    } else if (labelType === LabelType.Line) {
+      label = new LineLabel({ ...anno, id });
+    } else if (labelType === LabelType.Box) {
+      label = new BoxLabel({ ...anno, id });
+    } else if (labelType === LabelType.Polyline) {
+      label = new PolylineLabel({ ...anno, id });
+    } else if (labelType === LabelType.Mask) {
+      label = new MaskLabel({ ...anno, id });
+    } else if (labelType === LabelType.Keypoints) {
+      const config = sharedLabelConfigs[LabelType.Keypoints]!;
+      label = new KeypointsLabel({ ...anno, id, config });
+    } else return;
+
+    labels.push(label);
+    id++;
+  });
 
   return labels;
 };
 
 export const labelsToAnnos = (labels: Label[]) => {
-  const annos: Annotations = {};
+  const annos: Annotations = [];
 
   labels.forEach((label) => {
-    let labelType: string | null = null;
     let anno: any;
 
     if (label instanceof PointLabel) {
-      labelType = 'point';
       const { x, y, category, id, timestamp, hash } = label;
-      anno = { x, y, category, id, timestamp, hash };
+      anno = { x, y, category, id, timestamp, hash, type: 'point' };
     } else if (label instanceof LineLabel) {
-      labelType = 'line';
       const { x1, y1, x2, y2, category, id, timestamp, hash } = label;
-      anno = { x1, y1, x2, y2, category, id, timestamp, hash };
+      anno = { x1, y1, x2, y2, category, id, timestamp, hash, type: 'line' };
     } else if (label instanceof BoxLabel) {
-      labelType = 'box';
       const { x, y, w, h, category, id, timestamp, hash } = label;
-      anno = { x, y, w, h, category, id, timestamp, hash };
+      anno = { x, y, w, h, category, id, timestamp, hash, type: 'box' };
     } else if (label instanceof PolylineLabel) {
-      labelType = 'polyline';
       const { paths, category, id, timestamp, hash } = label;
-      anno = { paths, category, id, timestamp, hash };
+      anno = { paths, category, id, timestamp, hash, type: 'polyline' };
     } else if (label instanceof MaskLabel) {
-      labelType = 'mask';
       const { paths, category, id, timestamp, hash } = label;
-      anno = { paths, category, id, timestamp, hash };
+      anno = { paths, category, id, timestamp, hash, type: 'mask' };
     } else if (label instanceof KeypointsLabel) {
-      labelType = 'keypoints';
       const { keypoints, category, id, timestamp, hash } = label;
-      anno = { keypoints, category, id, timestamp, hash };
+      anno = { keypoints, category, id, timestamp, hash, type: 'keypoints' };
     }
 
-    if (!labelType) return;
-
-    if (!annos.hasOwnProperty(labelType)) annos[labelType] = [anno];
-    else annos[labelType].push(anno);
+    if (anno) annos.push(anno);
   });
 
   return annos;
