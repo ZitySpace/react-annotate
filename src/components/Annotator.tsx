@@ -1,11 +1,17 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useContainer } from '../hooks/useContainer';
 import { useData } from '../hooks/useData';
 import { useKeyboard } from '../hooks/useKeyboard';
 import { useSynchronizer } from '../hooks/useSynchronizer';
-import { ImageData } from '../interfaces/basic';
+import { ImageData, LabeledImageData } from '../interfaces/basic';
 import { ButtonBar } from './ButtonBar';
 import { OperationPanel } from './OperationPanel';
+import { useStore } from 'zustand';
+import {
+  KeypointsLabelConfigStore,
+  KeypointsLabelConfigStoreProps,
+} from '../labels/Keypoints/ConfigStore';
+import { annosToLabels } from '../utils';
 
 export const Annotator = ({
   imagesList,
@@ -16,6 +22,7 @@ export const Annotator = ({
   onError,
   onAddCategory,
   onRenameCategory,
+  labelConfigs,
 }: {
   imagesList: ImageData[];
   initIndex?: number;
@@ -29,12 +36,36 @@ export const Annotator = ({
     newCategory: string,
     timestamp?: string
   ) => Promise<boolean> | boolean;
+  labelConfigs?: { [key: string]: any };
 }) => {
-  const Container = useContainer(); // Initialize canvas, set canvas dom's style and handle the resize event
+  // transform raw Annotations in imagesList to Labels
+  const { setConfig: setKeypointsLabelConfig } = useStore(
+    KeypointsLabelConfigStore,
+    (s: KeypointsLabelConfigStoreProps) => s
+  );
+
+  const imagesListRef = useRef<ImageData[]>([]);
+  const labeledImagesListRef = useRef<LabeledImageData[]>([]);
+
+  if (imagesListRef.current !== imagesList) {
+    if (labelConfigs)
+      Object.entries(labelConfigs).forEach(([labelType, config]) => {
+        if (labelType === 'keypoints') setKeypointsLabelConfig(config);
+      });
+
+    labeledImagesListRef.current = imagesList.map((img) => ({
+      ...img,
+      annotations: annosToLabels(img.annotations),
+    }));
+    imagesListRef.current = imagesList;
+  }
+
+  // initialize canvas, set canvas dom's style and handle the resize event
+  const Container = useContainer();
 
   // handle data import/export
   const dataOperation = useData({
-    imagesList,
+    imagesList: labeledImagesListRef.current,
     initIndex,
     categories,
     getImage,
@@ -42,15 +73,17 @@ export const Annotator = ({
     onError,
   });
 
-  // useKeyboard(dataOperation); // listeners for keyboard shortcuts.
+  // listeners for keyboard shortcuts
+  // useKeyboard(dataOperation);
 
-  useSynchronizer(); // Core entrance
+  // syncing logic
+  useSynchronizer();
 
   return (
     <div className='ra-w-full ra-h-full ra-flex ra-flex-col ra-justify-center ra-items-center ra-relative'>
       {Container}
       <OperationPanel
-        imagesList={imagesList}
+        imagesList={labeledImagesListRef.current}
         onAddCategory={onAddCategory}
         onRenameCategory={onRenameCategory}
       />

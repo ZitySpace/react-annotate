@@ -22,7 +22,7 @@ import {
 } from '../../stores/SelectionStore';
 import { ColorStore, ColorStoreProps } from '../../stores/ColorStore';
 import { Modal, ModalProps } from '../Common/modal';
-import { ImageData } from '../../interfaces/basic';
+import { LabeledImageData } from '../../interfaces/basic';
 import { getLocalTimeISOString } from '../../labels/utils';
 import { UNKNOWN_CATEGORY_NAME } from '../../labels/config';
 
@@ -31,7 +31,7 @@ export const OperationPanel = ({
   onAddCategory,
   onRenameCategory,
 }: {
-  imagesList: ImageData[];
+  imagesList: LabeledImageData[];
   onAddCategory: (category: string) => Promise<boolean> | boolean;
   onRenameCategory: (
     oldCategory: string,

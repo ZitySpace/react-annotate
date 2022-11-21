@@ -1,9 +1,9 @@
 import { fabric } from 'fabric';
 import { useEffect, useRef } from 'react';
 import { useStore } from 'zustand';
-import { DataState, ImageData } from '../interfaces/basic';
+import { DataState, ImageData, LabeledImageData } from '../interfaces/basic';
 import { UNKNOWN_CATEGORY_NAME } from '../labels/config';
-import { placeAtLast } from '../utils';
+import { placeAtLast, labelsToAnnos } from '../utils';
 import {
   CanvasMetaStore,
   CanvasMetaStoreProps,
@@ -28,7 +28,7 @@ export const useData = ({
   onSave,
   onError,
 }: {
-  imagesList: ImageData[];
+  imagesList: LabeledImageData[];
   initIndex: number;
   categories?: string[];
   getImage?: (imageName: string) => Promise<string> | string;
@@ -43,7 +43,7 @@ export const useData = ({
     state: imageState,
     currentIndex: imageIndex,
     updateState: updateImageData,
-  } = useStateList<ImageData>(imagesList, initIndex);
+  } = useStateList<LabeledImageData>(imagesList, initIndex);
 
   const { initIntelligentScissor } = useStore(CVStore, (s: CVStoreProps) => s);
 
@@ -91,7 +91,11 @@ export const useData = ({
       };
       updateImageData(updatedData);
 
-      if (!(await onSave(updatedData)))
+      const updatedDataRaw = {
+        ...updatedData,
+        annotations: labelsToAnnos(updatedData.annotations),
+      };
+      if (!(await onSave(updatedDataRaw)))
         console.log(`failed to save annotations for ${imageData.name}`);
     },
 
