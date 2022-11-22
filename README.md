@@ -145,10 +145,20 @@ type Annotations = ((
     }
   | {
       type: 'polyline';
+
+      // Why it is 2D paths instead of 1D path?
+      // We want to support advanced editing that one Polyline can be break into
+      // multiple sub-polylines as intermediate state and in the end get connected
+      // and merged back as a single polyline
       paths: { x: number; y: number }[][];
     }
   | {
       type: 'mask';
+
+      // The simplest mask can be seemed as one closed path. A mask with holes can be
+      // seemed as multiple paths with some of them hole = true. Like PolylineLabel, a
+      // mask (or closed path) can also be break into multiple open paths as intermediate
+      // state and in the end get connected and merged back as closed paths.
       paths: {
         points: { x: number; y: number }[];
         closed?: boolean;
@@ -169,6 +179,20 @@ interface LabelConfigs {
   keypoints?: { skeleton: [number, number][] };
 }
 ```
+
+## Concepts
+
+Major concepts are: `Label`, `RenderMode`, `ListenerGroup`, `StateStack`. Currently this library supports 5 label types: `PointLabel`, `LineLabel`, `BoxLabel`, `PolylineLabel`, `MaskLabel`.
+
+For each label, it can be in different `RenderMode`: _hidden_, _preview_, _drawing_, _selected_. All labels of an image are initially rendered with _preview_ mode. When adding/drawing a new label, all existed labels are in _hidden_ mode, and the label on drawing is in _drawing_ mode. Labels can be selected/filtered by clicking on the canvas objects, or clicking on the category and ids. Nonselected labels will be in _hidden_ mode, while selected labels will be in _selected_ mode, or _preview_ mode depending on how many labels are selected.
+
+A `ListenerGroup` is a set of event listeners that will get registered on the canvas, it dictates what interactions you can have with the canvas and labels. As an example, when adding/drawing a new `BoxLabel`, then `box:draw` listener group will be registered for the canvas, when editing a `LineLabel`, then `line:edit` listener group will be registered, when mouse is not over any label, then the canvas transists to `default` listener group. Each label type typically has `:draw` and `:edit` listener groups, for some label types that involve more complicated interactions, you may need to implement extra listener groups such as `:draw:advanced` for `PolylineLabel` and `MaskLabel`.
+
+This [demo](https://react-annotate-demo-1qva3ugji-zityspace.vercel.app/) shows the current `ListenerGroup` and each label's `RenderMode`.
+
+Such design gives great flexibility to extend to new label types. Basically with the following decided, you can create a new label type: 1. what data props/keys are needed to construct the new label type, 2. how to render the label at each `RenderMode`, 3. what's the interaction when drawing/editing this label. However, in your implementation of listener groups for a new label type, you have to be careful to take care of transitions between different listener groups.
+
+`StateStack` stores the history of all labels' states for an image, so you can redo/undo changes. Switching to a new image will reset the stack.
 
 ## How to annotate
 
@@ -194,7 +218,7 @@ Delete a category:
 
 Rename a category:
 
-<img src="docs/rename-category.gif" style="width: 540px">
+<img src="https://raw.githubusercontent.com/ZitySpace/react-annotate/beta/docs/rename-category.gif" style="width: 540px">
 
 ### Label ops
 

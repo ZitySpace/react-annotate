@@ -13,10 +13,17 @@ import {
   POINT_DEFAULT_CONFIG,
   TEXTBOX_DEFAULT_CONFIG,
   TRANSPARENT,
+  RADIUS,
 } from '../config';
 import { getLocalTimeISOString } from '../utils/label';
 
-type Keypoints = { x: number; y: number; vis: boolean; sid: number }[];
+type Keypoints = {
+  x: number;
+  y: number;
+  vis: boolean;
+  sid: number;
+  pid?: number;
+}[];
 
 export interface KeypointsLabelConfig {
   structure: [number, number][];
@@ -30,13 +37,17 @@ export const setKeypointsLabelConfig = (cfg: KeypointsLabelConfig) => {
   keypointsLabelConfig = cfg;
 };
 
-const nColor = 20;
-const colorMap = randomColor({
+export const nColor = 20;
+export const colorMap = randomColor({
   seed: 19,
   format: 'rgba',
   alpha: 1,
   count: nColor,
 });
+
+export let selectedPoints: { id: number; pids: number[] } | null = null;
+export const selectPoints = (s: { id: number; pids: number[] } | null) =>
+  (selectedPoints = s);
 
 export class KeypointsLabel extends Label {
   keypoints: Keypoints;
@@ -74,6 +85,11 @@ export class KeypointsLabel extends Label {
       hash: hash || md5(now),
     });
 
+    let pidNxt: number = Math.max(...keypoints.map((pt) => pt.pid ?? 0)) + 1;
+    keypoints.forEach((pt) => {
+      if (pt.pid === undefined) pt.pid = pidNxt++;
+    });
+
     this.keypoints = keypoints;
   }
 
@@ -98,10 +114,14 @@ export class KeypointsLabel extends Label {
     } = grp[0] as LabeledObject;
 
     const keypoints = grp.map((circle) => {
-      const { vis, sid } = circle as any as { vis: boolean; sid: number };
+      const { vis, sid, pid } = circle as any as {
+        vis: boolean;
+        sid: number;
+        pid: number;
+      };
       const { left, top } = circle as fabric.Circle;
 
-      return { x: left!, y: top!, vis, sid };
+      return { x: left!, y: top!, vis, sid, pid };
     });
 
     return new KeypointsLabel({
@@ -142,6 +162,7 @@ export class KeypointsLabel extends Label {
       ...super._toCanvasCoordSystem(scale, offset, { x: pt.x, y: pt.y }),
       vis: pt.vis,
       sid: pt.sid,
+      pid: pt.pid,
     }));
 
     const t = inplace ? this : this.clone();
@@ -158,6 +179,7 @@ export class KeypointsLabel extends Label {
       ...super._toImageCoordSystem({ x: pt.x, y: pt.y }),
       vis: pt.vis,
       sid: pt.sid,
+      pid: pt.pid,
     }));
 
     const t = inplace ? this : this.clone();
@@ -173,14 +195,29 @@ export class KeypointsLabel extends Label {
     const { keypoints, labelType, category, id, timestamp, hash } = this;
 
     const { structure } = keypointsLabelConfig;
+    let pidNxt: number = Math.max(...keypoints.map((k) => k.pid!)) + 1;
 
-    const circles = keypoints.map((pt) => {
+    const circles = keypoints.map((pt, i) => {
+      let hl: boolean;
+
+      if (selectedPoints && selectedPoints.id === id) {
+        if (mode === LabelRenderMode.Selected)
+          hl = selectedPoints.pids.includes(pt.pid!);
+        else {
+          selectedPoints = null;
+          hl = pt.sid === -1;
+        }
+      } else {
+        hl = pt.sid === -1;
+      }
+
       const circle = new fabric.Circle({
         ...POINT_DEFAULT_CONFIG,
         left: pt.x,
         top: pt.y,
-        fill: colorMap[pt.sid % nColor],
+        fill: colorMap[(pt.sid === -1 ? id : pt.sid) % nColor],
         stroke: pt.vis ? TRANSPARENT : 'rgba(0, 0, 0, 0.75)',
+        radius: hl ? 1.5 * RADIUS : RADIUS,
       });
 
       circle.setOptions({
@@ -192,6 +229,7 @@ export class KeypointsLabel extends Label {
         syncToLabel: true,
         vis: pt.vis,
         sid: pt.sid,
+        pid: pt.pid ?? pidNxt++,
       });
 
       return circle;
@@ -205,15 +243,25 @@ export class KeypointsLabel extends Label {
       return circles;
     }
 
-    const keypoints_ = keypoints
-      .filter((pt) => pt.sid !== -1)
-      .reduce((acc, pt) => ({ ...acc, [pt.sid]: pt }), {}) as {
+    const keypoints_ = keypoints.filter((pt) => pt.sid !== -1);
+    const keypointsMap = keypoints_.reduce(
+      (map, pt) => ({ ...map, [pt.sid]: pt }),
+      {}
+    ) as {
       [key: number]: { x: number; y: number; vis: boolean; sid: number };
     };
 
+    const circlesMap = circles.reduce((map, c) => {
+      const { sid } = c as any as { sid: number };
+      if (sid === -1) return map;
+      return { ...map, [sid]: c };
+    }, {}) as {
+      [key: number]: fabric.Circle;
+    };
+
     const lines = structure.reduce((acc: fabric.Line[], lk) => {
-      const p0 = keypoints_[lk[0]];
-      const p1 = keypoints_[lk[1]];
+      const p0 = keypointsMap[lk[0]];
+      const p1 = keypointsMap[lk[1]];
       if (!p0 || !p1) return acc;
 
       const line = new fabric.Line([p0.x, p0.y, p1.x, p1.y], {
@@ -233,14 +281,24 @@ export class KeypointsLabel extends Label {
         syncToLabel: false,
       });
 
+      // build connections between related circles and lines
+      const c0 = circlesMap[lk[0]];
+      const c1 = circlesMap[lk[1]];
+      c0.setOptions({
+        linesStarting: [...((c0 as any).linesStarting || []), line],
+      });
+      c1.setOptions({
+        linesEnding: [...((c1 as any).linesEnding || []), line],
+      });
+
       return [...acc, line];
     }, []);
 
     if (mode === LabelRenderMode.Drawing || mode === LabelRenderMode.Selected)
       return [lines, circles];
 
-    const xs = keypoints.filter((pt) => pt.sid !== -1).map((pt) => pt.x);
-    const ys = keypoints.filter((pt) => pt.sid !== -1).map((pt) => pt.y);
+    const xs = (keypoints_.length ? keypoints_ : keypoints).map((pt) => pt.x);
+    const ys = (keypoints_.length ? keypoints_ : keypoints).map((pt) => pt.y);
     const idxOfTopPoint = ys.indexOf(Math.min(...ys));
 
     const textbox = new fabric.Textbox(this.id.toString(), {
