@@ -45,10 +45,6 @@ export const colorMap = randomColor({
   count: nColor,
 });
 
-export let selectedPoints: { id: number; pids: number[] } | null = null;
-export const selectPoints = (s: { id: number; pids: number[] } | null) =>
-  (selectedPoints = s);
-
 export class KeypointsLabel extends Label {
   keypoints: Keypoints;
 
@@ -198,26 +194,13 @@ export class KeypointsLabel extends Label {
     let pidNxt: number = Math.max(...keypoints.map((k) => k.pid!)) + 1;
 
     const circles = keypoints.map((pt, i) => {
-      let hl: boolean;
-
-      if (selectedPoints && selectedPoints.id === id) {
-        if (mode === LabelRenderMode.Selected)
-          hl = selectedPoints.pids.includes(pt.pid!);
-        else {
-          selectedPoints = null;
-          hl = pt.sid === -1;
-        }
-      } else {
-        hl = pt.sid === -1;
-      }
-
       const circle = new fabric.Circle({
         ...POINT_DEFAULT_CONFIG,
         left: pt.x,
         top: pt.y,
         fill: colorMap[(pt.sid === -1 ? id : pt.sid) % nColor],
         stroke: pt.vis ? TRANSPARENT : 'rgba(0, 0, 0, 0.75)',
-        radius: hl ? 1.5 * RADIUS : RADIUS,
+        radius: pt.sid === -1 ? 1.5 * RADIUS : RADIUS,
       });
 
       circle.setOptions({

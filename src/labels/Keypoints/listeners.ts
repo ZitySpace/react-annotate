@@ -9,17 +9,10 @@ import {
   TRANSPARENT,
   RADIUS,
 } from '../config';
-import {
-  CoordSystemType,
-  LabelRenderMode,
-  LabeledObject,
-  LabelType,
-} from '../Base';
+import { CoordSystemType, LabelRenderMode, LabeledObject } from '../Base';
 import {
   nColor,
   colorMap,
-  selectedPoints,
-  selectPoints,
   KeypointsLabel,
   keypointsLabelConfig as cfg,
 } from './label';
@@ -45,28 +38,6 @@ export const useKeypointsListeners = (
 
   const isDragging = useRef<boolean>(false);
   const isDeleting = useRef<boolean>(false);
-
-  const hlCircles = (cs: fabric.Circle[]) => {
-    if (selectedLabels.length !== 1) return;
-
-    const { id } = selectedLabels[0];
-    const pids = cs.map((c) => (c as any as { pid: number }).pid);
-
-    selectPoints(pids.length ? { id, pids } : null);
-
-    const circles = canvas
-      ?.getObjects()
-      .filter(
-        (obj) => (obj as LabeledObject).id === id && obj.type === 'circle'
-      ) as fabric.Circle[];
-
-    circles.forEach((c) =>
-      c.set({
-        radius:
-          (pids.includes((c as any as { pid: number }).pid) ? 1.5 : 1) * RADIUS,
-      })
-    );
-  };
 
   if (!canvas) return {};
 
@@ -178,7 +149,6 @@ export const useKeypointsListeners = (
 
       const { id } = target as LabeledObject;
       if (button === 1) {
-        hlCircles([target as fabric.Circle]);
         isDragging.current = true;
       }
 
@@ -186,8 +156,6 @@ export const useKeypointsListeners = (
         // prevent deleting before selected
         isDeleting.current =
           selectedLabels.length === 1 && selectedLabels[0].id === id;
-
-        if (isDeleting.current) hlCircles([]);
       }
     },
 
