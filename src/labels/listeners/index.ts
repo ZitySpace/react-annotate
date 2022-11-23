@@ -50,8 +50,15 @@ export const useListeners = (
   const { drawMaskListeners, editMaskListeners, advancedDrawMaskListeners } =
     useMaskListeners(syncCanvasToState, listenerGroup);
 
-  const { drawKeypointsListeners, editKeypointsListeners } =
-    useKeypointsListeners(syncCanvasToState, syncStateToCanvas);
+  const {
+    drawKeypointsListeners,
+    editKeypointsListeners,
+    advancedDrawKeypointsListeners,
+  } = useKeypointsListeners(
+    syncCanvasToState,
+    syncStateToCanvas,
+    listenerGroup
+  );
 
   useEffect(() => {
     if (!canvas) return;
@@ -124,6 +131,9 @@ export const useListeners = (
 
     if (group === 'keypoints:draw')
       listeners = { ...sharedListeners, ...drawKeypointsListeners };
+
+    if (group === 'keypoints:draw:advanced')
+      listeners = { ...sharedListeners, ...advancedDrawKeypointsListeners };
 
     canvas.off();
     Object.entries(listeners).forEach(([event, handler]) =>

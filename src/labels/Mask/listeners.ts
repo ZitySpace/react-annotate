@@ -539,6 +539,13 @@ export const useMaskListeners = (
     },
 
     'mouse:dblclick': (e: fabric.IEvent<Event>) => {
+      if (!isDrawing.current) {
+        setDrawType();
+        isScissorMapUpdated.current = false;
+        isDrawing.current = false;
+        return;
+      }
+
       const { id, polyline } = canvas.getObjects().at(-1)! as any as {
         id: number;
         polyline: fabric.Polyline;

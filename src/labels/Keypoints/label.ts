@@ -206,10 +206,7 @@ export class KeypointsLabel extends Label {
         fill: colorMap[(pt.sid === -1 ? id : pt.sid) % nColor],
         stroke: pt.vis ? TRANSPARENT : 'rgba(0, 0, 0, 0.75)',
         radius:
-          (selected && pidsSelected.includes(pt.pid!)) ||
-          (!selected && pt.sid === -1)
-            ? 1.5 * RADIUS
-            : RADIUS,
+          selected && pidsSelected.includes(pt.pid!) ? 1.5 * RADIUS : RADIUS,
       });
 
       circle.setOptions({

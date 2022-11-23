@@ -1,6 +1,6 @@
 import { fabric } from 'fabric';
 import { useStore } from 'zustand';
-import { useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 
 import { setup } from '../listeners/setup';
 import { parseEvent, getBoundedValue } from '../utils';
@@ -21,12 +21,14 @@ import { KeypointsStore, KeypointsStoreProps } from './store';
 
 export const useKeypointsListeners = (
   syncCanvasToState: (id?: number) => void,
-  syncStateToCanvas: (id?: number) => void
+  syncStateToCanvas: (id?: number) => void,
+  listenerGroup: React.MutableRefObject<string>
 ) => {
   const {
     canvas,
     canvasInitSize,
     curState,
+    setStateOpsLock,
     scale,
     offset,
     setDrawType,
@@ -36,12 +38,14 @@ export const useKeypointsListeners = (
     isDrawing,
     trySwitchGroupRef,
     refreshListenersRef,
+    setListenersRef,
     inImageOI,
     selectCanvasObject,
   } = setup();
 
   const isDragging = useRef<boolean>(false);
   const isDeleting = useRef<boolean>(false);
+  const isAdvDrawing = useRef<boolean>(false);
 
   const { pids: selectedPids, setPids: selectPids } = useStore(
     KeypointsStore,
@@ -50,10 +54,18 @@ export const useKeypointsListeners = (
 
   useEffect(() => {
     selectPids();
+
+    if (listenerGroup.current === 'keypoints:draw:advanced') {
+      setListenersRef.current('default');
+      setStateOpsLock(false);
+    }
   }, [selectedLabels]);
 
   useEffect(() => {
-    if (selectedLabels.length === 1) {
+    if (
+      selectedLabels.length === 1 &&
+      listenerGroup.current === 'keypoints:edit'
+    ) {
       syncStateToCanvas(selectedLabels[0].id);
       refreshListenersRef.current();
     }
@@ -131,7 +143,6 @@ export const useKeypointsListeners = (
           top: y,
           fill: color,
           stroke: vis ? TRANSPARENT : 'rgba(0, 0, 0, 0.75)',
-          radius: 1.5 * RADIUS,
         });
 
         circle.setOptions({
@@ -152,13 +163,19 @@ export const useKeypointsListeners = (
     },
 
     'mouse:dblclick': (e: fabric.IEvent<Event>) => {
+      if (!isDrawing.current) {
+        setDrawType();
+        isDrawing.current = false;
+        return;
+      }
+
       const lastCircle = canvas
         .getObjects()
         .filter((obj) => obj.type === 'circle' && (obj as any).last)[0];
 
       const { id } = lastCircle as LabeledObject;
-
       syncCanvasToState(id);
+
       setDrawType();
       selectCanvasObject(lastCircle as LabeledObject);
     },
@@ -238,14 +255,152 @@ export const useKeypointsListeners = (
         linesEnding.forEach((line) => line.set({ x2: x_, y2: y_ }));
     },
 
+    'mouse:dblclick': (e: fabric.IEvent<Event>) => {
+      const { target } = e;
+
+      if (!target || target.type !== 'circle') return;
+
+      isAdvDrawing.current = false;
+
+      const { id } = target as LabeledObject;
+
+      setListenersRef.current('keypoints:draw:advanced');
+      setStateOpsLock(true);
+
+      selectPids();
+      canvas.discardActiveObject();
+      canvas
+        .getObjects()
+        .filter((o) => (o as LabeledObject).id === id)
+        .forEach((o) => {
+          if (o.type === 'circle')
+            (o as fabric.Circle).set({
+              opacity: 0.3,
+              selectable: false,
+              radius: RADIUS,
+            });
+          if (o.type === 'line') o.set({ opacity: 0.3 });
+        });
+
+      canvas.requestRenderAll();
+    },
+
     'object:modified': (e: fabric.IEvent<Event>) => {
       const { id } = e.target as LabeledObject;
       syncCanvasToState(id);
     },
   };
 
+  const advancedDrawKeypointsListeners = {
+    'mouse:down': (e: fabric.IEvent<Event>) => {
+      const { evt, target, button } = parseEvent(
+        e as fabric.IEvent<MouseEvent>
+      );
+
+      const { x, y } = canvas.getPointer(evt);
+
+      if (!inImageOI(x, y)) return;
+
+      const lastCircle = canvas
+        .getObjects()
+        .filter((obj) => obj.type === 'circle' && (obj as any).last)[0];
+
+      if (target && target === lastCircle) return;
+
+      if (!isAdvDrawing.current) {
+        const circle_ = canvas
+          .getObjects()
+          .find((o) => o.type === 'circle' && o.visible);
+        const { id, category } = circle_ as LabeledObject;
+        const color = colorMap[id % nColor];
+        const vis = button === 1;
+
+        const [_, circles] = new KeypointsLabel({
+          keypoints: [{ x, y, vis, sid: -1, pid: 1 }],
+          category,
+          id,
+          scale,
+          offset,
+          coordSystem: CoordSystemType.Canvas,
+        }).toCanvasObjects(color, LabelRenderMode.Drawing) as [
+          fabric.Line[],
+          fabric.Circle[]
+        ];
+
+        const circle = circles[0];
+        circle.set({
+          selectable: false,
+          hoverCursor: 'default',
+        });
+        circle.setOptions({
+          last: true,
+        });
+
+        canvas.add(circle);
+      } else {
+        const { labelType, category, id } = lastCircle as LabeledObject;
+        const vis = button === 1;
+
+        const circles = canvas
+          ?.getObjects()
+          .filter(
+            (obj) => (obj as LabeledObject).id === id && obj.type === 'circle'
+          ) as fabric.Circle[];
+
+        const pidNxt: number =
+          Math.max(...circles.map((c) => (c as any).pid!)) + 1;
+
+        const color = colorMap[id % nColor];
+
+        lastCircle.setOptions({
+          last: false,
+        });
+
+        const circle = new fabric.Circle({
+          ...POINT_DEFAULT_CONFIG,
+          left: x,
+          top: y,
+          fill: color,
+          stroke: vis ? TRANSPARENT : 'rgba(0, 0, 0, 0.75)',
+        });
+
+        circle.setOptions({
+          labelType,
+          category,
+          id,
+          syncToLabel: true,
+          vis,
+          sid: -1,
+          pid: pidNxt,
+          last: true,
+          selectable: false,
+          hoverCursor: 'default',
+        });
+
+        canvas.add(circle);
+      }
+
+      isAdvDrawing.current = true;
+    },
+
+    'mouse:dblclick': (e: fabric.IEvent<Event>) => {
+      const circle = canvas
+        .getObjects()
+        .find((o) => o.type === 'circle' && o.visible);
+
+      const { id } = circle as LabeledObject;
+
+      if (isAdvDrawing.current) syncCanvasToState(id);
+      setListenersRef.current('default');
+      setStateOpsLock(false);
+      selectCanvasObject(circle as LabeledObject);
+      isAdvDrawing.current = false;
+    },
+  };
+
   return {
     drawKeypointsListeners,
     editKeypointsListeners,
+    advancedDrawKeypointsListeners,
   };
 };
