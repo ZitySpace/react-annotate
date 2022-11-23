@@ -1,5 +1,6 @@
-import { useRef } from 'react';
 import { fabric } from 'fabric';
+import { useStore } from 'zustand';
+import { useEffect, useRef } from 'react';
 
 import { setup } from '../listeners/setup';
 import { parseEvent, getBoundedValue } from '../utils';
@@ -16,9 +17,11 @@ import {
   KeypointsLabel,
   keypointsLabelConfig as cfg,
 } from './label';
+import { KeypointsStore, KeypointsStoreProps } from './store';
 
 export const useKeypointsListeners = (
-  syncCanvasToState: (id?: number) => void
+  syncCanvasToState: (id?: number) => void,
+  syncStateToCanvas: (id?: number) => void
 ) => {
   const {
     canvas,
@@ -32,12 +35,29 @@ export const useKeypointsListeners = (
     getColor,
     isDrawing,
     trySwitchGroupRef,
+    refreshListenersRef,
     inImageOI,
     selectCanvasObject,
   } = setup();
 
   const isDragging = useRef<boolean>(false);
   const isDeleting = useRef<boolean>(false);
+
+  const { pids: selectedPids, setPids: selectPids } = useStore(
+    KeypointsStore,
+    (s: KeypointsStoreProps) => s
+  );
+
+  useEffect(() => {
+    selectPids();
+  }, [selectedLabels]);
+
+  useEffect(() => {
+    if (selectedLabels.length === 1) {
+      syncStateToCanvas(selectedLabels[0].id);
+      refreshListenersRef.current();
+    }
+  }, [selectedPids]);
 
   if (!canvas) return {};
 
@@ -49,7 +69,7 @@ export const useKeypointsListeners = (
 
       const { x, y } = canvas.getPointer(evt);
 
-      if (button !== 1 || !inImageOI(x, y)) return;
+      if (!inImageOI(x, y)) return;
 
       const lastCircle = canvas
         .getObjects()
@@ -61,9 +81,10 @@ export const useKeypointsListeners = (
         const category = selectedCategory || UNKNOWN_CATEGORY_NAME;
         const id = Math.max(-1, ...curState.map(({ id }) => id)) + 1;
         const color = colorMap[id % nColor];
+        const vis = button === 1;
 
         const [_, circles] = new KeypointsLabel({
-          keypoints: [{ x, y, vis: true, sid: -1, pid: 1 }],
+          keypoints: [{ x, y, vis, sid: -1, pid: 1 }],
           category,
           id,
           scale,
@@ -87,6 +108,7 @@ export const useKeypointsListeners = (
         isDrawing.current = true;
       } else {
         const { labelType, category, id } = lastCircle as LabeledObject;
+        const vis = button === 1;
 
         const circles = canvas
           ?.getObjects()
@@ -108,7 +130,7 @@ export const useKeypointsListeners = (
           left: x,
           top: y,
           fill: color,
-          stroke: TRANSPARENT,
+          stroke: vis ? TRANSPARENT : 'rgba(0, 0, 0, 0.75)',
           radius: 1.5 * RADIUS,
         });
 
@@ -117,7 +139,7 @@ export const useKeypointsListeners = (
           category,
           id,
           syncToLabel: true,
-          vis: true,
+          vis,
           sid: -1,
           pid: pidNxt,
           last: true,
@@ -166,9 +188,16 @@ export const useKeypointsListeners = (
 
       const { id } = target as LabeledObject;
 
+      if (button === 1 && isDragging.current) {
+        const { pid } = target as any as { pid: number };
+
+        if (!selectedPids.includes(pid)) selectPids([pid]);
+      }
+
       if (button === 3 && isDeleting.current) {
         canvas.remove(target);
         syncCanvasToState(id);
+        selectPids();
       }
 
       isDragging.current = false;

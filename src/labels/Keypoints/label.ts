@@ -187,20 +187,29 @@ export class KeypointsLabel extends Label {
     return t;
   };
 
-  toCanvasObjects = (color: string, mode: string) => {
+  toCanvasObjects = (
+    color: string,
+    mode: string,
+    pidsSelected: number[] = []
+  ) => {
     const { keypoints, labelType, category, id, timestamp, hash } = this;
+    const selected = mode === LabelRenderMode.Selected;
 
     const { structure } = keypointsLabelConfig;
     let pidNxt: number = Math.max(...keypoints.map((k) => k.pid!)) + 1;
 
-    const circles = keypoints.map((pt, i) => {
+    const circles = keypoints.map((pt) => {
       const circle = new fabric.Circle({
         ...POINT_DEFAULT_CONFIG,
         left: pt.x,
         top: pt.y,
         fill: colorMap[(pt.sid === -1 ? id : pt.sid) % nColor],
         stroke: pt.vis ? TRANSPARENT : 'rgba(0, 0, 0, 0.75)',
-        radius: pt.sid === -1 ? 1.5 * RADIUS : RADIUS,
+        radius:
+          (selected && pidsSelected.includes(pt.pid!)) ||
+          (!selected && pt.sid === -1)
+            ? 1.5 * RADIUS
+            : RADIUS,
       });
 
       circle.setOptions({

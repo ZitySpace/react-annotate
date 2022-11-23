@@ -102,7 +102,8 @@ export abstract class Label {
 
   abstract toCanvasObjects(
     color: string,
-    mode: string
+    mode: string,
+    ...dynamicArgs: any[]
   ): (fabric.Object | fabric.Object[] | fabric.Object[][])[];
 
   abstract clone(): Label;

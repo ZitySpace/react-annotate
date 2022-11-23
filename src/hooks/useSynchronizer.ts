@@ -20,6 +20,7 @@ import {
   newLabelFromCanvasObject,
 } from '../labels/utils';
 import { useListeners } from '../labels/listeners';
+import { useLabelStores } from '../labels/stores';
 
 export const useSynchronizer = () => {
   const { canvas } = useStore(CanvasMetaStore, (s: CanvasMetaStoreProps) => s);
@@ -49,7 +50,7 @@ export const useSynchronizer = () => {
 
   const syncCanvasToState = (id?: number) => {
     if (!canvas) return;
-    console.log('syncCanvasToState called'); // TODO: remove
+    console.log('syncCanvasToState called');
 
     // group objects by id
     const groupedObjects: { [key: number]: LabeledObject[] } = canvas
@@ -90,15 +91,33 @@ export const useSynchronizer = () => {
     pushState(newState);
   };
 
-  const syncStateToCanvas = (state: CanvasState) => {
-    if (!canvas) return;
-    console.log('syncStateToCanvas called'); // TODO: remove
+  const labelStores = useLabelStores();
 
-    canvas.remove(...canvas.getObjects());
+  const syncStateToCanvas = (state: CanvasState, id?: number) => {
+    if (!canvas) return;
+    console.log('syncStateToCanvas called');
+
+    const objs = canvas.getObjects();
+    let objsToRemove: fabric.Object[] = [];
+    if (id === undefined) objsToRemove = objs;
+    else {
+      const objsToRemove_ = objs.filter((o) => (o as LabeledObject).id === id);
+      objsToRemove = objsToRemove_.length ? objsToRemove_ : objs;
+    }
+
+    canvas.remove(...objsToRemove);
     state.forEach((anno: Label) => {
+      if (id !== undefined && anno.id !== id) return;
+
       const color = getColor(anno.category);
       const mode = calcLabelMode(anno);
-      const canvasObjects = anno.toCanvasObjects(color, mode).flat(2);
+
+      const store = labelStores[anno.labelType];
+      const dynamicArgs = store ? store['dynamicArgs'] ?? [] : [];
+
+      const canvasObjects = anno
+        .toCanvasObjects(color, mode, ...dynamicArgs)
+        .flat(2);
       canvas.add(...canvasObjects);
     });
 
@@ -115,7 +134,10 @@ export const useSynchronizer = () => {
       canvas.setActiveObject(activeObjects[0]);
   };
 
-  const { resetListeners } = useListeners(syncCanvasToState);
+  const { resetListeners } = useListeners(syncCanvasToState, (id?: number) => {
+    if (!dataReady) return;
+    syncStateToCanvas(curState, id);
+  });
 
   useEffect(() => {
     if (!canvas) return;
@@ -131,7 +153,7 @@ export const useSynchronizer = () => {
 
   useEffect(() => {
     if (!dataReady) return;
-    syncStateToCanvas(curState); // sync state
+    syncStateToCanvas(curState);
   }, [
     dataReady,
     JSON.stringify(curState),

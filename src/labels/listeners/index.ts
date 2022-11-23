@@ -10,7 +10,10 @@ import { useKeypointsListeners } from '../Keypoints/listeners';
 import { LabelType, LabeledObject } from '../Base';
 import { parseEvent } from '../utils';
 
-export const useListeners = (syncCanvasToState: (id?: number) => void) => {
+export const useListeners = (
+  syncCanvasToState: (id?: number) => void,
+  syncStateToCanvas: (id?: number) => void
+) => {
   const listenerGroup = useRef<string>('default');
 
   const {
@@ -48,7 +51,7 @@ export const useListeners = (syncCanvasToState: (id?: number) => void) => {
     useMaskListeners(syncCanvasToState, listenerGroup);
 
   const { drawKeypointsListeners, editKeypointsListeners } =
-    useKeypointsListeners(syncCanvasToState);
+    useKeypointsListeners(syncCanvasToState, syncStateToCanvas);
 
   useEffect(() => {
     if (!canvas) return;
