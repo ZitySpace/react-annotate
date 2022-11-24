@@ -303,82 +303,51 @@ export const useKeypointsListeners = (
 
       const lastCircle = canvas
         .getObjects()
-        .filter((obj) => obj.type === 'circle' && (obj as any).last)[0];
+        .find((obj) => obj.type === 'circle' && (obj as any).last);
 
       if (target && target === lastCircle) return;
 
-      if (!isAdvDrawing.current) {
-        const circle_ = canvas
-          .getObjects()
-          .find((o) => o.type === 'circle' && o.visible);
-        const { id, category } = circle_ as LabeledObject;
-        const color = colorMap[id % nColor];
-        const vis = button === 1;
+      const circles = canvas
+        .getObjects()
+        .filter(
+          (obj) => obj.type === 'circle' && obj.visible
+        ) as fabric.Circle[];
 
-        const [_, circles] = new KeypointsLabel({
-          keypoints: [{ x, y, vis, sid: -1, pid: 1 }],
-          category,
-          id,
-          scale,
-          offset,
-          coordSystem: CoordSystemType.Canvas,
-        }).toCanvasObjects(color, LabelRenderMode.Drawing) as [
-          fabric.Line[],
-          fabric.Circle[]
-        ];
+      const pidNxt: number =
+        Math.max(...circles.map((c) => (c as any).pid!)) + 1;
 
-        const circle = circles[0];
-        circle.set({
-          selectable: false,
-          hoverCursor: 'default',
-        });
-        circle.setOptions({
-          last: true,
-        });
+      const { labelType, category, id } =
+        circles[0] as fabric.Object as LabeledObject;
+      const vis = button === 1;
+      const color = colorMap[id % nColor];
 
-        canvas.add(circle);
-      } else {
-        const { labelType, category, id } = lastCircle as LabeledObject;
-        const vis = button === 1;
-
-        const circles = canvas
-          ?.getObjects()
-          .filter(
-            (obj) => (obj as LabeledObject).id === id && obj.type === 'circle'
-          ) as fabric.Circle[];
-
-        const pidNxt: number =
-          Math.max(...circles.map((c) => (c as any).pid!)) + 1;
-
-        const color = colorMap[id % nColor];
-
+      lastCircle &&
         lastCircle.setOptions({
           last: false,
         });
 
-        const circle = new fabric.Circle({
-          ...POINT_DEFAULT_CONFIG,
-          left: x,
-          top: y,
-          fill: color,
-          stroke: vis ? TRANSPARENT : 'rgba(0, 0, 0, 0.75)',
-        });
+      const circle = new fabric.Circle({
+        ...POINT_DEFAULT_CONFIG,
+        left: x,
+        top: y,
+        fill: color,
+        stroke: vis ? TRANSPARENT : 'rgba(0, 0, 0, 0.75)',
+      });
 
-        circle.setOptions({
-          labelType,
-          category,
-          id,
-          syncToLabel: true,
-          vis,
-          sid: -1,
-          pid: pidNxt,
-          last: true,
-          selectable: false,
-          hoverCursor: 'default',
-        });
+      circle.setOptions({
+        labelType,
+        category,
+        id,
+        syncToLabel: true,
+        vis,
+        sid: -1,
+        pid: pidNxt,
+        last: true,
+        selectable: false,
+        hoverCursor: 'default',
+      });
 
-        canvas.add(circle);
-      }
+      canvas.add(circle);
 
       isAdvDrawing.current = true;
     },
