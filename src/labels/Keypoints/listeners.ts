@@ -11,12 +11,7 @@ import {
   RADIUS,
 } from '../config';
 import { CoordSystemType, LabelRenderMode, LabeledObject } from '../Base';
-import {
-  nColor,
-  colorMap,
-  KeypointsLabel,
-  keypointsLabelConfig as cfg,
-} from './label';
+import { nColor, colorMap, KeypointsLabel } from './label';
 import { KeypointsStore, KeypointsStoreProps } from './store';
 
 export const useKeypointsListeners = (
@@ -34,7 +29,6 @@ export const useKeypointsListeners = (
     setDrawType,
     selectedCategory,
     selectedLabels,
-    getColor,
     isDrawing,
     trySwitchGroupRef,
     refreshListenersRef,
@@ -215,6 +209,11 @@ export const useKeypointsListeners = (
         canvas.remove(target);
         syncCanvasToState(id);
         selectPids();
+
+        const circle = canvas
+          .getObjects()
+          .find((o) => (o as LabeledObject).id === id && o.type === 'circle');
+        if (circle) selectCanvasObject(circle as LabeledObject);
       }
 
       isDragging.current = false;

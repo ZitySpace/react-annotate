@@ -1,8 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { useContainer } from '../hooks/useContainer';
 import { useData } from '../hooks/useData';
-import { useKeyboard } from '../hooks/useKeyboard';
-import { useSynchronizer } from '../hooks/useSynchronizer';
+import { useLabels } from '../hooks/useLabels';
 import { ImageData, LabeledImageData, LabelConfigs } from '../interfaces/basic';
 import { setKeypointsLabelConfig } from '../labels/Keypoints';
 import { ButtonBar } from './ButtonBar';
@@ -63,11 +62,8 @@ export const Annotator = ({
     onError,
   });
 
-  // listeners for keyboard shortcuts
-  // useKeyboard(dataOperation);
-
   // syncing logic
-  useSynchronizer();
+  const LabelComponents = useLabels();
 
   return (
     <div className='ra-w-full ra-h-full ra-flex ra-flex-col ra-justify-center ra-items-center ra-relative'>
@@ -77,6 +73,7 @@ export const Annotator = ({
         onAddCategory={onAddCategory}
         onRenameCategory={onRenameCategory}
       />
+      {LabelComponents}
       <ButtonBar dataOperation={dataOperation} />
     </div>
   );

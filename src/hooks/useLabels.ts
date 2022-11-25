@@ -21,8 +21,9 @@ import {
 } from '../labels/utils';
 import { useListeners } from '../labels/listeners';
 import { useLabelStores } from '../labels/stores';
+import { useLabelComponents } from '../labels/components';
 
-export const useSynchronizer = () => {
+export const useLabels = () => {
   const { canvas } = useStore(CanvasMetaStore, (s: CanvasMetaStoreProps) => s);
   const { setReady: setCVReady } = useStore(CVStore, (s: CVStoreProps) => s);
 
@@ -139,6 +140,8 @@ export const useSynchronizer = () => {
     syncStateToCanvas(curState, id);
   });
 
+  const LabelComponents = useLabelComponents();
+
   useEffect(() => {
     if (!canvas) return;
 
@@ -172,4 +175,6 @@ export const useSynchronizer = () => {
       document.body.appendChild(script);
     }
   }, [window['cv']]);
+
+  return LabelComponents;
 };
