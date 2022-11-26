@@ -226,6 +226,7 @@ export class MaskLabel extends Label {
       });
 
       // merge holes: connect top endpoints between mask and each hole
+      let topPtOfPosPath: { x: number; y: number };
       const groupedPosPaths = posGrps.map(
         (grp) =>
           ({
@@ -236,6 +237,8 @@ export class MaskLabel extends Label {
                 const ys = pts.map((p) => p.y);
                 const idxOfTopPoint = ys.indexOf(Math.min(...ys));
                 const topPt = pts[idxOfTopPoint];
+
+                if (i === 0) topPtOfPosPath = topPt;
 
                 const pts_ = [
                   ...pts.slice(idxOfTopPoint),
@@ -261,6 +264,8 @@ export class MaskLabel extends Label {
 
                   j++;
                 }
+
+                if (i > 0) pts_.push(topPtOfPosPath);
 
                 return pts_;
               })
