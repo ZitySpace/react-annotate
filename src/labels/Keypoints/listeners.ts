@@ -42,10 +42,11 @@ export const useKeypointsListeners = (
   const isDeleting = useRef<boolean>(false);
   const isAdvDrawing = useRef<boolean>(false);
 
-  const { pids: selectedPids, setPids: selectPids } = useStore(
-    KeypointsStore,
-    (s: KeypointsStoreProps) => s
-  );
+  const {
+    pids: selectedPids,
+    setPids: selectPids,
+    multi: multiPids,
+  } = useStore(KeypointsStore, (s: KeypointsStoreProps) => s);
 
   // hack here, instead of using selectedLabels for effect deps,
   // ignore selectPids() for case when vis & sid props of a
@@ -208,7 +209,14 @@ export const useKeypointsListeners = (
       if (button === 1 && isDragging.current) {
         const { pid } = target as any as { pid: number };
 
-        if (!selectedPids.includes(pid)) selectPids([pid]);
+        if (!multiPids && (!selectedPids.includes(pid) || selectedPids.length))
+          selectPids([pid]);
+        if (multiPids)
+          selectPids(
+            selectedPids.includes(pid)
+              ? selectedPids.filter((p) => p !== pid)
+              : [...selectedPids, pid]
+          );
       }
 
       if (button === 3 && isDeleting.current) {

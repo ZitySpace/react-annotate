@@ -482,5 +482,23 @@ export const AIIcon = (props: React.ComponentProps<'svg'>) => (
   </svg>
 );
 
+export const FoldIcon = (props: React.ComponentProps<'svg'>) => (
+  <svg
+    xmlns='http://www.w3.org/2000/svg'
+    className='ra-h-5 ra-2-5'
+    viewBox='0 0 24 24'
+    strokeWidth='2'
+    stroke='currentColor'
+    fill='none'
+    {...props}
+  >
+    <path
+      strokeLinecap='round'
+      strokeLinejoin='round'
+      d='M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5'
+    />
+  </svg>
+);
+
 export const checkImg =
   'data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAABgAAAAYBAMAAAASWSDLAAAAAXNSR0IB2cksfwAAAAlwSFlzAAALEwAACxMBAJqcGAAAACRQTFRFAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAplgCRwAAAAx0Uk5TABbMw9P/yhXS1xgZuie7XQAAAEJJREFUeJxjYAADRmUGBBAJQ7DZW2chOBWRCwhIGAkwMLo6QkVTHRlEQgTgSrYjdDC6usAlgPaFOsLZDIxKCIlBDAD0FgwW5ZrsFgAAAABJRU5ErkJggg==';

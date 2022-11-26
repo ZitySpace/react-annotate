@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useState } from 'react';
 import { useStore } from 'zustand';
 import { KeypointsStore, KeypointsStoreProps } from './store';
 import {
@@ -9,16 +9,36 @@ import {
 } from './label';
 import { LabelType } from '../Base';
 import { getLocalTimeISOString } from '../utils';
-import { setup } from '../listeners/setup';
+import { CanvasStore, CanvasStoreProps } from '../../stores/CanvasStore';
+import {
+  SelectionStore,
+  SelectionStoreProps,
+} from '../../stores/SelectionStore';
+import { ListenerStore, ListenerStoreProps } from '../../stores/ListenerStore';
+import { MultipleSelectIcon, FoldIcon } from '../../components/Icons';
 
 const OperationPanel = () => {
-  const { curState, pushState, selectedLabels, selectLabels, listenerGroup } =
-    setup();
+  const [curState, pushState] = useStore(CanvasStore, (s: CanvasStoreProps) => [
+    s.curState(),
+    s.pushState,
+  ]);
 
-  const { pids: selectedPids, setPids: selectPids } = useStore(
-    KeypointsStore,
-    (s: KeypointsStoreProps) => s
+  const { labels: selectedLabels, selectLabels } = useStore(
+    SelectionStore,
+    (s: SelectionStoreProps) => s
   );
+
+  const { listenerGroup } = useStore(
+    ListenerStore,
+    (s: ListenerStoreProps) => s
+  );
+
+  const {
+    pids: selectedPids,
+    setPids: selectPids,
+    multi: multiPids,
+    toggleMulti: toggleMultiPids,
+  } = useStore(KeypointsStore, (s: KeypointsStoreProps) => s);
 
   const { structure } = cfg;
   const sids = [...new Set<number>(structure.flat())].sort((a, b) => a - b);
@@ -39,25 +59,57 @@ const OperationPanel = () => {
     });
   }
 
+  const [fold, setFold] = useState<boolean>(false);
+
+  const advDrawing = listenerGroup.current === 'keypoints:draw:advanced';
+
   return (
     <div
       className={`${
         hasKeypointsLabel ? 'ra-visible' : ''
-      } ra-bg-gray-100 ra-bg-opacity-0 ra-absolute ra-bottom-2 ra-left-2 ra-max-h-full ra-flex ra-flex-col ra-text-xs ra-select-none`}
+      } ra-bg-gray-100 ra-bg-opacity-0 ra-absolute ra-top-20 ra-left-2 ra-max-h-full ra-flex ra-flex-col ra-text-xs ra-select-none`}
     >
       <div
         id='KeypointsStructure'
-        className='ra-bg-indigo-400 ra-p-2 ra-w-full ra-rounded-t-md hover:ra-cursor-grab ra-text-left ra-font-semibold'
+        className='ra-bg-indigo-400 ra-p-2 ra-w-[240px] ra-rounded-t-md ra-flex ra-justify-between hover:ra-cursor-grab '
       >
-        Keypoints
+        <span className='ra-w-full ra-text-left ra-font-semibold'>
+          Keypoints
+        </span>
+        <div className='ra-flex ra-justify-center ra-space-x-2'>
+          <span
+            className={`ra-text-indigo-200 hover:ra-cursor-pointer ${
+              multiPids ? 'ra-text-indigo-600' : ''
+            }`}
+            onClick={toggleMultiPids}
+          >
+            <MultipleSelectIcon />
+          </span>
+          <span
+            className={`ra-text-indigo-200 hover:ra-cursor-pointer ${
+              fold ? 'ra-text-indigo-600' : ''
+            }`}
+            onClick={() => setFold(!fold)}
+          >
+            <FoldIcon />
+          </span>
+        </div>
       </div>
 
       <div
         className={`${
           disabled
             ? 'ra-bg-indigo-200 ra-pointer-events-none ra-text-gray-400'
+            : advDrawing
+            ? 'ra-bg-indigo-300 ra-pointer-events-none'
             : 'ra-bg-indigo-300'
-        } ra-px-2 ra-pt-2 ra-pb-4 ra-flex ra-flex-col ra-space-y-2`}
+        } ra-px-2 ra-pt-2 ra-pb-4 ra-flex ra-flex-col ra-space-y-2 ${
+          fold ? 'ra-hidden' : ''
+        }`}
+        onContextMenu={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+        }}
       >
         <span className='ra-py-1 ra-font-semibold'>Skeleton</span>
 
@@ -136,7 +188,17 @@ const OperationPanel = () => {
                       : 'rgb(229, 231, 235)',
                   }}
                   onClick={(e) => {
-                    selectPids([pid]);
+                    if (
+                      !multiPids &&
+                      (!selectedPids.includes(pid) || selectedPids.length)
+                    )
+                      selectPids([pid]);
+                    if (multiPids)
+                      selectPids(
+                        selectedPids.includes(pid)
+                          ? selectedPids.filter((p) => p !== pid)
+                          : [...selectedPids, pid]
+                      );
                   }}
                   onDoubleClick={(e) => {
                     if (!selected) return;
@@ -148,6 +210,26 @@ const OperationPanel = () => {
                         label.timestamp = now;
                         (label as KeypointsLabel).keypoints.forEach((p) => {
                           if (p.sid === sid && p.pid === pid) p.vis = !p.vis;
+                        });
+                      }
+                    });
+                    pushState(newState);
+                    selectLabels(
+                      newState.filter(
+                        (label) => label.id === selectedLabels[0].id
+                      )
+                    );
+                  }}
+                  onContextMenu={(e) => {
+                    if (!selected || sid === -1) return;
+
+                    const newState = curState.map((label) => label.clone());
+                    const now = getLocalTimeISOString();
+                    newState.forEach((label) => {
+                      if (label.id === selectedLabels[0].id) {
+                        label.timestamp = now;
+                        (label as KeypointsLabel).keypoints.forEach((p) => {
+                          if (p.sid === sid && p.pid === pid) p.sid = -1;
                         });
                       }
                     });

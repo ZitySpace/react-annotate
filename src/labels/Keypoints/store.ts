@@ -3,21 +3,25 @@ import { createStore, StoreApi, useStore } from 'zustand';
 
 interface StoreData {
   pids: number[];
+  multi: boolean;
 }
 
 const NoPidsSelected: number[] = [];
 
 const StoreDataDefault = {
   pids: [],
+  multi: false,
 };
 
 interface Store extends StoreData {
   setPids: (pids?: number[]) => void;
+  toggleMulti: () => void;
 }
 
 const store = createStore<Store>((set) => ({
   ...StoreDataDefault,
   setPids: (pids = NoPidsSelected) => set({ pids }),
+  toggleMulti: () => set((s: Store) => ({ multi: !s.multi })),
 }));
 
 const StoreContext = createContext<StoreApi<Store>>(store);

@@ -14,7 +14,7 @@ import {
 } from '../../stores/SelectionStore';
 import { ColorStore, ColorStoreProps } from '../../stores/ColorStore';
 import { ListenerStore, ListenerStoreProps } from '../../stores/ListenerStore';
-import { Label, LabeledObject, LabelType } from '../Base';
+import { LabeledObject, LabelType } from '../Base';
 import { newLabelFromCanvasObject } from '../utils/listeners';
 
 export const setup = () => {
@@ -23,11 +23,10 @@ export const setup = () => {
     (s: CanvasMetaStoreProps) => s
   );
 
-  const {
-    curState,
-    pushState,
-    setLock: setStateOpsLock,
-  } = useStore(CanvasStore, (s: CanvasStoreProps) => s);
+  const { curState, setLock: setStateOpsLock } = useStore(
+    CanvasStore,
+    (s: CanvasStoreProps) => s
+  );
 
   const {
     size: imageSize,
@@ -87,7 +86,6 @@ export const setup = () => {
     canvas,
     canvasInitSize,
     curState: curState(),
-    pushState,
     setStateOpsLock,
     imageSize,
     scale,
