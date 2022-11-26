@@ -1,4 +1,4 @@
-import { useRef, useEffect } from 'react';
+import { useEffect } from 'react';
 import { setup } from './setup';
 import { useDefaultListeners } from './default';
 import { useBoxListeners } from '../Box/listeners';
@@ -14,8 +14,6 @@ export const useListeners = (
   syncCanvasToState: (id?: number) => void,
   syncStateToCanvas: (id?: number) => void
 ) => {
-  const listenerGroup = useRef<string>('default');
-
   const {
     canvas,
     selectedLabels,
@@ -24,6 +22,7 @@ export const useListeners = (
     isDrawing,
     isEditing,
     isObjectMoving,
+    listenerGroup,
     trySwitchGroupRef,
     setListenersRef,
     refreshListenersRef,
@@ -45,20 +44,16 @@ export const useListeners = (
     drawPolylineListeners,
     editPolylineListeners,
     advancedDrawPolylineListeners,
-  } = usePolylineListeners(syncCanvasToState, listenerGroup);
+  } = usePolylineListeners(syncCanvasToState);
 
   const { drawMaskListeners, editMaskListeners, advancedDrawMaskListeners } =
-    useMaskListeners(syncCanvasToState, listenerGroup);
+    useMaskListeners(syncCanvasToState);
 
   const {
     drawKeypointsListeners,
     editKeypointsListeners,
     advancedDrawKeypointsListeners,
-  } = useKeypointsListeners(
-    syncCanvasToState,
-    syncStateToCanvas,
-    listenerGroup
-  );
+  } = useKeypointsListeners(syncCanvasToState, syncStateToCanvas);
 
   useEffect(() => {
     if (!canvas) return;

@@ -20,10 +20,7 @@ import {
 } from '../Base';
 import { MaskLabel } from './label';
 
-export const useMaskListeners = (
-  syncCanvasToState: (id?: number) => void,
-  listenerGroup: React.MutableRefObject<string>
-) => {
+export const useMaskListeners = (syncCanvasToState: (id?: number) => void) => {
   const {
     canvas,
     canvasInitSize,
@@ -37,6 +34,7 @@ export const useMaskListeners = (
     selectedCategory,
     getColor,
     isDrawing,
+    listenerGroup,
     trySwitchGroupRef,
     refreshListenersRef,
     setListenersRef,

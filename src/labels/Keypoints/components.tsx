@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useRef } from 'react';
 import { useStore } from 'zustand';
 import { KeypointsStore, KeypointsStoreProps } from './store';
 import {
@@ -8,22 +8,12 @@ import {
   nColor,
 } from './label';
 import { LabelType } from '../Base';
-import {
-  SelectionStore,
-  SelectionStoreProps,
-} from '../../stores/SelectionStore';
-import { CanvasStore, CanvasStoreProps } from '../../stores/CanvasStore';
 import { getLocalTimeISOString } from '../utils';
+import { setup } from '../listeners/setup';
 
 const OperationPanel = () => {
-  const [curState, pushState] = useStore(CanvasStore, (s: CanvasStoreProps) => [
-    s.curState(),
-    s.pushState,
-  ]);
-  const { labels: selectedLabels, selectLabels } = useStore(
-    SelectionStore,
-    (s: SelectionStoreProps) => s
-  );
+  const { curState, pushState, selectedLabels, selectLabels, listenerGroup } =
+    setup();
 
   const { pids: selectedPids, setPids: selectPids } = useStore(
     KeypointsStore,

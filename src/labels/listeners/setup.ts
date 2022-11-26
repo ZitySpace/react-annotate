@@ -23,10 +23,11 @@ export const setup = () => {
     (s: CanvasMetaStoreProps) => s
   );
 
-  const { curState, setLock: setStateOpsLock } = useStore(
-    CanvasStore,
-    (s: CanvasStoreProps) => s
-  );
+  const {
+    curState,
+    pushState,
+    setLock: setStateOpsLock,
+  } = useStore(CanvasStore, (s: CanvasStoreProps) => s);
 
   const {
     size: imageSize,
@@ -51,6 +52,7 @@ export const setup = () => {
     isDrawing,
     isEditing,
     isObjectMoving,
+    listenerGroup,
     trySwitchGroup: trySwitchGroupRef,
     setListeners: setListenersRef,
     refreshListeners: refreshListenersRef,
@@ -85,6 +87,7 @@ export const setup = () => {
     canvas,
     canvasInitSize,
     curState: curState(),
+    pushState,
     setStateOpsLock,
     imageSize,
     scale,
@@ -101,6 +104,7 @@ export const setup = () => {
     isDrawing,
     isEditing,
     isObjectMoving,
+    listenerGroup,
     trySwitchGroupRef,
     setListenersRef,
     refreshListenersRef,

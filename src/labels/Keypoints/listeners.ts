@@ -16,8 +16,7 @@ import { KeypointsStore, KeypointsStoreProps } from './store';
 
 export const useKeypointsListeners = (
   syncCanvasToState: (id?: number) => void,
-  syncStateToCanvas: (id?: number) => void,
-  listenerGroup: React.MutableRefObject<string>
+  syncStateToCanvas: (id?: number) => void
 ) => {
   const {
     canvas,
@@ -31,6 +30,7 @@ export const useKeypointsListeners = (
     selectedLabels,
     selectLabels,
     isDrawing,
+    listenerGroup,
     trySwitchGroupRef,
     refreshListenersRef,
     setListenersRef,

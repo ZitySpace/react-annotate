@@ -21,8 +21,7 @@ import { PolylineLabel } from './label';
 import { CVStore, CVStoreProps } from '../../stores/CVStore';
 
 export const usePolylineListeners = (
-  syncCanvasToState: (id?: number) => void,
-  listenerGroup: React.MutableRefObject<string>
+  syncCanvasToState: (id?: number) => void
 ) => {
   const {
     canvas,
@@ -37,6 +36,7 @@ export const usePolylineListeners = (
     selectedCategory,
     getColor,
     isDrawing,
+    listenerGroup,
     trySwitchGroupRef,
     refreshListenersRef,
     setListenersRef,

@@ -18,6 +18,7 @@ interface StoreData {
   isDrawing: React.MutableRefObject<boolean>;
   isEditing: React.MutableRefObject<boolean>;
   isObjectMoving: React.MutableRefObject<boolean>;
+  listenerGroup: React.MutableRefObject<string>;
   trySwitchGroup: React.MutableRefObject<TrySwitchGroupFunction>;
   setListeners: React.MutableRefObject<(group: string) => void>;
   refreshListeners: React.MutableRefObject<() => void>;
@@ -46,6 +47,9 @@ isEditing.current = false;
 const isObjectMoving = createRef<boolean>() as React.MutableRefObject<boolean>;
 isObjectMoving.current = false;
 
+const listenerGroup = createRef<string>() as React.MutableRefObject<string>;
+listenerGroup.current = 'default';
+
 const trySwitchGroup =
   createRef<TrySwitchGroupFunction>() as React.MutableRefObject<TrySwitchGroupFunction>;
 
@@ -72,6 +76,7 @@ const StoreDataDefault = {
   isDrawing,
   isEditing,
   isObjectMoving,
+  listenerGroup,
   trySwitchGroup,
   setListeners,
   refreshListeners,
