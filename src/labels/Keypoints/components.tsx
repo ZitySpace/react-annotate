@@ -7,11 +7,23 @@ import {
   colorMap,
   nColor,
 } from './label';
-import { setup } from '../listeners/setup';
 import { LabelType } from '../Base';
+import {
+  SelectionStore,
+  SelectionStoreProps,
+} from '../../stores/SelectionStore';
+import { CanvasStore, CanvasStoreProps } from '../../stores/CanvasStore';
+import { getLocalTimeISOString } from '../utils';
 
 const OperationPanel = () => {
-  const { curState, selectedLabels } = setup();
+  const [curState, pushState] = useStore(CanvasStore, (s: CanvasStoreProps) => [
+    s.curState(),
+    s.pushState,
+  ]);
+  const { labels: selectedLabels, selectLabels } = useStore(
+    SelectionStore,
+    (s: SelectionStoreProps) => s
+  );
 
   const { pids: selectedPids, setPids: selectPids } = useStore(
     KeypointsStore,
@@ -30,11 +42,12 @@ const OperationPanel = () => {
 
   const pidsInfo: { [key: number]: { sid: number; vis: boolean } } = {};
   const sidsInfo: { [key: number]: { pid: number; vis: boolean } } = {};
-  if (!disabled)
+  if (!disabled) {
     (selectedLabels[0] as KeypointsLabel).keypoints.forEach((p) => {
       pidsInfo[p.pid!] = { sid: p.sid, vis: p.vis };
       if (p.sid !== -1) sidsInfo[p.sid] = { pid: p.pid!, vis: p.vis };
     });
+  }
 
   return (
     <div
@@ -46,7 +59,7 @@ const OperationPanel = () => {
         id='KeypointsStructure'
         className='ra-bg-indigo-400 ra-p-2 ra-w-full ra-rounded-t-md hover:ra-cursor-grab ra-text-left ra-font-semibold'
       >
-        Structure
+        Keypoints
       </div>
 
       <div
@@ -54,11 +67,11 @@ const OperationPanel = () => {
           disabled
             ? 'ra-bg-indigo-200 ra-pointer-events-none ra-text-gray-400'
             : 'ra-bg-indigo-300'
-        } ra-p-2 ra-flex ra-flex-col ra-space-y-2`}
+        } ra-px-2 ra-pt-2 ra-pb-4 ra-flex ra-flex-col ra-space-y-2`}
       >
-        <span className='ra-py-1'>Structure</span>
+        <span className='ra-py-1 ra-font-semibold'>Skeleton</span>
 
-        <div className='ra-grid ra-grid-cols-6 ra-gap-3 ra-flex-row-reverse'>
+        <div className='ra-grid ra-grid-cols-6 ra-gap-4 ra-flex-row-reverse'>
           {sids.map((sid, i) => {
             const assigned = sidsInfo.hasOwnProperty(sid);
             const vis = assigned && sidsInfo[sid].vis;
@@ -68,52 +81,99 @@ const OperationPanel = () => {
             return (
               <div
                 key={sid}
-                className={`ra-w-6 ra-h-6 ra-rounded-full ra-flex ra-justify-center ra-items-center ${
+                className={`ra-w-6 ra-h-6 ra-rounded-full ra-relative ra-flex ra-justify-center ra-items-center ra-border-2 ${
                   assigned
-                    ? 'ra-text-gray-100 ' +
+                    ? 'ra-text-white ' +
                       (vis
-                        ? ''
-                        : 'ra-border-2 ra-border-black ra-border-opacity-75')
+                        ? 'ra-border-transparent'
+                        : 'ra-border-black ra-border-opacity-75')
                     : ''
-                } ${
-                  selected
-                    ? 'ra-ring-offset-4 ra-ring-2 ra-ring-offset-indigo-300 ra-ring-indigo-700'
-                    : ''
-                } `}
+                }`}
                 style={{
                   backgroundColor: assigned
                     ? colorMap[sid % nColor]
                     : 'rgb(229, 231, 235)',
                 }}
+                onClick={(e) => {}}
               >
                 <span>{sid}</span>
+                {selected && (
+                  <div className='ra-w-2 ra-h-2 ra-absolute ra-rounded-full -ra-bottom-3.5 ra-bg-indigo-600'></div>
+                )}
               </div>
             );
           })}
         </div>
 
-        <span className='ra-py-1'>Unassigned</span>
+        <span
+          className={`ra-pb-1 ra-pt-3 ra-font-semibold ${
+            disabled ? 'hidden' : ''
+          }`}
+        >
+          Keypoints
+        </span>
 
-        <div className='ra-grid ra-grid-cols-6 ra-gap-3 ra-flex-row-reverse'>
+        <div className='ra-grid ra-grid-cols-6 ra-gap-4 ra-flex-row-reverse'>
           {Object.entries(pidsInfo)
-            .filter(([_, info]) => info.sid === -1)
+            .sort(([pid1, info1], [pid2, info2]) => {
+              const sid1 = info1.sid;
+              const sid2 = info2.sid;
+
+              if (sid1 === sid2) return Number(pid1) - Number(pid2);
+              if (sid1 === -1) return 1;
+              if (sid2 === -1) return -1;
+              return sid1 - sid2;
+            })
             .map(([pid_, info], i) => {
               const pid = Number(pid_);
+              const { vis, sid } = info;
+              const assigned = sidsInfo.hasOwnProperty(sid);
               const selected = selectedPids.includes(pid);
 
               return (
                 <div
                   key={i}
-                  className={`ra-w-6 ra-h-6 ra-rounded-full ra-flex ra-justify-center ra-items-center ra-bg-gray-200 ${
-                    info.vis
-                      ? ''
-                      : 'ra-border-2 ra-border-black ra-border-opacity-75'
+                  className={`ra-w-6 ra-h-6 ra-rounded-full ra-relative ra-flex ra-justify-center ra-items-center ra-border-2 ${
+                    assigned ? 'ra-text-white ' : ''
                   } ${
-                    selected
-                      ? 'ra-ring-offset-4 ra-ring-2 ra-ring-offset-indigo-300 ra-ring-indigo-700'
-                      : ''
+                    vis
+                      ? 'ra-border-transparent'
+                      : 'ra-border-black ra-border-opacity-75'
                   }`}
-                ></div>
+                  style={{
+                    backgroundColor: assigned
+                      ? colorMap[sid % nColor]
+                      : 'rgb(229, 231, 235)',
+                  }}
+                  onClick={(e) => {
+                    selectPids([pid]);
+                  }}
+                  onDoubleClick={(e) => {
+                    if (!selected) return;
+
+                    const newState = curState.map((label) => label.clone());
+                    const now = getLocalTimeISOString();
+                    newState.forEach((label) => {
+                      if (label.id === selectedLabels[0].id) {
+                        label.timestamp = now;
+                        (label as KeypointsLabel).keypoints.forEach((p) => {
+                          if (p.sid === sid && p.pid === pid) p.vis = !p.vis;
+                        });
+                      }
+                    });
+                    pushState(newState);
+                    selectLabels(
+                      newState.filter(
+                        (label) => label.id === selectedLabels[0].id
+                      )
+                    );
+                  }}
+                >
+                  {sid !== -1 && <span>{sid}</span>}
+                  {selected && (
+                    <div className='ra-w-2 ra-h-2 ra-absolute ra-rounded-full -ra-bottom-3.5 ra-bg-indigo-600'></div>
+                  )}
+                </div>
               );
             })}
         </div>

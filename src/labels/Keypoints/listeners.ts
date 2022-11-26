@@ -29,6 +29,7 @@ export const useKeypointsListeners = (
     setDrawType,
     selectedCategory,
     selectedLabels,
+    selectLabels,
     isDrawing,
     trySwitchGroupRef,
     refreshListenersRef,
@@ -46,6 +47,10 @@ export const useKeypointsListeners = (
     (s: KeypointsStoreProps) => s
   );
 
+  // hack here, instead of using selectedLabels for effect deps,
+  // ignore selectPids() for case when vis & sid props of a
+  // keypoint is changed
+  const ids = JSON.stringify(selectedLabels.map((label) => label.id));
   useEffect(() => {
     selectPids();
 
@@ -53,12 +58,13 @@ export const useKeypointsListeners = (
       setListenersRef.current('default');
       setStateOpsLock(false);
     }
-  }, [selectedLabels]);
+  }, [ids]);
 
   useEffect(() => {
     if (
       selectedLabels.length === 1 &&
-      listenerGroup.current === 'keypoints:edit'
+      (listenerGroup.current === 'keypoints:edit' ||
+        listenerGroup.current === 'default')
     ) {
       syncStateToCanvas(selectedLabels[0].id);
       refreshListenersRef.current();
@@ -214,6 +220,7 @@ export const useKeypointsListeners = (
           .getObjects()
           .find((o) => (o as LabeledObject).id === id && o.type === 'circle');
         if (circle) selectCanvasObject(circle as LabeledObject);
+        else selectLabels([]);
       }
 
       isDragging.current = false;
