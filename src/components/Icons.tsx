@@ -485,7 +485,7 @@ export const AIIcon = (props: React.ComponentProps<'svg'>) => (
 export const FoldIcon = (props: React.ComponentProps<'svg'>) => (
   <svg
     xmlns='http://www.w3.org/2000/svg'
-    className='ra-h-5 ra-2-5'
+    className='ra-h-5 ra-w-5'
     viewBox='0 0 24 24'
     strokeWidth='2'
     stroke='currentColor'
@@ -496,6 +496,56 @@ export const FoldIcon = (props: React.ComponentProps<'svg'>) => (
       strokeLinecap='round'
       strokeLinejoin='round'
       d='M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5'
+    />
+  </svg>
+);
+
+export const CheckAllIcon = (props: React.ComponentProps<'svg'>) => (
+  <svg
+    xmlns='http://www.w3.org/2000/svg'
+    className='ra-h-5 ra-w-5'
+    viewBox='0 0 24 24'
+    fill='none'
+  >
+    <g clipPath='url(#clip0_2092_2)'>
+      <path
+        d='M0.348022 15.252L2.05202 13.548L4.71602 16.212L14.676 4.04401L16.524 5.55601L4.88402 19.788L0.348022 15.252ZM14.4 12H20.4V14.4H14.4V12ZM10.8 16.8H16.8V19.2H10.8V16.8ZM18 7.20001H24V9.60001H18V7.20001Z'
+        fill='currentColor'
+      />
+    </g>
+  </svg>
+);
+
+export const CheckUnAssignedIcon = (props: React.ComponentProps<'svg'>) => (
+  <svg
+    xmlns='http://www.w3.org/2000/svg'
+    className='ra-h-5 ra-w-5'
+    viewBox='0 0 24 24'
+    fill='none'
+  >
+    <g clipPath='url(#clip0_2092_2)'>
+      <path
+        d='M0.348022 15.252L2.05202 13.548L4.71602 16.212L14.676 4.04401L16.524 5.55601L4.88402 19.788L0.348022 15.252ZM10.8 16.8H16.8V19.2H10.8V16.8Z'
+        fill='currentColor'
+      />
+      <path
+        d='M14.4 12H20.4V14.4H14.4V12ZM18 7.20001H24V9.60001H18V7.20001Z'
+        fill='rgb(199 210 254)'
+      />
+    </g>
+  </svg>
+);
+
+export const ReplaceIcon = (props: React.ComponentProps<'svg'>) => (
+  <svg
+    xmlns='http://www.w3.org/2000/svg'
+    className='ra-h-5 ra-w-5'
+    viewBox='0 0 24 24'
+    fill='none'
+  >
+    <path
+      d='M14.3684 3.81818L12.4737 2H4.89474C4.39222 2 3.91029 2.19156 3.55496 2.53253C3.19962 2.87351 3 3.33597 3 3.81818V14.7273C3 15.2095 3.19962 15.6719 3.55496 16.0129C3.91029 16.3539 4.39222 16.5455 4.89474 16.5455H11.5263V18.3636L15.3158 15.6364L11.5263 12.9091V14.7273H4.89474V3.81818H14.3684ZM21 10.1818V20.1818C21 20.664 20.8004 21.1265 20.445 21.4675C20.0897 21.8084 19.6078 22 19.1053 22H8.68421C8.1817 22 7.69976 21.8084 7.34443 21.4675C6.9891 21.1265 6.78947 20.664 6.78947 20.1818V18.3636H8.68421V20.1818H19.1053V12H14.3684V7.45455H8.68421V12.9091H6.78947V7.45455C6.78947 6.97233 6.9891 6.50987 7.34443 6.1689C7.69976 5.82792 8.1817 5.63636 8.68421 5.63636H16.2632L21 10.1818Z'
+      fill='currentColor'
     />
   </svg>
 );
