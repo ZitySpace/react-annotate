@@ -176,7 +176,7 @@ type Annotations = ((
 })[];
 
 interface LabelConfigs {
-  keypoints?: { skeleton: [number, number][] };
+  keypoints?: { structure: [number, number][] };
 }
 ```
 
