@@ -211,12 +211,8 @@ export const useKeypointsListeners = (
 
         if (!multiPids && (!selectedPids.includes(pid) || selectedPids.length))
           selectPids([pid]);
-        if (multiPids)
-          selectPids(
-            selectedPids.includes(pid)
-              ? selectedPids.filter((p) => p !== pid)
-              : [...selectedPids, pid]
-          );
+        if (multiPids && !selectedPids.includes(pid))
+          selectPids([...selectedPids, pid]);
       }
 
       if (button === 3 && isDeleting.current) {
@@ -302,6 +298,12 @@ export const useKeypointsListeners = (
     'object:modified': (e: fabric.IEvent<Event>) => {
       const { id } = e.target as LabeledObject;
       syncCanvasToState(id);
+
+      const circle = canvas
+        .getObjects()
+        .find((o) => (o as LabeledObject).id === id && o.type === 'circle');
+      if (circle) selectCanvasObject(circle as LabeledObject);
+      else selectLabels([]);
     },
   };
 
