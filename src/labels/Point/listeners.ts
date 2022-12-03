@@ -6,7 +6,7 @@ import { UNKNOWN_CATEGORY_NAME } from '../config';
 import { CoordSystemType, LabelRenderMode, LabeledObject } from '../Base';
 import { PointLabel } from './label';
 
-export const usePointListeners = (syncCanvasToState: () => void) => {
+export const usePointListeners = (syncCanvasToState: (id?: number) => void) => {
   const {
     canvas,
     canvasInitSize,
@@ -48,7 +48,7 @@ export const usePointListeners = (syncCanvasToState: () => void) => {
 
       canvas.add(circle);
 
-      syncCanvasToState();
+      syncCanvasToState((circle as fabric.Object as LabeledObject).id);
       setDrawType();
       selectCanvasObject(circle as fabric.Object as LabeledObject);
     },
@@ -85,7 +85,8 @@ export const usePointListeners = (syncCanvasToState: () => void) => {
     },
 
     'object:modified': (e: fabric.IEvent<Event>) => {
-      syncCanvasToState();
+      const { id } = e.target as LabeledObject;
+      syncCanvasToState(id);
     },
   };
 

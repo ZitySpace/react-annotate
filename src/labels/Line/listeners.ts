@@ -6,7 +6,7 @@ import { UNKNOWN_CATEGORY_NAME, STROKE_WIDTH } from '../config';
 import { CoordSystemType, LabelRenderMode, LabeledObject } from '../Base';
 import { LineLabel } from './label';
 
-export const useLineListeners = (syncCanvasToState: () => void) => {
+export const useLineListeners = (syncCanvasToState: (id?: number) => void) => {
   const {
     canvas,
     canvasInitSize,
@@ -62,7 +62,7 @@ export const useLineListeners = (syncCanvasToState: () => void) => {
         if (invalid) {
           canvas.remove(line);
         } else {
-          syncCanvasToState();
+          syncCanvasToState((line as fabric.Object as LabeledObject).id);
           setDrawType();
           selectCanvasObject(line as fabric.Object as LabeledObject);
         }
@@ -191,7 +191,8 @@ export const useLineListeners = (syncCanvasToState: () => void) => {
     },
 
     'object:modified': (e: fabric.IEvent<Event>) => {
-      syncCanvasToState();
+      const { id } = e.target as LabeledObject;
+      syncCanvasToState(id);
     },
   };
 

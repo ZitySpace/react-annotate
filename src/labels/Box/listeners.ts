@@ -6,7 +6,7 @@ import { UNKNOWN_CATEGORY_NAME, STROKE_WIDTH } from '../config';
 import { CoordSystemType, LabelRenderMode, LabeledObject } from '../Base';
 import { BoxLabel } from './label';
 
-export const useBoxListeners = (syncCanvasToState: () => void) => {
+export const useBoxListeners = (syncCanvasToState: (id?: number) => void) => {
   const {
     canvas,
     canvasInitSize,
@@ -66,7 +66,7 @@ export const useBoxListeners = (syncCanvasToState: () => void) => {
         if (invalid) {
           canvas.remove(rect);
         } else {
-          syncCanvasToState();
+          syncCanvasToState((rect as LabeledObject).id);
           setDrawType();
           selectCanvasObject(rect as LabeledObject);
         }
@@ -181,7 +181,8 @@ export const useBoxListeners = (syncCanvasToState: () => void) => {
     },
 
     'object:modified': (e: fabric.IEvent<Event>) => {
-      syncCanvasToState();
+      const { id } = e.target as LabeledObject;
+      syncCanvasToState(id);
     },
   };
 

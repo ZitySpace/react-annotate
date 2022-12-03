@@ -80,11 +80,10 @@ export const useLabels = () => {
                 grp: objs,
               }
             : { obj: objs[0] }),
-          ...(id &&
-            id === parseInt(id_) && {
-              timestamp: now,
-              hash: md5(now),
-            }),
+          ...(id === parseInt(id_) && {
+            timestamp: now,
+            hash: objs[0].hash || md5(now),
+          }),
         })!;
       }
     );
