@@ -12,7 +12,7 @@ export const Button = ({
   onClick: (event: any) => void;
 }) => {
   const defaultCls =
-    'ra-h-6 ra-w-6 ra-rounded-sm md:ra-h-8 md:ra-w-8 md:ra-rounded-full ra-flex ra-justify-center ra-items-center ra-bg-gray-200 ra-cursor-pointer';
+    'ra-h-6 ra-w-6 ra-rounded-sm @3xl:ra-h-8 @3xl:ra-w-8 @3xl:ra-rounded-full ra-flex ra-justify-center ra-items-center ra-bg-gray-200 ra-cursor-pointer';
   const textClass = isUsing
     ? 'ra-text-gray-100'
     : canUse

@@ -111,7 +111,7 @@ export const ButtonBar = ({
   const isDrawing = drawType !== LabelType.None;
 
   return (
-    <div className='ra-h-9 ra-flex ra-justify-center ra-space-x-8 ra-items-center ra-absolute ra-bottom-0 ra-select-none'>
+    <div className='ra-h-9 ra-w-full ra-flex ra-justify-center ra-space-x-8 ra-items-center ra-absolute ra-bottom-0 ra-select-none ra-@container'>
       <div className='ra-flex ra-justify-center ra-space-x-1'>
         <Button
           onClick={() => {

@@ -3,7 +3,7 @@ module.exports = {
   theme: {
     extend: {},
   },
-  plugins: [],
+  plugins: [require('@tailwindcss/container-queries')],
   corePlugins: {
     preflight: false,
   },
