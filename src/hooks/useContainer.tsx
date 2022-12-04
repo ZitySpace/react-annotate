@@ -55,9 +55,7 @@ export const useContainer = () => {
     setCanvasInitSize(canvas_w, canvas_h);
   };
 
-  useEffect(initCanvas, [canvasElmRef]);
-
-  window.onresize = () => {
+  const onWindowResize = () => {
     if (!canvas) return;
 
     const [curW, curH] = calcCanvasDims();
@@ -72,6 +70,13 @@ export const useContainer = () => {
     if (curH >= initH * zoom) vpt[5] = (curH - initH * zoom) / 2;
     canvas.setViewportTransform(vpt);
   };
+
+  useEffect(initCanvas, [canvasElmRef]);
+
+  useEffect(() => {
+    window.addEventListener('resize', onWindowResize);
+    return () => window.removeEventListener('resize', onWindowResize);
+  });
 
   return (
     <div
