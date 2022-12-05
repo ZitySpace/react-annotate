@@ -80,7 +80,7 @@ export const useContainer = () => {
 
   return (
     <div
-      className='ra-h-full ra-relative ra-pb-9 ra-select-none ra-w-full ra-flex ra-justify-center ra-items-center ra-overflow-y-hidden'
+      className='ra-h-full ra-relative ra-pb-9 ra-select-none ra-w-full ra-flex ra-justify-center ra-items-center ra-overflow-hidden'
       id='canvas_extended'
     >
       <canvas ref={canvasElmRef} className='ra-hidden' />
