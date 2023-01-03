@@ -15,6 +15,7 @@ import { AnnotationsGrid } from './AnnotationsGrid';
 import { CategoryName } from './CategoryName';
 import { groupBy, placeAtLast } from '../../utils';
 import { useStore } from 'zustand';
+import shallow from 'zustand/shallow';
 import { CanvasStore, CanvasStoreProps } from '../../stores/CanvasStore';
 import {
   SelectionStore,
@@ -50,11 +51,11 @@ export const OperationPanel = ({
     setCategories: setCategoriesInStore,
   } = useStore(SelectionStore, (s: SelectionStoreProps) => s);
 
-  const {
-    colors,
-    getColor,
-    renameKey: renameColorKey,
-  } = useStore(ColorStore, (s: ColorStoreProps) => s);
+  const [hasColorKey, getColor, renameColorKey] = useStore(
+    ColorStore,
+    (s: ColorStoreProps) => [s.hasKey, s.getColor, s.renameKey],
+    shallow
+  );
 
   const [getCurState, groupedAnnos, assignCategory, setStack, updateCanSave] =
     useStore(CanvasStore, (s: CanvasStoreProps) => [
@@ -454,15 +455,15 @@ export const OperationPanel = ({
                             }
                           : cate === cateHovered
                           ? {
-                              backgroundColor: colors.hasOwnProperty(cate)
+                              backgroundColor: hasColorKey(cate)
                                 ? getColor(cate)
                                 : 'gray',
-                              borderColor: colors.hasOwnProperty(cate)
+                              borderColor: hasColorKey(cate)
                                 ? getColor(cate)
                                 : 'gray',
                             }
                           : {
-                              borderColor: colors.hasOwnProperty(cate)
+                              borderColor: hasColorKey(cate)
                                 ? getColor(cate)
                                 : 'gray',
                             }

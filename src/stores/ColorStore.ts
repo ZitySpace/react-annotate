@@ -33,6 +33,7 @@ interface Store extends StoreData {
   getColor: (key: string, inColorMapDefault?: boolean) => string;
   setColor: (key: string, color: string) => void;
   renameKey: (keyOld: string, keyNew: string) => void;
+  hasKey: (key: string) => boolean;
 }
 
 const store = createStore<Store>((set, get) => ({
@@ -80,6 +81,8 @@ const store = createStore<Store>((set, get) => ({
         }
       })
     ),
+
+  hasKey: (key) => get().colors.hasOwnProperty(key),
 }));
 
 const StoreContext = createContext<StoreApi<Store>>(store);
