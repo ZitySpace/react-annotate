@@ -54,13 +54,6 @@ export default [
         inject: true,
       }),
     ],
-    external: [
-      'react',
-      'react-dom',
-      '@use-gesture/react',
-      'fabric',
-      'randomcolor',
-      'react-draggable',
-    ],
+    external: [...Object.keys(packageJson.dependencies || {})],
   },
 ];
