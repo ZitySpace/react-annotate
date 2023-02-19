@@ -1,7 +1,7 @@
 import './styles/tailwind.css';
 export { Annotator } from './components/Annotator';
 
-export { ImageData, LabelConfigs } from './interfaces/basic';
+export { ImageData, LabelConfigs, Annotations } from './interfaces/basic';
 export {
   Label,
   LabelType,
