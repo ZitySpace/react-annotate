@@ -4,4 +4,4 @@ export { LineLabel } from './Line';
 export { BoxLabel } from './Box';
 export { MaskLabel } from './Mask';
 export { PolylineLabel } from './Polyline';
-export { KeypointsLabel } from './Keypoints';
+export { KeypointsLabel, keypointsLabelConfig } from './Keypoints';

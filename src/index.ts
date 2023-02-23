@@ -10,6 +10,7 @@ export {
   BoxLabel,
   MaskLabel,
   KeypointsLabel,
+  keypointsLabelConfig,
 } from './labels';
 
 export { ColorStore } from './stores/ColorStore';
