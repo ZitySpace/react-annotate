@@ -1,7 +1,8 @@
 import { checkImg } from '../components/Icons';
 import { TOriginX, TOriginY } from 'fabric/src/typedefs';
 
-export const IS_TOUCH_SCREEN = 'ontouchstart' in window;
+export const IS_TOUCH_SCREEN =
+  typeof window !== 'undefined' && 'ontouchstart' in window;
 // || (navigator as any).maxTouchPoints > 0
 // || (navigator as any).msMaxTouchPoints > 0
 
