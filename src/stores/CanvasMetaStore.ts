@@ -1,4 +1,4 @@
-import { fabric } from 'fabric';
+import * as fabric from 'fabric';
 import { createContext } from 'react';
 import { createStore, StoreApi } from 'zustand';
 

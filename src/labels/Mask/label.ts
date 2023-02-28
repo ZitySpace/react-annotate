@@ -1,4 +1,4 @@
-import { fabric } from 'fabric';
+import * as fabric from 'fabric';
 import md5 from 'md5';
 import {
   Label,
@@ -191,7 +191,7 @@ export class MaskLabel extends Label {
         backgroundColor: color,
       });
 
-      textbox.setOptions({
+      textbox.set({
         labelType,
         category,
         id,
@@ -286,7 +286,7 @@ export class MaskLabel extends Label {
       );
 
       polygons.forEach((pg) =>
-        pg.setOptions({
+        pg.set({
           labelType,
           category,
           id,
@@ -317,7 +317,7 @@ export class MaskLabel extends Label {
       });
 
       polylines.forEach((pl) =>
-        pl.setOptions({
+        pl.set({
           labelType,
           category,
           id,
@@ -327,7 +327,7 @@ export class MaskLabel extends Label {
         })
       );
 
-      polylines.forEach((pl) => (pl.hoverCursor = undefined));
+      polylines.forEach((pl) => (pl.hoverCursor = null));
       return [polygons, polylines, textbox];
     } else {
       const polylines = paths.map(
@@ -342,7 +342,7 @@ export class MaskLabel extends Label {
       );
 
       polylines.forEach((pl, i) =>
-        pl.setOptions({
+        pl.set({
           labelType,
           category,
           id,
@@ -364,21 +364,22 @@ export class MaskLabel extends Label {
       }
 
       const circles = paths.map((path) =>
-        path.points.map(
-          (pt) =>
-            new fabric.Circle({
-              ...POINT_DEFAULT_CONFIG,
-              left: pt.x,
-              top: pt.y,
-              fill: color,
-              stroke: TRANSPARENT,
-            })
-        )
+        path.points.map((pt) => {
+          const circle = new fabric.Circle();
+          circle.set({
+            ...POINT_DEFAULT_CONFIG,
+            left: pt.x,
+            top: pt.y,
+            fill: color,
+            stroke: TRANSPARENT,
+          });
+          return circle;
+        })
       );
 
       circles.forEach((cs, i) =>
         cs.forEach((c, j) =>
-          c.setOptions({
+          c.set({
             labelType,
             category,
             id,
@@ -420,7 +421,7 @@ export class MaskLabel extends Label {
 
       lines.forEach((ls, i) =>
         ls.forEach((l, j) =>
-          l.setOptions({
+          l.set({
             labelType,
             category,
             id,
@@ -441,7 +442,7 @@ export class MaskLabel extends Label {
           cs.forEach((c, j) => {
             const l = cs.length;
             const { closed } = paths[i];
-            c.setOptions({
+            c.set({
               lineStarting: j < l - 1 || closed ? lines[i][j] : null,
               lineEnding: j > 0 || closed ? lines[i][(j + l - 1) % l] : null,
             });

@@ -1,4 +1,4 @@
-import { fabric } from 'fabric';
+import * as fabric from 'fabric';
 import md5 from 'md5';
 import { Label, LabelType, CoordSystemType, LabelRenderMode } from '../Base';
 import {
@@ -175,7 +175,7 @@ export class LineLabel extends Label {
       stroke: color,
     });
 
-    line.setOptions({
+    line.set({
       labelType,
       category,
       id,
@@ -201,7 +201,7 @@ export class LineLabel extends Label {
       backgroundColor: color,
     });
 
-    textbox.setOptions({
+    textbox.set({
       labelType,
       category,
       id,
@@ -212,7 +212,8 @@ export class LineLabel extends Label {
 
     if (mode === LabelRenderMode.Preview) return [line, textbox];
 
-    const circle1 = new fabric.Circle({
+    const circle1 = new fabric.Circle();
+    circle1.set({
       ...POINT_DEFAULT_CONFIG,
       left: x1,
       top: y1,
@@ -220,7 +221,7 @@ export class LineLabel extends Label {
       stroke: TRANSPARENT,
     });
 
-    circle1.setOptions({
+    circle1.set({
       labelType,
       category,
       id,
@@ -231,7 +232,8 @@ export class LineLabel extends Label {
       endpointOfLine: 1,
     });
 
-    const circle2 = new fabric.Circle({
+    const circle2 = new fabric.Circle();
+    circle2.set({
       ...POINT_DEFAULT_CONFIG,
       left: x2,
       top: y2,
@@ -239,7 +241,7 @@ export class LineLabel extends Label {
       stroke: TRANSPARENT,
     });
 
-    circle2.setOptions({
+    circle2.set({
       labelType,
       category,
       id,
@@ -250,7 +252,7 @@ export class LineLabel extends Label {
       endpointOfLine: 2,
     });
 
-    line.setOptions({
+    line.set({
       endpoints: [circle1, circle2],
     });
 

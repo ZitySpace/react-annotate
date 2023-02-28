@@ -1,4 +1,4 @@
-import { fabric } from 'fabric';
+import * as fabric from 'fabric';
 import md5 from 'md5';
 import { Label, LabelType, CoordSystemType, LabelRenderMode } from '../Base';
 import {
@@ -172,7 +172,7 @@ export class BoxLabel extends Label {
       stroke: color,
     });
 
-    rect.setOptions({
+    rect.set({
       labelType,
       category,
       id,
@@ -198,7 +198,7 @@ export class BoxLabel extends Label {
       fontSize: getFontSize(w, h),
     });
 
-    textbox.setOptions({
+    textbox.set({
       labelType,
       category,
       id,

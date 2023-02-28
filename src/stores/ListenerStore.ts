@@ -1,13 +1,15 @@
-import { fabric } from 'fabric';
+import * as fabric from 'fabric';
+import { TPointerEventInfo as IEvent } from 'fabric/src/EventTypeDefs';
 import React, { createContext, createRef } from 'react';
 import { createStore, StoreApi } from 'zustand';
 
 export interface TrySwitchGroupFunction {
-  (e: fabric.IEvent<Event>, currentGroup: string): {
-    pointer: fabric.Point | undefined;
+  (e: IEvent<MouseEvent>, currentGroup: string): {
+    pointer: fabric.Point;
     switched: boolean;
     target: fabric.Object | undefined;
     evt: MouseEvent;
+    absolutePointer: fabric.Point;
   };
 }
 

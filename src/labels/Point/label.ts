@@ -1,4 +1,4 @@
-import { fabric } from 'fabric';
+import * as fabric from 'fabric';
 import md5 from 'md5';
 import { Label, LabelType, CoordSystemType, LabelRenderMode } from '../Base';
 import {
@@ -143,7 +143,8 @@ export class PointLabel extends Label {
   toCanvasObjects = (color: string, mode: string) => {
     const { x, y, labelType, category, id, timestamp, hash } = this;
 
-    const circle = new fabric.Circle({
+    const circle = new fabric.Circle();
+    circle.set({
       ...POINT_DEFAULT_CONFIG,
       left: x,
       top: y,
@@ -151,7 +152,7 @@ export class PointLabel extends Label {
       stroke: TRANSPARENT,
     });
 
-    circle.setOptions({
+    circle.set({
       labelType,
       category,
       id,
@@ -178,7 +179,7 @@ export class PointLabel extends Label {
       backgroundColor: color,
     });
 
-    textbox.setOptions({
+    textbox.set({
       labelType,
       category,
       id,

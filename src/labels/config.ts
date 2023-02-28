@@ -1,4 +1,5 @@
 import { checkImg } from '../components/Icons';
+import { TOriginX, TOriginY } from 'fabric/src/typedefs';
 
 export const IS_TOUCH_SCREEN = 'ontouchstart' in window;
 // || (navigator as any).maxTouchPoints > 0
@@ -12,8 +13,14 @@ export const DEFAULT_COLOR = 'rgba(0,0,0,1)';
 export const MAX_FONT_SIZE = 14;
 
 // config snippets
-export const ANCHOR_CENTER = { originX: 'center', originY: 'center' };
-export const ANCHOR_LEFT_TOP = { originX: 'left', originY: 'top' };
+export const ANCHOR_CENTER = {
+  originX: 'center' as TOriginX,
+  originY: 'center' as TOriginY,
+};
+export const ANCHOR_LEFT_TOP = {
+  originX: 'left' as TOriginX,
+  originY: 'top' as TOriginY,
+};
 export const NO_BORDER = { hasControls: false, hasBorders: false };
 export const HOLLOW = { fill: TRANSPARENT, strokeWidth: STROKE_WIDTH };
 export const NOT_DIRECTED_OPERATABLE = {
@@ -23,7 +30,7 @@ export const NOT_DIRECTED_OPERATABLE = {
   lockRotation: true,
 };
 
-export const CANVAS_CONFIG: fabric.ICanvasOptions = {
+export const CANVAS_CONFIG = {
   defaultCursor: 'default',
   selection: false,
   uniformScaling: false,
@@ -32,7 +39,7 @@ export const CANVAS_CONFIG: fabric.ICanvasOptions = {
   stopContextMenu: true,
 };
 
-export const POINT_DEFAULT_CONFIG: fabric.ICircleOptions = {
+export const POINT_DEFAULT_CONFIG = {
   ...ANCHOR_CENTER,
   ...NO_BORDER,
   selectable: !IS_TOUCH_SCREEN,
@@ -41,7 +48,7 @@ export const POINT_DEFAULT_CONFIG: fabric.ICircleOptions = {
   perPixelTargetFind: false,
 };
 
-export const LINE_DEFAULT_CONFIG: fabric.ILineOptions = {
+export const LINE_DEFAULT_CONFIG = {
   ...ANCHOR_CENTER,
   ...NO_BORDER,
   strokeWidth: STROKE_WIDTH,
@@ -49,7 +56,7 @@ export const LINE_DEFAULT_CONFIG: fabric.ILineOptions = {
   perPixelTargetFind: true,
 };
 
-export const RECT_DEFAULT_CONFIG: fabric.IRectOptions | any = {
+export const RECT_DEFAULT_CONFIG = {
   ...ANCHOR_LEFT_TOP,
   ...HOLLOW,
   hasBorders: false,
@@ -62,7 +69,7 @@ export const RECT_DEFAULT_CONFIG: fabric.IRectOptions | any = {
   perPixelTargetFind: true,
 };
 
-export const POLYGON_DEFAULT_CONFIG: fabric.IPolylineOptions = {
+export const POLYGON_DEFAULT_CONFIG = {
   ...ANCHOR_LEFT_TOP,
   ...NO_BORDER,
   ...HOLLOW,
@@ -72,7 +79,7 @@ export const POLYGON_DEFAULT_CONFIG: fabric.IPolylineOptions = {
   fillRule: 'nonzero',
 };
 
-export const POLYLINE_DEFAULT_CONFIG: fabric.IPolylineOptions = {
+export const POLYLINE_DEFAULT_CONFIG = {
   ...ANCHOR_LEFT_TOP,
   ...NO_BORDER,
   ...HOLLOW,
@@ -81,7 +88,7 @@ export const POLYLINE_DEFAULT_CONFIG: fabric.IPolylineOptions = {
   selectable: true,
 };
 
-export const TEXTBOX_DEFAULT_CONFIG: fabric.ITextboxOptions = {
+export const TEXTBOX_DEFAULT_CONFIG = {
   fill: 'black',
   selectable: false,
   hoverCursor: 'default',

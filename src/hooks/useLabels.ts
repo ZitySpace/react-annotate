@@ -1,5 +1,6 @@
 import md5 from 'md5';
-import { useEffect, useRef } from 'react';
+import * as fabric from 'fabric';
+import { useEffect } from 'react';
 import { useStore } from 'zustand';
 import { Label, LabeledObject, LabelType } from '../labels';
 import {
@@ -97,7 +98,7 @@ export const useLabels = () => {
     if (!canvas) return;
     console.log('syncStateToCanvas called');
 
-    const objs = canvas.getObjects();
+    const objs = canvas.getObjects() as fabric.Object[];
     let objsToRemove: fabric.Object[] = [];
     if (id === undefined) objsToRemove = objs;
     else {
@@ -123,9 +124,9 @@ export const useLabels = () => {
 
     // we are using fabric's default listeners to edit rectangle
     // need to first make it active
-    const activeObjects = canvas
-      .getObjects()
-      .filter((obj) => isSelected((obj as any).id));
+    const activeObjects = (canvas.getObjects() as fabric.Object[]).filter(
+      (obj) => isSelected((obj as any).id)
+    );
 
     if (
       activeObjects.length === 1 &&
@@ -145,9 +146,8 @@ export const useLabels = () => {
     if (!canvas) return;
 
     if (dataReady && imageObj) {
-      canvas
-        .setBackgroundImage(imageObj, () => {})
-        .setViewportTransform([1, 0, 0, 1, 0, 0]);
+      canvas.backgroundImage = imageObj;
+      canvas.setViewportTransform([1, 0, 0, 1, 0, 0]);
 
       resetListeners();
     } else canvas.clear();

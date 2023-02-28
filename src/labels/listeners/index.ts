@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { TPointerEventInfo as IEvent } from 'fabric/src/EventTypeDefs';
 import { setup } from './setup';
 import { useDefaultListeners } from './default';
 import { useBoxListeners } from '../Box/listeners';
@@ -74,13 +75,18 @@ export const useListeners = (
       resetListeners: () => {},
     };
 
+  type MouseListener = (e: IEvent<MouseEvent>) => void;
+  type WheelListener = (e: IEvent<WheelEvent>) => void;
+
   const setListeners = (group: string) => {
     isPanning.current = false;
     isDrawing.current = false;
     isEditing.current = false;
     isObjectMoving.current = false;
 
-    let listeners: { [key: string]: (e: fabric.IEvent<Event>) => void } = {};
+    let listeners: {
+      [key: string]: MouseListener | WheelListener;
+    } = {};
 
     if (group === 'default')
       listeners = { ...sharedListeners, ...defaultListeners };
@@ -138,22 +144,31 @@ export const useListeners = (
     listenerGroup.current = group;
   };
 
-  const trySwitchGroup = (e: fabric.IEvent<Event>, currGroup: string) => {
-    const { pointer, target, evt } = parseEvent(e as fabric.IEvent<MouseEvent>);
+  const trySwitchGroup = (
+    e: IEvent<MouseEvent | WheelEvent>,
+    currGroup: string
+  ) => {
+    const { pointer, target, evt, absolutePointer } = parseEvent(e);
     const newGroup =
       target && target.type !== 'textbox'
-        ? (target as LabeledObject).labelType + ':edit'
+        ? (target as unknown as LabeledObject).labelType + ':edit'
         : 'default';
 
     if (currGroup === newGroup)
-      return { pointer, switched: false, target, evt };
+      return { pointer, switched: false, target, evt, absolutePointer };
 
     setListeners(newGroup);
 
     if (e.e.type === 'mousemove')
-      canvas.fire('mouse:over', { target, pointer });
+      canvas.fire('mouse:over', {
+        target,
+        e: e.e,
+        pointer,
+        isClick: false,
+        absolutePointer,
+      });
 
-    return { pointer, switched: true, target, evt };
+    return { pointer, switched: true, target, evt, absolutePointer };
   };
 
   const refreshListeners = () => setListeners(listenerGroup.current);

@@ -1,4 +1,4 @@
-import { fabric } from 'fabric';
+import * as fabric from 'fabric';
 import React, { useState, useRef } from 'react';
 import { useStore } from 'zustand';
 import { KeypointsStore, KeypointsStoreProps } from './store';
@@ -28,6 +28,7 @@ import {
   ReplaceIcon,
 } from '../../components/Icons';
 import { RADIUS } from '../config';
+import { ValueAnimation } from 'fabric/src/util/animation/ValueAnimation';
 
 const OperationPanel = () => {
   const [curState, pushState] = useStore(CanvasStore, (s: CanvasStoreProps) => [
@@ -129,12 +130,15 @@ const OperationPanel = () => {
     if (startOrStop === 'start')
       animation.current = setInterval(
         () =>
-          circle.animate(
+          circle._animate(
             'radius',
             circle.radius === RADIUS ? 2.0 * RADIUS : RADIUS,
             {
               duration: 200,
-              onChange: canvas.renderAll.bind(canvas),
+              onChange: () => {
+                circle.setRadius(circle.radius);
+                canvas.requestRenderAll();
+              },
               easing: fabric.util.ease.easeInOutCubic,
             }
           ),
@@ -143,7 +147,8 @@ const OperationPanel = () => {
 
     if (startOrStop === 'stop') {
       clearInterval(animation.current!);
-      (fabric as any).runningAnimations.cancelAll();
+      fabric.runningAnimations.cancelAll();
+
       circle.set({
         radius: selectedPids.includes(pid) ? 1.5 * RADIUS : RADIUS,
       });

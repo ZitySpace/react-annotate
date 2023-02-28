@@ -1,4 +1,5 @@
-import { fabric } from 'fabric';
+import * as fabric from 'fabric';
+import { TPointerEventInfo as IEvent } from 'fabric/src/EventTypeDefs';
 
 import { setup } from '../listeners/setup';
 import { parseEvent, getBoundedValue } from '../utils';
@@ -26,9 +27,9 @@ export const useLineListeners = (syncCanvasToState: (id?: number) => void) => {
   if (!canvas) return {};
 
   const drawLineListeners = {
-    'mouse:down': (e: fabric.IEvent<Event>) => {
+    'mouse:down': (e: IEvent<MouseEvent>) => {
       if (!isDrawing.current) {
-        const { evt } = parseEvent(e as fabric.IEvent<MouseEvent>);
+        const { evt } = parseEvent(e);
         const { x, y } = canvas.getPointer(evt);
 
         if (!inImageOI(x, y)) return;
@@ -71,10 +72,10 @@ export const useLineListeners = (syncCanvasToState: (id?: number) => void) => {
       }
     },
 
-    'mouse:move': (e: fabric.IEvent<Event>) => {
+    'mouse:move': (e: IEvent<MouseEvent>) => {
       if (!isDrawing.current) return;
 
-      const { evt } = parseEvent(e as fabric.IEvent<MouseEvent>);
+      const { evt } = parseEvent(e);
       const { x, y } = canvas.getPointer(evt);
       const { w: canvasW, h: canvasH } = canvasInitSize!;
 
@@ -84,22 +85,21 @@ export const useLineListeners = (syncCanvasToState: (id?: number) => void) => {
         x2: getBoundedValue(x, offset.x, canvasW - offset.x - 1),
         y2: getBoundedValue(y, offset.y, canvasH - offset.y - 1),
       });
-      line.setCoords();
 
       canvas.requestRenderAll();
     },
   };
 
   const editLineListeners = {
-    'mouse:down': (e: fabric.IEvent<Event>) => {
+    'mouse:down': (e: IEvent<MouseEvent>) => {
       isEditing.current = true;
     },
 
-    'mouse:up': (e: fabric.IEvent<Event>) => {
+    'mouse:up': (e: IEvent<MouseEvent>) => {
       isEditing.current = false;
     },
 
-    'mouse:move': (e: fabric.IEvent<Event>) => {
+    'mouse:move': (e: IEvent<MouseEvent>) => {
       const { switched } = trySwitchGroupRef.current(e, 'line:edit');
       if (switched) return;
 
@@ -190,7 +190,9 @@ export const useLineListeners = (syncCanvasToState: (id?: number) => void) => {
       canvas.requestRenderAll();
     },
 
-    'object:modified': (e: fabric.IEvent<Event>) => {
+    'object:modified': (e: IEvent<MouseEvent>) => {
+      if (!e.e) return;
+
       const { id } = e.target as LabeledObject;
       syncCanvasToState(id);
     },

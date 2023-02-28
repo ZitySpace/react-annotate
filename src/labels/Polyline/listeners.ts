@@ -1,4 +1,6 @@
-import { fabric } from 'fabric';
+import * as fabric from 'fabric';
+import { TPointerEventInfo as IEvent } from 'fabric/src/EventTypeDefs';
+
 import { useStore } from 'zustand';
 import { useRef, useEffect } from 'react';
 
@@ -172,7 +174,7 @@ export const usePolylineListeners = (
       });
     }
 
-    tailLine_.setOptions({
+    tailLine_.set({
       id,
       syncToLabel: false,
       polyline,
@@ -181,22 +183,21 @@ export const usePolylineListeners = (
       tailLine: true,
     });
 
-    circle.setOptions({
+    circle.set({
       lineStarting: tailLine_,
     });
 
-    canvas.remove(tailLine).add(tailLine_);
-    tailLine_.moveTo(idx);
+    canvas.remove(tailLine);
+    canvas.add(tailLine_);
+    canvas.moveObjectTo(tailLine_, idx);
   }, [AIMode]);
 
   if (!canvas) return {};
 
   // add (from 0 points) + delete
   const drawPolylineListeners = {
-    'mouse:down': (e: fabric.IEvent<Event>) => {
-      const { evt, target, button } = parseEvent(
-        e as fabric.IEvent<MouseEvent>
-      );
+    'mouse:down': (e: IEvent<MouseEvent>) => {
+      const { evt, target, button } = parseEvent(e);
 
       if (!isDrawing.current) {
         // start drawing by left click
@@ -253,7 +254,7 @@ export const usePolylineListeners = (
           isScissorMapUpdated.current = true;
         }
 
-        tailLine.setOptions({
+        tailLine.set({
           id,
           syncToLabel: false,
           polyline: polylines[0],
@@ -262,7 +263,7 @@ export const usePolylineListeners = (
           tailLine: true,
         });
 
-        circles[0][0].setOptions({
+        circles[0][0].set({
           lineStarting: tailLine,
         });
 
@@ -302,8 +303,6 @@ export const usePolylineListeners = (
                 x2: left,
                 y2: top,
               });
-
-              tailLine.setCoords();
             }
 
             // prevent adding same point continuously when clicking outside of image
@@ -317,7 +316,7 @@ export const usePolylineListeners = (
             point = new fabric.Point(x, y);
             points.push(point);
 
-            tailLine.setOptions({ tailLine: false, endpoint: point });
+            tailLine.set({ tailLine: false, endpoint: point });
 
             tailLine_ = new fabric.Line([x, y, x, y], {
               ...LINE_DEFAULT_CONFIG,
@@ -362,7 +361,7 @@ export const usePolylineListeners = (
                 hoverCursor: 'default',
               });
 
-              tailLine.setOptions({
+              tailLine.set({
                 id,
                 syncToLabel: false,
                 polyline,
@@ -371,12 +370,12 @@ export const usePolylineListeners = (
                 tailLine: true,
               });
 
-              circle.setOptions({
+              circle.set({
                 lineStarting: tailLine,
               });
 
               canvas.add(tailLine);
-              tailLine.moveTo(idx);
+              canvas.moveObjectTo(tailLine, idx);
 
               objs = canvas.getObjects();
             }
@@ -392,10 +391,10 @@ export const usePolylineListeners = (
 
             [x, y] = [points_!.at(-1)!.x, points_!.at(-1)!.y];
 
-            point = points_!.at(-1)!;
+            point = points_!.at(-1)! as fabric.Point;
             points.push(...points_.slice(1));
 
-            tailLine.setOptions({ tailLine: false, endpoint: point });
+            tailLine.set({ tailLine: false, endpoint: point });
 
             tailLine_ = new fabric.Polyline(
               [
@@ -416,7 +415,8 @@ export const usePolylineListeners = (
             isScissorMapUpdated.current = true;
           }
 
-          const circle_ = new fabric.Circle({
+          const circle_ = new fabric.Circle();
+          circle_.set({
             ...POINT_DEFAULT_CONFIG,
             left: x,
             top: y,
@@ -424,14 +424,14 @@ export const usePolylineListeners = (
             stroke: TRANSPARENT,
             selectable: false,
           });
-          circle_.setOptions({
+          circle_.set({
             id,
             syncToLabel: false,
             polyline,
             point,
           });
 
-          tailLine_.setOptions({
+          tailLine_.set({
             id,
             syncToLabel: false,
             polyline,
@@ -440,13 +440,13 @@ export const usePolylineListeners = (
             tailLine: true,
           });
 
-          circle_.setOptions({
+          circle_.set({
             lineStarting: tailLine_,
             lineEnding: tailLine,
           });
 
           canvas.add(circle_, tailLine_);
-          tailLine_.moveTo(objs.indexOf(tailLine));
+          canvas.moveObjectTo(tailLine_, objs.indexOf(tailLine));
         } else if (button === 3) {
           const circles = objs.filter(
             (o) => o.type === 'circle' && (o as LabeledObject).id === id
@@ -487,13 +487,11 @@ export const usePolylineListeners = (
                 y1: y_,
               });
 
-              tailLine.setCoords();
-
-              circle_.setOptions({
+              circle_.set({
                 lineStarting: tailLine,
               });
 
-              tailLine.setOptions({
+              tailLine.set({
                 bgnpoint: point_,
               });
             } else {
@@ -518,7 +516,7 @@ export const usePolylineListeners = (
                 hoverCursor: 'default',
               });
 
-              tailLine_.setOptions({
+              tailLine_.set({
                 id,
                 syncToLabel: false,
                 polyline,
@@ -527,13 +525,14 @@ export const usePolylineListeners = (
                 tailLine: true,
               });
 
-              circle_.setOptions({
+              circle_.set({
                 lineStarting: tailLine_,
               });
 
               const idx = objs.indexOf(tailLine);
-              canvas.remove(tailLine).add(tailLine_);
-              tailLine_.moveTo(idx);
+              canvas.remove(tailLine);
+              canvas.add(tailLine_);
+              canvas.moveObjectTo(tailLine_, idx);
             }
 
             canvas.requestRenderAll();
@@ -542,7 +541,7 @@ export const usePolylineListeners = (
       }
     },
 
-    'mouse:dblclick': (e: fabric.IEvent<Event>) => {
+    'mouse:dblclick': (e: IEvent<MouseEvent>) => {
       const { id, polyline } = canvas.getObjects().at(-1)! as any as {
         id: number;
         polyline: fabric.Polyline;
@@ -567,10 +566,10 @@ export const usePolylineListeners = (
       isDrawing.current = false;
     },
 
-    'mouse:move': (e: fabric.IEvent<Event>) => {
+    'mouse:move': (e: IEvent<MouseEvent>) => {
       if (!isDrawing.current) return;
 
-      const { evt } = parseEvent(e as fabric.IEvent<MouseEvent>);
+      const { evt } = parseEvent(e);
       const { x, y } = canvas.getPointer(evt);
       const { w: canvasW, h: canvasH } = canvasInitSize!;
       const x_ = getBoundedValue(x, offset.x, canvasW - offset.x - 1);
@@ -587,8 +586,6 @@ export const usePolylineListeners = (
           x2: x_,
           y2: y_,
         });
-
-        tailLine.setCoords();
       } else {
         const tailLine = objs.find(
           (obj) => obj.type === 'polyline' && (obj as any).tailLine
@@ -624,7 +621,7 @@ export const usePolylineListeners = (
           bgnpoint: fabric.Point;
         };
 
-        tailLine_.setOptions({
+        tailLine_.set({
           id,
           syncToLabel: false,
           polyline,
@@ -633,13 +630,14 @@ export const usePolylineListeners = (
           tailLine: true,
         });
 
-        circle.setOptions({
+        circle.set({
           lineStarting: tailLine_,
         });
 
         const idx = objs.indexOf(tailLine);
-        canvas.remove(tailLine).add(tailLine_);
-        tailLine_.moveTo(idx);
+        canvas.remove(tailLine);
+        canvas.add(tailLine_);
+        canvas.moveObjectTo(tailLine_, idx);
       }
 
       canvas.requestRenderAll();
@@ -648,8 +646,8 @@ export const usePolylineListeners = (
 
   // drag + delete + split
   const editPolylineListeners = {
-    'mouse:down': (e: fabric.IEvent<Event>) => {
-      const { target, button } = parseEvent(e as fabric.IEvent<MouseEvent>);
+    'mouse:down': (e: IEvent<MouseEvent>) => {
+      const { target, button } = parseEvent(e);
       if (!target) return;
 
       if (button === 1) {
@@ -662,8 +660,8 @@ export const usePolylineListeners = (
       }
     },
 
-    'mouse:up': (e: fabric.IEvent<Event>) => {
-      const { target, button } = parseEvent(e as fabric.IEvent<MouseEvent>);
+    'mouse:up': (e: IEvent<MouseEvent>) => {
+      const { target, button } = parseEvent(e);
 
       // delete point
       if (button === 3 && isDeleting.current && target?.type === 'circle') {
@@ -717,7 +715,7 @@ export const usePolylineListeners = (
                 ...POLYLINE_DEFAULT_CONFIG,
                 stroke: polyline.stroke,
               });
-              polyline_.setOptions({
+              polyline_.set({
                 labelType,
                 category,
                 id,
@@ -743,7 +741,7 @@ export const usePolylineListeners = (
       delStart.current = null;
     },
 
-    'mouse:move': (e: fabric.IEvent<Event>) => {
+    'mouse:move': (e: IEvent<MouseEvent>) => {
       const { target } = e;
 
       // remove midpoint
@@ -755,7 +753,7 @@ export const usePolylineListeners = (
         if (circles.length) {
           circles.forEach((c) => {
             const { line } = c as any as { line: fabric.Line };
-            line.setOptions({ midpoint: null });
+            line.set({ midpoint: null });
           });
 
           canvas.remove(...circles);
@@ -778,7 +776,8 @@ export const usePolylineListeners = (
         };
 
         if (!midpoint) {
-          const circle = new fabric.Circle({
+          const circle = new fabric.Circle();
+          circle.set({
             ...POINT_DEFAULT_CONFIG,
             left: (line.x1! + line.x2!) / 2,
             top: (line.y1! + line.y2!) / 2,
@@ -786,7 +785,7 @@ export const usePolylineListeners = (
             stroke: TRANSPARENT,
           });
 
-          circle.setOptions({
+          circle.set({
             id,
             labelType,
             type: 'midpoint',
@@ -794,7 +793,7 @@ export const usePolylineListeners = (
             line,
           });
 
-          line.setOptions({
+          line.set({
             midpoint: circle,
           });
 
@@ -867,7 +866,7 @@ export const usePolylineListeners = (
             ...LINE_DEFAULT_CONFIG,
             stroke: line.stroke,
           });
-          circle.setOptions({ lineStarting });
+          circle.set({ lineStarting });
           canvas.add(lineStarting);
         }
 
@@ -876,7 +875,7 @@ export const usePolylineListeners = (
             ...LINE_DEFAULT_CONFIG,
             stroke: line.stroke,
           });
-          circle.setOptions({ lineEnding });
+          circle.set({ lineEnding });
           canvas.add(lineEnding);
         }
 
@@ -889,7 +888,7 @@ export const usePolylineListeners = (
 
           const points = polyline.points!;
           point = new fabric.Point(circle.left!, circle.top!);
-          circle.setOptions({ point });
+          circle.set({ point });
           points.splice(points.indexOf(endpoint), 0, point);
         }
 
@@ -914,7 +913,7 @@ export const usePolylineListeners = (
       canvas.requestRenderAll();
     },
 
-    'mouse:dblclick': (e: fabric.IEvent<Event>) => {
+    'mouse:dblclick': (e: IEvent<MouseEvent>) => {
       const { target } = e;
 
       if (!target) return;
@@ -931,7 +930,7 @@ export const usePolylineListeners = (
       if (midpoints.length) {
         midpoints.forEach((c) => {
           const { line } = c as any as { line: fabric.Line };
-          line.setOptions({ midpoint: null });
+          line.set({ midpoint: null });
         });
 
         canvas.remove(...midpoints);
@@ -949,111 +948,11 @@ export const usePolylineListeners = (
         });
 
       canvas.requestRenderAll();
-
-      // if (target.type !== 'circle') return;
-
-      // const circle = target as fabric.Circle;
-
-      // const { polyline, point } = circle as any as {
-      //   polyline: fabric.Polyline;
-      //   point: fabric.Point;
-      // };
-
-      // const points = polyline.points!;
-      // if (points.at(0) !== point && points.at(-1) !== point) return;
-
-      // // reverse references if clicked on the head of a polyline
-      // if (points.at(0) === point) {
-      //   points.reverse();
-
-      //   objs
-      //     .filter((o) => (o as LabeledObject).id === id)
-      //     .forEach((o) => {
-      //       if (o.type === 'polyline') return;
-      //       const { polyline: polyline_ } = o as any as {
-      //         polyline: fabric.Polyline;
-      //       };
-      //       if (polyline !== polyline_) return;
-
-      //       if (o.type === 'circle') {
-      //         const { lineStarting, lineEnding } = o as any as {
-      //           lineStarting: fabric.Line | null;
-      //           lineEnding: fabric.Line | null;
-      //         };
-      //         o.setOptions({
-      //           lineStarting: lineEnding,
-      //           lineEnding: lineStarting,
-      //         });
-      //       } else if (o.type === 'line') {
-      //         const { bgnpoint, endpoint } = o as any as {
-      //           bgnpoint: fabric.Point | null;
-      //           endpoint: fabric.Point | null;
-      //         };
-      //         o.setOptions({
-      //           bgnpoint: endpoint,
-      //           endpoint: bgnpoint,
-      //         });
-      //       }
-      //     });
-      // }
-
-      // let tailLine: fabric.Line | fabric.Polyline;
-      // const { x, y } = point;
-
-      // if (!AIMode) {
-      //   tailLine = new fabric.Line([x, y, x, y], {
-      //     ...LINE_DEFAULT_CONFIG,
-      //     stroke: circle.fill as string,
-      //     selectable: false,
-      //     hoverCursor: 'default',
-      //   });
-
-      //   isScissorMapUpdated.current = false;
-      // } else {
-      //   tailLine = new fabric.Polyline(
-      //     [
-      //       { x, y },
-      //       { x, y },
-      //     ],
-      //     {
-      //       ...POLYLINE_DEFAULT_CONFIG,
-      //       stroke: circle.fill as string,
-      //       selectable: false,
-      //       hoverCursor: 'default',
-      //     }
-      //   );
-
-      //   intelligentScissor.buildMap(
-      //     new fabric.Point((x - offset.x) / scale, (y - offset.y) / scale)
-      //   );
-      //   isScissorMapUpdated.current = true;
-      // }
-
-      // tailLine.setOptions({
-      //   id,
-      //   syncToLabel: false,
-      //   polyline,
-      //   bgnpoint: point,
-      //   endpoint: null,
-      //   tailLine: true,
-      // });
-
-      // circle.setOptions({
-      //   lineStarting: tailLine,
-      // });
-
-      // canvas.add(tailLine);
-      // tailLine.moveTo(
-      //   objs.indexOf(
-      //     objs.find((o) => (o as LabeledObject).id === id && o.type === 'line')!
-      //   )
-      // );
-
-      // isAdvDrawing.current = true;
-      // isModified.current = false;
     },
 
-    'object:modified': (e: fabric.IEvent<Event>) => {
+    'object:modified': (e: IEvent<MouseEvent>) => {
+      if (!e.e) return;
+
       const { id } = e.target as LabeledObject;
       syncCanvasToState(id);
     },
@@ -1061,10 +960,8 @@ export const usePolylineListeners = (
 
   // add + delete + merge
   const advancedDrawPolylineListeners = {
-    'mouse:down': (e: fabric.IEvent<Event>) => {
-      const { evt, target, button } = parseEvent(
-        e as fabric.IEvent<MouseEvent>
-      );
+    'mouse:down': (e: IEvent<MouseEvent>) => {
+      const { evt, target, button } = parseEvent(e);
 
       if (!isAdvDrawing.current) {
         if (button !== 1) return;
@@ -1100,7 +997,7 @@ export const usePolylineListeners = (
 
           circle = circles[0][0];
           polyline = polylines[0];
-          point = polylines[0].points![0];
+          point = polylines[0].points![0] as fabric.Point;
 
           canvas.add(polyline, circle);
         } else {
@@ -1135,7 +1032,7 @@ export const usePolylineListeners = (
                     lineStarting: fabric.Line | null;
                     lineEnding: fabric.Line | null;
                   };
-                  o.setOptions({
+                  o.set({
                     lineStarting: lineEnding,
                     lineEnding: lineStarting,
                   });
@@ -1144,7 +1041,7 @@ export const usePolylineListeners = (
                     bgnpoint: fabric.Point | null;
                     endpoint: fabric.Point | null;
                   };
-                  o.setOptions({
+                  o.set({
                     bgnpoint: endpoint,
                     endpoint: bgnpoint,
                   });
@@ -1184,7 +1081,7 @@ export const usePolylineListeners = (
           isScissorMapUpdated.current = true;
         }
 
-        tailLine.setOptions({
+        tailLine.set({
           id,
           syncToLabel: false,
           polyline,
@@ -1193,12 +1090,13 @@ export const usePolylineListeners = (
           tailLine: true,
         });
 
-        circle.setOptions({
+        circle.set({
           lineStarting: tailLine,
         });
 
         canvas.add(tailLine);
-        tailLine.moveTo(
+        canvas.moveObjectTo(
+          tailLine,
           objs.indexOf(
             objs.find(
               (o) => (o as LabeledObject).id === id && o.type === 'line'
@@ -1242,8 +1140,6 @@ export const usePolylineListeners = (
                 x2: left,
                 y2: top,
               });
-
-              tailLine.setCoords();
             }
 
             // prevent adding same point continuously when clicking outside of image
@@ -1258,7 +1154,7 @@ export const usePolylineListeners = (
             points.push(point);
             isModified.current = true;
 
-            tailLine.setOptions({ tailLine: false, endpoint: point });
+            tailLine.set({ tailLine: false, endpoint: point });
 
             tailLine_ = new fabric.Line([x, y, x, y], {
               ...LINE_DEFAULT_CONFIG,
@@ -1303,7 +1199,7 @@ export const usePolylineListeners = (
                 hoverCursor: 'default',
               });
 
-              tailLine.setOptions({
+              tailLine.set({
                 id,
                 syncToLabel: false,
                 polyline,
@@ -1312,12 +1208,12 @@ export const usePolylineListeners = (
                 tailLine: true,
               });
 
-              circle.setOptions({
+              circle.set({
                 lineStarting: tailLine,
               });
 
               canvas.add(tailLine);
-              tailLine.moveTo(idx);
+              canvas.moveObjectTo(tailLine, idx);
 
               objs = canvas.getObjects();
             }
@@ -1333,11 +1229,11 @@ export const usePolylineListeners = (
 
             [x, y] = [points_!.at(-1)!.x, points_!.at(-1)!.y];
 
-            point = points_!.at(-1)!;
+            point = points_!.at(-1)! as fabric.Point;
             points.push(...points_.slice(1));
             isModified.current = true;
 
-            tailLine.setOptions({ tailLine: false, endpoint: point });
+            tailLine.set({ tailLine: false, endpoint: point });
 
             tailLine_ = new fabric.Polyline(
               [
@@ -1358,7 +1254,8 @@ export const usePolylineListeners = (
             isScissorMapUpdated.current = true;
           }
 
-          const circle_ = new fabric.Circle({
+          const circle_ = new fabric.Circle();
+          circle_.set({
             ...POINT_DEFAULT_CONFIG,
             left: x,
             top: y,
@@ -1366,14 +1263,14 @@ export const usePolylineListeners = (
             stroke: TRANSPARENT,
             selectable: false,
           });
-          circle_.setOptions({
+          circle_.set({
             id,
             syncToLabel: false,
             polyline,
             point,
           });
 
-          tailLine_.setOptions({
+          tailLine_.set({
             id,
             syncToLabel: false,
             polyline,
@@ -1382,13 +1279,13 @@ export const usePolylineListeners = (
             tailLine: true,
           });
 
-          circle_.setOptions({
+          circle_.set({
             lineStarting: tailLine_,
             lineEnding: tailLine,
           });
 
           canvas.add(circle_, tailLine_);
-          tailLine_.moveTo(objs.indexOf(tailLine));
+          canvas.moveObjectTo(tailLine_, objs.indexOf(tailLine));
         } else if (button === 3) {
           const circles = objs.filter(
             (o) => o.type === 'circle' && (o as LabeledObject).id === id
@@ -1437,13 +1334,11 @@ export const usePolylineListeners = (
                 y1: y_,
               });
 
-              tailLine.setCoords();
-
-              circle_.setOptions({
+              circle_.set({
                 lineStarting: tailLine,
               });
 
-              tailLine.setOptions({
+              tailLine.set({
                 bgnpoint: point_,
               });
             } else {
@@ -1468,7 +1363,7 @@ export const usePolylineListeners = (
                 hoverCursor: 'default',
               });
 
-              tailLine_.setOptions({
+              tailLine_.set({
                 id,
                 syncToLabel: false,
                 polyline,
@@ -1477,13 +1372,14 @@ export const usePolylineListeners = (
                 tailLine: true,
               });
 
-              circle_.setOptions({
+              circle_.set({
                 lineStarting: tailLine_,
               });
 
               const idx = objs.indexOf(tailLine);
-              canvas.remove(tailLine).add(tailLine_);
-              tailLine_.moveTo(idx);
+              canvas.remove(tailLine);
+              canvas.add(tailLine_);
+              canvas.moveObjectTo(tailLine_, idx);
             }
 
             canvas.requestRenderAll();
@@ -1492,7 +1388,7 @@ export const usePolylineListeners = (
       }
     },
 
-    'mouse:dblclick': (e: fabric.IEvent<Event>) => {
+    'mouse:dblclick': (e: IEvent<MouseEvent>) => {
       if (!isAdvDrawing.current) return;
 
       const tailLine = canvas
@@ -1572,10 +1468,10 @@ export const usePolylineListeners = (
       isModified.current = false;
     },
 
-    'mouse:move': (e: fabric.IEvent<Event>) => {
+    'mouse:move': (e: IEvent<MouseEvent>) => {
       if (!isAdvDrawing.current) return;
 
-      const { evt } = parseEvent(e as fabric.IEvent<MouseEvent>);
+      const { evt } = parseEvent(e);
       const { x, y } = canvas.getPointer(evt);
       const { w: canvasW, h: canvasH } = canvasInitSize!;
       const x_ = getBoundedValue(x, offset.x, canvasW - offset.x - 1);
@@ -1592,8 +1488,6 @@ export const usePolylineListeners = (
           x2: x_,
           y2: y_,
         });
-
-        tailLine.setCoords();
       } else {
         const tailLine = objs.find(
           (obj) => obj.type === 'polyline' && (obj as any).tailLine
@@ -1621,7 +1515,7 @@ export const usePolylineListeners = (
           bgnpoint: fabric.Point;
         };
 
-        tailLine_.setOptions({
+        tailLine_.set({
           id,
           syncToLabel: false,
           polyline,
@@ -1630,13 +1524,14 @@ export const usePolylineListeners = (
           tailLine: true,
         });
 
-        circle.setOptions({
+        circle.set({
           lineStarting: tailLine_,
         });
 
         const idx = objs.indexOf(tailLine);
-        canvas.remove(tailLine).add(tailLine_);
-        tailLine_.moveTo(idx);
+        canvas.remove(tailLine);
+        canvas.add(tailLine_);
+        canvas.moveObjectTo(tailLine_, idx);
       }
 
       canvas.requestRenderAll();

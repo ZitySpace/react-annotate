@@ -1,3 +1,4 @@
+import { TPointerEventInfo as IEvent } from 'fabric/src/EventTypeDefs';
 import { LabelType, LabeledObject } from '../Base';
 import { PointLabel } from '../Point/label';
 import { LineLabel } from '../Line/label';
@@ -10,14 +11,12 @@ export const getBoundedValue = (value: number, min: number, max: number) => {
   return Math.min(Math.max(min, value), max);
 };
 
-export function parseEvent<T extends MouseEvent | WheelEvent>(
-  e: fabric.IEvent<T>
-) {
-  const { button, target, pointer, e: evt } = e;
+export function parseEvent<T extends MouseEvent | WheelEvent>(e: IEvent<T>) {
+  const { button, target, pointer, e: evt, absolutePointer } = e;
   evt.preventDefault();
   evt.stopPropagation();
 
-  return { button, target, pointer, evt };
+  return { button, target, pointer, evt, absolutePointer };
 }
 
 export const newLabelFromCanvasObject = ({

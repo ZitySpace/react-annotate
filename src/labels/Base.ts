@@ -1,3 +1,5 @@
+import * as fabric from 'fabric';
+
 export enum LabelType {
   None = 'none',
   Point = 'point',

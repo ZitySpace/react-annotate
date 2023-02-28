@@ -1,6 +1,7 @@
-import { fabric } from 'fabric';
+import * as fabric from 'fabric';
 import React, { useEffect, useRef } from 'react';
 import { CANVAS_CONFIG } from '../labels/config';
+import { TMat2D } from 'fabric/src/typedefs';
 
 import {
   CanvasMetaStore,
@@ -34,11 +35,12 @@ export const useContainer = () => {
   };
 
   const initCanvas = () => {
+    if (!canvasElmRef.current) return;
+
     const canvas = new fabric.Canvas(canvasElmRef.current, CANVAS_CONFIG);
 
     const [canvas_w, canvas_h] = calcCanvasDims();
-    canvas.setWidth(canvas_w);
-    canvas.setHeight(canvas_h);
+    canvas.setDimensions({ width: canvas_w, height: canvas_h });
 
     // set canvas element and its extend element styles
     const lowerCanvasElm = canvas.getElement();
@@ -59,8 +61,7 @@ export const useContainer = () => {
     if (!canvas) return;
 
     const [curW, curH] = calcCanvasDims();
-    canvas.setWidth(curW);
-    canvas.setHeight(curH);
+    canvas.setDimensions({ width: curW, height: curH });
 
     const vpt = canvas.viewportTransform as number[];
     const zoom = canvas.getZoom();
@@ -68,7 +69,7 @@ export const useContainer = () => {
 
     if (curW >= initW * zoom) vpt[4] = (curW - initW * zoom) / 2;
     if (curH >= initH * zoom) vpt[5] = (curH - initH * zoom) / 2;
-    canvas.setViewportTransform(vpt);
+    canvas.setViewportTransform(vpt as TMat2D);
   };
 
   useEffect(initCanvas, [canvasElmRef]);

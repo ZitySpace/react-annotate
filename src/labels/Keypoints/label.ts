@@ -1,5 +1,5 @@
 import randomColor from 'randomcolor';
-import { fabric } from 'fabric';
+import * as fabric from 'fabric';
 import md5 from 'md5';
 import {
   Label,
@@ -199,7 +199,8 @@ export class KeypointsLabel extends Label {
     let pidNxt: number = Math.max(...keypoints.map((k) => k.pid!)) + 1;
 
     const circles = keypoints.map((pt) => {
-      const circle = new fabric.Circle({
+      const circle = new fabric.Circle();
+      circle.set({
         ...POINT_DEFAULT_CONFIG,
         left: pt.x,
         top: pt.y,
@@ -209,7 +210,7 @@ export class KeypointsLabel extends Label {
           selected && pidsSelected.includes(pt.pid!) ? 1.5 * RADIUS : RADIUS,
       });
 
-      circle.setOptions({
+      circle.set({
         labelType,
         category,
         id,
@@ -261,7 +262,7 @@ export class KeypointsLabel extends Label {
         strokeDashArray: p0.vis && p1.vis ? undefined : [5],
       });
 
-      line.setOptions({
+      line.set({
         labelType,
         category,
         id,
@@ -273,10 +274,10 @@ export class KeypointsLabel extends Label {
       // build connections between related circles and lines
       const c0 = circlesMap[lk[0]];
       const c1 = circlesMap[lk[1]];
-      c0.setOptions({
+      c0.set({
         linesStarting: [...((c0 as any).linesStarting || []), line],
       });
-      c1.setOptions({
+      c1.set({
         linesEnding: [...((c1 as any).linesEnding || []), line],
       });
 
@@ -300,7 +301,7 @@ export class KeypointsLabel extends Label {
       fontSize: 20,
     });
 
-    textbox.setOptions({
+    textbox.set({
       labelType,
       category,
       id,

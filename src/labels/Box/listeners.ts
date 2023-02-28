@@ -1,4 +1,5 @@
-import { fabric } from 'fabric';
+import * as fabric from 'fabric';
+import { TPointerEventInfo as IEvent } from 'fabric/src/EventTypeDefs';
 
 import { setup } from '../listeners/setup';
 import { parseEvent, getBoundedValue } from '../utils';
@@ -28,9 +29,9 @@ export const useBoxListeners = (syncCanvasToState: (id?: number) => void) => {
   if (!canvas) return {};
 
   const drawBoxListeners = {
-    'mouse:down': (e: fabric.IEvent<Event>) => {
+    'mouse:down': (e: IEvent<MouseEvent>) => {
       if (!isDrawing.current) {
-        const { evt } = parseEvent(e as fabric.IEvent<MouseEvent>);
+        const { evt } = parseEvent(e);
         const { x, y } = canvas.getPointer(evt);
 
         if (!inImageOI(x, y)) return;
@@ -66,19 +67,19 @@ export const useBoxListeners = (syncCanvasToState: (id?: number) => void) => {
         if (invalid) {
           canvas.remove(rect);
         } else {
-          syncCanvasToState((rect as LabeledObject).id);
+          syncCanvasToState((rect as fabric.Object as LabeledObject).id);
           setDrawType();
-          selectCanvasObject(rect as LabeledObject);
+          selectCanvasObject(rect as fabric.Object as LabeledObject);
         }
 
         isDrawing.current = false;
       }
     },
 
-    'mouse:move': (e: fabric.IEvent<Event>) => {
+    'mouse:move': (e: IEvent<MouseEvent>) => {
       if (!isDrawing.current) return;
 
-      const { evt } = parseEvent(e as fabric.IEvent<MouseEvent>);
+      const { evt } = parseEvent(e);
       const { x, y } = canvas.getPointer(evt);
       const { x: origX, y: origY } = origPosition.current;
       const { w: canvasW, h: canvasH } = canvasInitSize!;
@@ -95,23 +96,22 @@ export const useBoxListeners = (syncCanvasToState: (id?: number) => void) => {
         width: x2_ - x_,
         height: y2_ - y_,
       });
-      rect.setCoords();
 
       canvas.requestRenderAll();
     },
   };
 
   const editBoxListeners = {
-    'mouse:down': (e: fabric.IEvent<Event>) => {
+    'mouse:down': (e: IEvent<MouseEvent>) => {
       isEditing.current = true;
     },
 
-    'mouse:up': (e: fabric.IEvent<Event>) => {
+    'mouse:up': (e: IEvent<MouseEvent>) => {
       isEditing.current = false;
       isObjectMoving.current = false;
     },
 
-    'mouse:move': (e: fabric.IEvent<Event>) => {
+    'mouse:move': (e: IEvent<MouseEvent>) => {
       const { switched } = trySwitchGroupRef.current(e, 'box:edit');
       if (switched) return;
 
@@ -176,11 +176,15 @@ export const useBoxListeners = (syncCanvasToState: (id?: number) => void) => {
       canvas.requestRenderAll();
     },
 
-    'object:moving': (e: fabric.IEvent<Event>) => {
+    'object:moving': (e: IEvent<MouseEvent>) => {
       isObjectMoving.current = true;
     },
 
-    'object:modified': (e: fabric.IEvent<Event>) => {
+    'object:modified': (e: IEvent<MouseEvent>) => {
+      // since fabricV6, canvas.remove() in syncStateToCanvas
+      // will trigger object:modified, but with e.e undefined
+      if (!e.e) return;
+
       const { id } = e.target as LabeledObject;
       syncCanvasToState(id);
     },

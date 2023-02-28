@@ -1,4 +1,5 @@
-import { fabric } from 'fabric';
+import * as fabric from 'fabric';
+import { TPointerEventInfo as IEvent } from 'fabric/src/EventTypeDefs';
 
 import { setup } from '../listeners/setup';
 import { parseEvent, getBoundedValue } from '../utils';
@@ -26,8 +27,8 @@ export const usePointListeners = (syncCanvasToState: (id?: number) => void) => {
   if (!canvas) return {};
 
   const drawPointListeners = {
-    'mouse:up': (e: fabric.IEvent<Event>) => {
-      const { evt } = parseEvent(e as fabric.IEvent<MouseEvent>);
+    'mouse:up': (e: IEvent<MouseEvent>) => {
+      const { evt } = parseEvent(e);
       const { x, y } = canvas.getPointer(evt);
 
       if (!inImageOI(x, y)) return;
@@ -55,18 +56,18 @@ export const usePointListeners = (syncCanvasToState: (id?: number) => void) => {
   };
 
   const editPointListeners = {
-    'mouse:down': (e: fabric.IEvent<Event>) => {
-      const { target } = parseEvent(e as fabric.IEvent<MouseEvent>);
+    'mouse:down': (e: IEvent<MouseEvent>) => {
+      const { target } = parseEvent(e);
       if (!target) selectLabels([]);
 
       isEditing.current = true;
     },
 
-    'mouse:up': (e: fabric.IEvent<Event>) => {
+    'mouse:up': (e: IEvent<MouseEvent>) => {
       isEditing.current = false;
     },
 
-    'mouse:move': (e: fabric.IEvent<Event>) => {
+    'mouse:move': (e: IEvent<MouseEvent>) => {
       const { switched } = trySwitchGroupRef.current(e, 'point:edit');
       if (switched) return;
 
@@ -84,7 +85,9 @@ export const usePointListeners = (syncCanvasToState: (id?: number) => void) => {
       canvas.requestRenderAll();
     },
 
-    'object:modified': (e: fabric.IEvent<Event>) => {
+    'object:modified': (e: IEvent<MouseEvent>) => {
+      if (!e.e) return;
+
       const { id } = e.target as LabeledObject;
       syncCanvasToState(id);
     },

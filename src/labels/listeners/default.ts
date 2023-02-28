@@ -1,4 +1,5 @@
-import { fabric } from 'fabric';
+import * as fabric from 'fabric';
+import { TPointerEventInfo as IEvent } from 'fabric/src/EventTypeDefs';
 
 import { setup } from './setup';
 import { parseEvent, getBoundedValue } from '../utils';
@@ -24,7 +25,7 @@ export const useDefaultListeners = () => {
     // more detail in: https://use-gesture.netlify.app/docs/options/#modifierkey
     const delta = deltaY * (evt.ctrlKey ? 3 : 1);
     const zoom = getBoundedValue(canvas.getZoom() * 0.999 ** delta, 0.01, 20);
-    canvas.zoomToPoint({ x, y }, zoom);
+    canvas.zoomToPoint(new fabric.Point({ x, y }), zoom);
   };
 
   const setViewport = (x: number = 0, y: number = 0) => {
@@ -38,50 +39,52 @@ export const useDefaultListeners = () => {
     vpt[5] =
       offsetY > 0 ? offsetY / 2 : getBoundedValue(vpt[5] + y, offsetY, 0);
     canvas.requestRenderAll();
-    canvas.getObjects().forEach((obj) => obj.setCoords());
   };
 
   const sharedListeners = {
-    'selection:created': (e: fabric.IEvent<Event>) => {
+    'selection:created': (e: IEvent<MouseEvent>) => {
       if (e.e && selectedLabels.length !== 1) {
         selectCanvasObject((e as any).selected[0]);
       }
     },
 
-    'mouse:wheel': (e: fabric.IEvent<Event>) => {
-      const { evt } = parseEvent(e as fabric.IEvent<WheelEvent>);
+    'mouse:wheel': (e: IEvent<WheelEvent>) => {
+      const { evt } = parseEvent(e);
 
-      setZoomByWheel(evt);
+      setZoomByWheel(evt as WheelEvent);
       setViewport();
     },
   };
 
   const defaultListeners = {
-    'mouse:down': (e: fabric.IEvent<Event>) => {
-      const { pointer } = parseEvent(e as fabric.IEvent<MouseEvent>);
+    'mouse:down': (e: IEvent<MouseEvent>) => {
+      const { absolutePointer } = parseEvent(e);
 
       isPanning.current = true;
-      lastPosition.current = pointer!;
+      lastPosition.current = absolutePointer;
       canvas.setCursor('grabbing');
       selectLabels([]);
     },
 
-    'mouse:move': (e: fabric.IEvent<Event>) => {
-      const { pointer, switched } = trySwitchGroupRef.current(e, 'default');
+    'mouse:move': (e: IEvent<MouseEvent>) => {
+      const { absolutePointer, switched } = trySwitchGroupRef.current(
+        e,
+        'default'
+      );
       if (switched) return;
 
       if (!isPanning.current) return;
 
       setViewport(
-        pointer!.x - lastPosition.current.x,
-        pointer!.y - lastPosition.current.y
+        absolutePointer.x - lastPosition.current.x,
+        absolutePointer.y - lastPosition.current.y
       );
-      canvas.setViewportTransform(canvas.viewportTransform as number[]);
-      lastPosition.current = pointer!;
+      canvas.setViewportTransform(canvas.viewportTransform);
+      lastPosition.current = absolutePointer;
       canvas.setCursor('grabbing');
     },
 
-    'mouse:up': (e: fabric.IEvent<Event>) => {
+    'mouse:up': (e: IEvent<MouseEvent>) => {
       isPanning.current = false;
       canvas.setCursor('default');
     },

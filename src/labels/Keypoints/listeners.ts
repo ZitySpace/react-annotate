@@ -1,4 +1,6 @@
-import { fabric } from 'fabric';
+import * as fabric from 'fabric';
+import { TPointerEventInfo as IEvent } from 'fabric/src/EventTypeDefs';
+
 import { useStore } from 'zustand';
 import React, { useEffect, useRef } from 'react';
 
@@ -75,10 +77,8 @@ export const useKeypointsListeners = (
   if (!canvas) return {};
 
   const drawKeypointsListeners = {
-    'mouse:down': (e: fabric.IEvent<Event>) => {
-      const { evt, target, button } = parseEvent(
-        e as fabric.IEvent<MouseEvent>
-      );
+    'mouse:down': (e: IEvent<MouseEvent>) => {
+      const { evt, target, button } = parseEvent(e);
 
       const { x, y } = canvas.getPointer(evt);
 
@@ -113,7 +113,7 @@ export const useKeypointsListeners = (
           selectable: false,
           hoverCursor: 'default',
         });
-        circle.setOptions({
+        circle.set({
           last: true,
         });
 
@@ -134,11 +134,12 @@ export const useKeypointsListeners = (
 
         const color = colorMap[id % nColor];
 
-        lastCircle.setOptions({
+        lastCircle.set({
           last: false,
         });
 
-        const circle = new fabric.Circle({
+        const circle = new fabric.Circle();
+        circle.set({
           ...POINT_DEFAULT_CONFIG,
           left: x,
           top: y,
@@ -146,7 +147,7 @@ export const useKeypointsListeners = (
           stroke: vis ? TRANSPARENT : 'rgba(0, 0, 0, 0.75)',
         });
 
-        circle.setOptions({
+        circle.set({
           labelType,
           category,
           id,
@@ -163,7 +164,7 @@ export const useKeypointsListeners = (
       }
     },
 
-    'mouse:dblclick': (e: fabric.IEvent<Event>) => {
+    'mouse:dblclick': (e: IEvent<MouseEvent>) => {
       if (!isDrawing.current) {
         setDrawType();
         isDrawing.current = false;
@@ -183,8 +184,8 @@ export const useKeypointsListeners = (
   };
 
   const editKeypointsListeners = {
-    'mouse:down': (e: fabric.IEvent<Event>) => {
-      const { target, button } = parseEvent(e as fabric.IEvent<MouseEvent>);
+    'mouse:down': (e: IEvent<MouseEvent>) => {
+      const { target, button } = parseEvent(e);
       if (!target || target.type !== 'circle') return;
 
       const { id } = target as LabeledObject;
@@ -199,8 +200,8 @@ export const useKeypointsListeners = (
       }
     },
 
-    'mouse:up': (e: fabric.IEvent<Event>) => {
-      const { target, button } = parseEvent(e as fabric.IEvent<MouseEvent>);
+    'mouse:up': (e: IEvent<MouseEvent>) => {
+      const { target, button } = parseEvent(e);
 
       if (!target || target.type !== 'circle') return;
 
@@ -231,7 +232,7 @@ export const useKeypointsListeners = (
       isDeleting.current = false;
     },
 
-    'mouse:move': (e: fabric.IEvent<Event>) => {
+    'mouse:move': (e: IEvent<MouseEvent>) => {
       if (!(isDragging.current || isDeleting.current)) {
         const { switched } = trySwitchGroupRef.current(e, 'mask:edit');
         if (switched) return;
@@ -265,7 +266,7 @@ export const useKeypointsListeners = (
         linesEnding.forEach((line) => line.set({ x2: x_, y2: y_ }));
     },
 
-    'mouse:dblclick': (e: fabric.IEvent<Event>) => {
+    'mouse:dblclick': (e: IEvent<MouseEvent>) => {
       const { target } = e;
 
       if (!target || target.type !== 'circle') return;
@@ -295,7 +296,9 @@ export const useKeypointsListeners = (
       canvas.requestRenderAll();
     },
 
-    'object:modified': (e: fabric.IEvent<Event>) => {
+    'object:modified': (e: IEvent<MouseEvent>) => {
+      if (!e.e) return;
+
       const { id } = e.target as LabeledObject;
       syncCanvasToState(id);
 
@@ -308,10 +311,8 @@ export const useKeypointsListeners = (
   };
 
   const advancedDrawKeypointsListeners = {
-    'mouse:down': (e: fabric.IEvent<Event>) => {
-      const { evt, target, button } = parseEvent(
-        e as fabric.IEvent<MouseEvent>
-      );
+    'mouse:down': (e: IEvent<MouseEvent>) => {
+      const { evt, target, button } = parseEvent(e);
 
       const { x, y } = canvas.getPointer(evt);
 
@@ -338,11 +339,12 @@ export const useKeypointsListeners = (
       const color = colorMap[id % nColor];
 
       lastCircle &&
-        lastCircle.setOptions({
+        lastCircle.set({
           last: false,
         });
 
-      const circle = new fabric.Circle({
+      const circle = new fabric.Circle();
+      circle.set({
         ...POINT_DEFAULT_CONFIG,
         left: x,
         top: y,
@@ -350,7 +352,7 @@ export const useKeypointsListeners = (
         stroke: vis ? TRANSPARENT : 'rgba(0, 0, 0, 0.75)',
       });
 
-      circle.setOptions({
+      circle.set({
         labelType,
         category,
         id,
@@ -368,7 +370,7 @@ export const useKeypointsListeners = (
       isAdvDrawing.current = true;
     },
 
-    'mouse:dblclick': (e: fabric.IEvent<Event>) => {
+    'mouse:dblclick': (e: IEvent<MouseEvent>) => {
       const circle = canvas
         .getObjects()
         .find((o) => o.type === 'circle' && o.visible);
