@@ -21,7 +21,7 @@ export default [
       },
       {
         file: packageJson.module,
-        format: 'es',
+        format: 'esm',
         sourcemap: !isProduction,
       },
     ],
@@ -36,7 +36,12 @@ export default [
       commonjs(),
       typescript({
         tsconfig: './tsconfig.json',
-        ...(!isProduction && { compilerOptions: { target: 'esnext' } }),
+        compilerOptions: {
+          sourceMap: !isProduction,
+          inlineSources: !isProduction,
+          ...(!isProduction && { target: 'esnext' }),
+        },
+        exclude: [],
       }),
       isProduction &&
         terser({
