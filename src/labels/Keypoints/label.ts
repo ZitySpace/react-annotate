@@ -67,18 +67,20 @@ export class KeypointsLabel extends Label {
     timestamp?: string;
     hash?: string;
   }) {
-    const labelType = LabelType.Keypoints;
-    const now = getLocalTimeISOString();
-
     super({
-      labelType,
+      labelType: LabelType.Keypoints,
       category,
       id,
       scale,
       offset,
       coordSystem,
-      timestamp: timestamp || now,
-      hash: hash || md5(now),
+      ...(() => {
+        const now = getLocalTimeISOString();
+        return {
+          timestamp: timestamp || now,
+          hash: hash || md5(now),
+        };
+      })(),
     });
 
     let pidNxt: number = Math.max(...keypoints.map((pt) => pt.pid ?? 0)) + 1;

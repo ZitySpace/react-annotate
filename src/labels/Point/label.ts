@@ -35,17 +35,20 @@ export class PointLabel extends Label {
     timestamp?: string;
     hash?: string;
   }) {
-    const labelType = LabelType.Point;
-    const now = getLocalTimeISOString();
     super({
-      labelType,
+      labelType: LabelType.Point,
       category,
       id,
       scale,
       offset,
       coordSystem,
-      timestamp: timestamp || now,
-      hash: hash || md5(now),
+      ...(() => {
+        const now = getLocalTimeISOString();
+        return {
+          timestamp: timestamp || now,
+          hash: hash || md5(now),
+        };
+      })(),
     });
     this.x = x;
     this.y = y;

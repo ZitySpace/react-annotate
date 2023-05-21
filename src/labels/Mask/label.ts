@@ -47,17 +47,20 @@ export class MaskLabel extends Label {
     timestamp?: string;
     hash?: string;
   }) {
-    const labelType = LabelType.Mask;
-    const now = getLocalTimeISOString();
     super({
-      labelType,
+      labelType: LabelType.Mask,
       category,
       id,
       scale,
       offset,
       coordSystem,
-      timestamp: timestamp || now,
-      hash: hash || md5(now),
+      ...(() => {
+        const now = getLocalTimeISOString();
+        return {
+          timestamp: timestamp || now,
+          hash: hash || md5(now),
+        };
+      })(),
     });
     paths.forEach((p) => {
       p.closed = p.closed ?? true;

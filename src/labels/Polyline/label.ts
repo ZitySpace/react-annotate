@@ -34,17 +34,20 @@ export class PolylineLabel extends Label {
     timestamp?: string;
     hash?: string;
   }) {
-    const labelType = LabelType.Polyline;
-    const now = getLocalTimeISOString();
     super({
-      labelType,
+      labelType: LabelType.Polyline,
       category,
       id,
       scale,
       offset,
       coordSystem,
-      timestamp: timestamp || now,
-      hash: hash || md5(now),
+      ...(() => {
+        const now = getLocalTimeISOString();
+        return {
+          timestamp: timestamp || now,
+          hash: hash || md5(now),
+        };
+      })(),
     });
     this.paths = paths;
   }

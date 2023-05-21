@@ -42,17 +42,20 @@ export class LineLabel extends Label {
     timestamp?: string;
     hash?: string;
   }) {
-    const labelType = LabelType.Line;
-    const now = getLocalTimeISOString();
     super({
-      labelType,
+      labelType: LabelType.Line,
       category,
       id,
       scale,
       offset,
       coordSystem,
-      timestamp: timestamp || now,
-      hash: hash || md5(now),
+      ...(() => {
+        const now = getLocalTimeISOString();
+        return {
+          timestamp: timestamp || now,
+          hash: hash || md5(now),
+        };
+      })(),
     });
     this.x1 = x1;
     this.y1 = y1;

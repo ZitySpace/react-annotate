@@ -39,17 +39,20 @@ export class BoxLabel extends Label {
     timestamp?: string;
     hash?: string;
   }) {
-    const labelType = LabelType.Box;
-    const now = getLocalTimeISOString();
     super({
-      labelType,
+      labelType: LabelType.Box,
       category,
       id,
       scale,
       offset,
       coordSystem,
-      timestamp: timestamp || now,
-      hash: hash || md5(now),
+      ...(() => {
+        const now = getLocalTimeISOString();
+        return {
+          timestamp: timestamp || now,
+          hash: hash || md5(now),
+        };
+      })(),
     });
     this.x = x;
     this.y = y;
