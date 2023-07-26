@@ -28,7 +28,6 @@ import {
   ReplaceIcon,
 } from '../../components/Icons';
 import { RADIUS } from '../config';
-import { ValueAnimation } from '@zityspace/fabric/src/util/animation/ValueAnimation';
 
 const OperationPanel = () => {
   const [curState, pushState] = useStore(CanvasStore, (s: CanvasStoreProps) => [
