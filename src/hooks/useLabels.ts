@@ -171,7 +171,7 @@ export const useLabels = () => {
       script.onload = setCVReady;
       script.type = 'text/javascript';
       script.async = true;
-      script.src = '/opencv.js'; // try to load from local server first
+      script.src = '/static/opencv.js'; // try to load from local server first
       script.onerror = () => {
         // if error occurs while loading from local server, try the external URL
         if (!isFallbackAttempted) {
