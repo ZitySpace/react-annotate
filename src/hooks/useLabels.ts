@@ -166,6 +166,7 @@ export const useLabels = () => {
 
   useEffect(() => {
     if (!window['cv']) {
+      let isFallbackAttempted = false; // flag to ensure only one fallback attempt
       const script = document.createElement('script');
       script.onload = setCVReady;
       script.type = 'text/javascript';
@@ -173,8 +174,11 @@ export const useLabels = () => {
       script.src = '/opencv.js'; // try to load from local server first
       script.onerror = () => {
         // if error occurs while loading from local server, try the external URL
-        script.src = 'https://docs.opencv.org/4.x/opencv.js';
-        document.body.appendChild(script);
+        if (!isFallbackAttempted) {
+          isFallbackAttempted = true;
+          script.src = 'https://docs.opencv.org/4.x/opencv.js';
+          document.body.appendChild(script);
+        }
       };
       document.body.appendChild(script);
     }
