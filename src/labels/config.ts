@@ -1,5 +1,5 @@
 import { checkImg } from '../components/Icons';
-import { TOriginX, TOriginY } from 'fabric/src/typedefs';
+import { TOriginX, TOriginY } from '@zityspace/fabric/src/typedefs';
 
 export const IS_TOUCH_SCREEN =
   typeof window !== 'undefined' && 'ontouchstart' in window;

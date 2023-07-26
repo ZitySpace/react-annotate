@@ -1,5 +1,5 @@
 import produce, { enableMapSet } from 'immer';
-import * as fabric from 'fabric';
+import * as fabric from '@zityspace/fabric';
 import { createContext } from 'react';
 import { createStore, StoreApi } from 'zustand';
 import { DataState } from '../interfaces/basic';

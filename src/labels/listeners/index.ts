@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { TPointerEventInfo as IEvent } from 'fabric/src/EventTypeDefs';
+import { TPointerEventInfo as IEvent } from '@zityspace/fabric/src/EventTypeDefs';
 import { setup } from './setup';
 import { useDefaultListeners } from './default';
 import { useBoxListeners } from '../Box/listeners';

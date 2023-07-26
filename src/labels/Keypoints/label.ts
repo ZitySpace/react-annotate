@@ -1,5 +1,5 @@
 import randomColor from 'randomcolor';
-import * as fabric from 'fabric';
+import * as fabric from '@zityspace/fabric';
 import md5 from 'md5';
 import {
   Label,

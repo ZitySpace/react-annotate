@@ -1,4 +1,4 @@
-import * as fabric from 'fabric';
+import * as fabric from '@zityspace/fabric';
 
 export enum LabelType {
   None = 'none',

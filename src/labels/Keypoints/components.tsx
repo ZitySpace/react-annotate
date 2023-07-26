@@ -1,4 +1,4 @@
-import * as fabric from 'fabric';
+import * as fabric from '@zityspace/fabric';
 import React, { useState, useRef } from 'react';
 import { useStore } from 'zustand';
 import { KeypointsStore, KeypointsStoreProps } from './store';
@@ -28,7 +28,7 @@ import {
   ReplaceIcon,
 } from '../../components/Icons';
 import { RADIUS } from '../config';
-import { ValueAnimation } from 'fabric/src/util/animation/ValueAnimation';
+import { ValueAnimation } from '@zityspace/fabric/src/util/animation/ValueAnimation';
 
 const OperationPanel = () => {
   const [curState, pushState] = useStore(CanvasStore, (s: CanvasStoreProps) => [
@@ -113,7 +113,7 @@ const OperationPanel = () => {
 
   const advDrawing = listenerGroup.current === 'keypoints:draw:advanced';
 
-  const animation = useRef<NodeJS.Timer | null>(null);
+  const animation = useRef<number | null>(null);
 
   const hlAnimation = (pid: number, startOrStop: string) => {
     if (!canvas || disabled) return;

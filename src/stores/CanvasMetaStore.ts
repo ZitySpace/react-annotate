@@ -1,4 +1,4 @@
-import * as fabric from 'fabric';
+import * as fabric from '@zityspace/fabric';
 import { createContext } from 'react';
 import { createStore, StoreApi } from 'zustand';
 

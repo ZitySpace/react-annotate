@@ -1,5 +1,5 @@
-import * as fabric from 'fabric';
-import { TPointerEventInfo as IEvent } from 'fabric/src/EventTypeDefs';
+import * as fabric from '@zityspace/fabric';
+import { TPointerEventInfo as IEvent } from '@zityspace/fabric/src/EventTypeDefs';
 
 import { useStore } from 'zustand';
 import { useRef, useEffect } from 'react';

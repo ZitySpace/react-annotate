@@ -1,4 +1,4 @@
-import { TPointerEventInfo as IEvent } from 'fabric/src/EventTypeDefs';
+import { TPointerEventInfo as IEvent } from '@zityspace/fabric/src/EventTypeDefs';
 import { LabelType, LabeledObject } from '../Base';
 import { PointLabel } from '../Point/label';
 import { LineLabel } from '../Line/label';

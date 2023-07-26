@@ -1,7 +1,7 @@
-import * as fabric from 'fabric';
+import * as fabric from '@zityspace/fabric';
 import React, { useEffect, useRef } from 'react';
 import { CANVAS_CONFIG } from '../labels/config';
-import { TMat2D } from 'fabric/src/typedefs';
+import { TMat2D } from '@zityspace/fabric/src/typedefs';
 
 import {
   CanvasMetaStore,

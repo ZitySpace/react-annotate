@@ -1,5 +1,5 @@
 import md5 from 'md5';
-import * as fabric from 'fabric';
+import * as fabric from '@zityspace/fabric';
 import { useEffect } from 'react';
 import { useStore } from 'zustand';
 import { Label, LabeledObject, LabelType } from '../labels';
