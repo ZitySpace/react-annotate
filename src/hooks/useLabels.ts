@@ -166,12 +166,20 @@ export const useLabels = () => {
 
   useEffect(() => {
     if (!window['cv']) {
+      let isFallbackAttempted = false; // flag to ensure only one fallback attempt
       const script = document.createElement('script');
       script.onload = setCVReady;
       script.type = 'text/javascript';
       script.async = true;
-      script.src =
-        'https://zityspace-public.s3.cn-north-1.amazonaws.com.cn/opencv.js';
+      script.src = '/static/opencv.js'; // try to load from local server first
+      script.onerror = () => {
+        // if error occurs while loading from local server, try the external URL
+        if (!isFallbackAttempted) {
+          isFallbackAttempted = true;
+          script.src = 'https://docs.opencv.org/4.x/opencv.js';
+          document.body.appendChild(script);
+        }
+      };
       document.body.appendChild(script);
     }
   }, [window['cv']]);
