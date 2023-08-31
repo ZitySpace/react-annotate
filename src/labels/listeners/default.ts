@@ -39,6 +39,7 @@ export const useDefaultListeners = () => {
     vpt[5] =
       offsetY > 0 ? offsetY / 2 : getBoundedValue(vpt[5] + y, offsetY, 0);
     canvas.requestRenderAll();
+    canvas.getObjects().forEach((obj) => obj.setCoords());
   };
 
   const sharedListeners = {
